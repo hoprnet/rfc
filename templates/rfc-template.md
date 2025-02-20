@@ -1,11 +1,11 @@
-# RFC-XXXX: <RFC Title>
+# RFC-XXXX: \<RFC Title\>
 
 - **RFC Number:** XXXX  
-- **Title:** <RFC Title in Title Case>  
+- **Title:** \<RFC Title in Title Case\>  
 - **Status:** Raw | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded  
-- **Author(s):** <Name (GitHub Handle)>  
-- **Created:** <YYYY-MM-DD>  
-- **Updated:** <YYYY-MM-DD>  
+- **Author(s):** \<Name (GitHub Handle)\>  
+- **Created:** \<YYYY-MM-DD\>  
+- **Updated:** \<YYYY-MM-DD\>  
 - **Version:** v0.x.x (Raw), v1.x.x (Finalized)  
 - **Supersedes:** RFC-YYYY (if applicable)  
 - **References:** [Related RFCs or Documentation Links]
@@ -16,7 +16,8 @@ Provide a brief and clear summary of the RFC, outlining its purpose, context, an
 
 ## Motivation
 
-Explain the problem this RFC aims to solve. Discuss existing limitations, technical gaps, and why the proposed solution is necessary.
+Explain the problem this RFC aims to solve.
+Discuss existing limitations, technical gaps, and why the proposed solution is necessary.
 
 ## Terminology
 
@@ -30,6 +31,7 @@ Comprehensive description of the proposed solution, including:
 - Technical details (data formats, APIs, endpoints)
 - Supported use cases
 - Diagrams (stored in `assets/` and referenced as `![Diagram](assets/diagram-name.png)`)
+
 ```mermaid
 flowchart LR
 
@@ -70,6 +72,7 @@ Suggest potential areas for future exploration, enhancements, or iterations.
 ## References
 
 Include all relevant references, such as:
+
 - Other RFCs
 - Research papers
 - External documentation
