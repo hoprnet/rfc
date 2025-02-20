@@ -12,59 +12,43 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Validate Markdown Files
-      uses: DavidAnson/markdownlint-cli2-action@v10
+      uses: DavidAnson/markdownlint-cli2-action@v19
       with:
         files: "**/*.md"
+        config: ".markdownlint.json"
 
-    - name: Validate Repository and File Structure
+    - name: Validate RFC Repository Structure
       run: |
-        echo "Validating repository naming convention..."
-        repo_name=$(basename $(pwd))
-        if [[ ! "$repo_name" =~ ^RFC-[0-9]{4}-[a-z0-9-]+$ ]]; then
-          echo "❌ Repository name '$repo_name' does not follow 'RFC-XXXX-rfc-title' pattern."
-          exit 1
-        fi
+        echo "🔍 Validating repository structure..."
+        for repo in $(find . -maxdepth 1 -type d -name 'RFC-*'); do
+          echo "Validating $repo"
+          base=$(basename "$repo")
+          expected_file=$(echo "$base" | sed -E 's/^RFC-([0-9]{4})-([a-z0-9-]+)/\\1-\\2.md/')
 
-        echo "Validating top-level files and folders..."
-        expected_file=$(echo "$repo_name" | sed 's/^RFC-\([0-9]\{4\}\)-/\1-/').md
-        for file in $(find . -maxdepth 1 -type f); do
-          filename=$(basename "$file")
-          if [[ "$filename" != "$expected_file" ]]; then
-            echo "❌ Top-level markdown file must be named '$expected_file'. Found: $filename"
+          if [ ! -f "$repo/$expected_file" ]; then
+            echo "❌ Missing main RFC file: $expected_file in $repo"
             exit 1
           fi
-        done
 
-        echo "Checking folder structure..."
-        for folder in $(find . -mindepth 1 -maxdepth 1 -type d); do
-          foldername=$(basename "$folder")
-          if [[ "$foldername" != "assets" && "$foldername" != "errata" ]]; then
-            echo "❌ Only 'assets/' and 'errata/' folders are allowed at the root level. Found: $foldername"
-            exit 1
-          fi
-        done
-
-    - name: Validate Assets Folder
-      run: |
-        echo "Checking 'assets/' folder..."
-        if [ ! -d "assets" ]; then
-          echo "⚠️ 'assets/' folder not found. Create this folder if assets are needed."
-        fi
-
-    - name: Validate Errata Folder
-      run: |
-        echo "Checking 'errata/' folder structure..."
-        if [ -d "errata" ]; then
-          for erratum_file in $(find errata -type f); do
-            erratum_filename=$(basename "$erratum_file")
-            if [[ ! "$erratum_filename" =~ ^[0-9]{4}-v[0-9]+\.[0-9]+\.[0-9]+-erratum\.md$ ]]; then
-              echo "❌ Erratum file '$erratum_filename' does not follow 'XXXX-vX.X.X-erratum.md' pattern."
+          for folder in $(find "$repo" -mindepth 1 -maxdepth 1 -type d); do
+            foldername=$(basename "$folder")
+            if [[ "$foldername" != "assets" && "$foldername" != "errata" ]]; then
+              echo "❌ Invalid folder '$foldername' in $repo. Only 'assets/' and 'errata/' allowed."
               exit 1
             fi
           done
-        else
-          echo "✅ No 'errata/' folder found. Skipping errata validation."
-        fi
+
+          if [ -d "$repo/errata" ]; then
+            echo "🔍 Validating errata folder in $repo..."
+            for erratum in "$repo"/errata/*.md; do
+              erratum_file=$(basename "$erratum")
+              if [[ ! "$erratum_file" =~ ^[0-9]{4}-v[0-9]+\\.[0-9]+\\.[0-9]+-erratum\\.md$ ]]; then
+                echo "❌ Invalid erratum file naming: $erratum_file"
+                exit 1
+              fi
+            done
+          fi
+        done
 
     - name: Validate Mermaid Diagrams
       run: |
