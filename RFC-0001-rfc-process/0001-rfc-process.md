@@ -28,7 +28,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 "MAY", and "OPTIONAL" in this document are to be interpreted as described
 in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
-**Draft:** An RFC is considered a draft from the moment it is proposed.
+**Draft:** An RFC is considered a draft from the moment it is proposed for review.
 A draft MUST include a clear summary, context, and initial technical details.
 Drafts MUST follow the v0.x.x versioning scheme, with each version being independently implementable.
 A draft version is assigned as soon as the first PR is created.
@@ -41,14 +41,14 @@ A draft version is assigned as soon as the first PR is created.
 
 ```mermaid
 graph TD;
-    A[Raw] --> B[Discussion];
-    B --> C[Review];
-    C --> D[Prototype - v0.x.x];
+    A[Raw - Initial unstructured ideas] --> B[Discussion - Collaborative refinement with feedback];
+    B --> C[Review - Focused evaluation to assess feasibility];
+    C --> D[Draft (v0.x.x) - Structured proposal ready for development, each version independently implementable];
     D --> E[Implementation - PR Merge];
-    E --> F[Finalized - v1.0.0];
-    F --> G[Errata - v1.0.x];
-    F --> H[Superseded - New RFC];
-    A --> I[Rejected - Documented Reasons];
+    E --> F[Finalized (v1.0.0) - Stable and complete RFC];
+    F --> G[Errata (v1.0.x) - Minor technical corrections post-finalization];
+    F --> H[Superseded - New RFC required for significant updates];
+    A --> I[Rejected - Documented reasons for rejection];
 ```
 
 #### **Stage Descriptions:**
@@ -59,7 +59,7 @@ The draft MAY contain incomplete details but MUST provide a clear objective.
 Feedback SHALL be gathered via PRs, with iterative updates reflected in version increments `(v0.x.x)`.
 - **Review:** The RFC **MUST** undergo at least one review cycle.
 The draft **SHOULD** incorporate significant feedback and each iteration **MUST** be independently implementable.
-- **Prototype:** The RFC moves into active development and refinement.
+- **Draft:** The RFC moves into active development and refinement.
 Each update **SHALL** increment the version (`v0.x.x`) to indicate progress.
 - **Implementation:** Merging to the main branch signifies readiness for practical use, triggering the finalization process.
 - **Finalized:** The RFC is considered stable and complete, with version `v1.0.0` assigned.
@@ -69,7 +69,8 @@ and result in a patch version increment (`v1.0.x`).
 Errata are technical corrections or factual updates made after an RFC has been finalized.
 They **MUST NOT** alter the intended functionality or introduce new features.
 - **Superseded:** Significant updates requiring functionality changes **MUST** be documented in a new RFC,
-starting at `v2.0.0` or higher.
+starting at `v2.0.0` or higher. The original RFC must include information that it has been superseded,
+accompanied with a link to the new RFC that supersedes it.
 - **Rejected:** If an RFC does not progress past the discussion stage, reasons **MUST** be documented.
 
 ### 2. File Structure
@@ -88,8 +89,10 @@ RFC-0001-rfc-life-cycle-process/
 
 ### 3. Validation Rules
 
-- Repository **MUST** be named: `RFC-0001-rfc-life-cycle-process`
-- Main file **MUST** be named: `0001-rfc-life-cycle-process.md`
+- Repository **MUST** be prefixed with uppercased "RFC", followed by its RFC number,
+and a succinct title all in lowercase joined by hyphens. E.g. `RFC-0001-rfc-life-cycle-process`
+- Main file **MUST** be prefixed with its RFC number and a succinct title
+all in lowercase joined by hyphens. E.g. `0001-rfc-life-cycle-process.md`
 - All assets **MUST** reside in the `assets/` folder.
 - Errata **MUST** reside in the `errata/` folder.
 
