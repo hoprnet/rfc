@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Validate Markdown Files
       uses: DavidAnson/markdownlint-cli2-action@v19
@@ -21,32 +21,38 @@ jobs:
       run: |
         echo "🔍 Validating repository structure..."
         for repo in $(find . -maxdepth 1 -type d -name 'RFC-*'); do
-          echo "Validating $repo"
+          echo "🔍 Validating $repo"
           base=$(basename "$repo")
-          expected_file=$(echo "$base" | sed -E 's/^RFC-([0-9]{4})-([a-z0-9-]+)/\\1-\\2.md/')
+          expected_file=$(echo "$base" | sed -E 's/^RFC-([0-9]{4})-(.*)/\1-\2.md/')
 
           if [ ! -f "$repo/$expected_file" ]; then
-            echo "❌ Missing main RFC file: $expected_file in $repo"
-            exit 1
+          echo "❌ Missing main RFC file: $expected_file in $repo"
+          echo "   ➔ Expected file path: $repo/$expected_file"
+          echo "   ➔ Please ensure the file matches the pattern 'XXXX-rfc-name.md'"
+          exit 1
           fi
 
+          echo "✅ Main RFC file found: $expected_file"
+
           for folder in $(find "$repo" -mindepth 1 -maxdepth 1 -type d); do
-            foldername=$(basename "$folder")
-            if [[ "$foldername" != "assets" && "$foldername" != "errata" ]]; then
+          foldername=$(basename "$folder")
+          if [[ "$foldername" != "assets" && "$foldername" != "errata" ]]; then
               echo "❌ Invalid folder '$foldername' in $repo. Only 'assets/' and 'errata/' allowed."
               exit 1
-            fi
+          fi
           done
 
           if [ -d "$repo/errata" ]; then
-            echo "🔍 Validating errata folder in $repo..."
-            for erratum in "$repo"/errata/*.md; do
+          echo "🔍 Validating errata folder in $repo..."
+          for erratum in "$repo"/errata/*.md; do
               erratum_file=$(basename "$erratum")
-              if [[ ! "$erratum_file" =~ ^[0-9]{4}-v[0-9]+\\.[0-9]+\\.[0-9]+-erratum\\.md$ ]]; then
-                echo "❌ Invalid erratum file naming: $erratum_file"
-                exit 1
+              if [[ ! "$erratum_file" =~ ^[0-9]{4}-v[0-9]+\.[0-9]+\.[0-9]+-erratum\.md$ ]]; then
+              echo "❌ Invalid erratum file naming: $erratum_file"
+              echo "   ➔ Expected pattern: 'XXXX-vX.X.X-erratum.md'"
+              exit 1
               fi
-            done
+          done
+          echo "✅ Errata folder validated successfully."
           fi
         done
 
