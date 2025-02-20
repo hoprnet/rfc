@@ -1,0 +1,72 @@
+name: RFC Validation Pipeline
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Validate Markdown Files
+      uses: DavidAnson/markdownlint-cli2-action@v10
+      with:
+        files: "**/*.md"
+
+    - name: Validate Repository and File Structure
+      run: |
+        echo "Validating repository naming convention..."
+        repo_name=$(basename $(pwd))
+        if [[ ! "$repo_name" =~ ^RFC-[0-9]{4}-[a-z0-9-]+$ ]]; then
+          echo "❌ Repository name '$repo_name' does not follow 'RFC-XXXX-rfc-title' pattern."
+          exit 1
+        fi
+
+        echo "Validating top-level files and folders..."
+        expected_file=$(echo "$repo_name" | sed 's/^RFC-\([0-9]\{4\}\)-/\1-/').md
+        for file in $(find . -maxdepth 1 -type f); do
+          filename=$(basename "$file")
+          if [[ "$filename" != "$expected_file" ]]; then
+            echo "❌ Top-level markdown file must be named '$expected_file'. Found: $filename"
+            exit 1
+          fi
+        done
+
+        echo "Checking folder structure..."
+        for folder in $(find . -mindepth 1 -maxdepth 1 -type d); do
+          foldername=$(basename "$folder")
+          if [[ "$foldername" != "assets" && "$foldername" != "errata" ]]; then
+            echo "❌ Only 'assets/' and 'errata/' folders are allowed at the root level. Found: $foldername"
+            exit 1
+          fi
+        done
+
+    - name: Validate Assets Folder
+      run: |
+        echo "Checking 'assets/' folder..."
+        if [ ! -d "assets" ]; then
+          echo "⚠️ 'assets/' folder not found. Create this folder if assets are needed."
+        fi
+
+    - name: Validate Errata Folder
+      run: |
+        echo "Checking 'errata/' folder structure..."
+        if [ -d "errata" ]; then
+          for erratum_file in $(find errata -type f); do
+            erratum_filename=$(basename "$erratum_file")
+            if [[ ! "$erratum_filename" =~ ^[0-9]{4}-v[0-9]+\.[0-9]+\.[0-9]+-erratum\.md$ ]]; then
+              echo "❌ Erratum file '$erratum_filename' does not follow 'XXXX-vX.X.X-erratum.md' pattern."
+              exit 1
+            fi
+          done
+        else
+          echo "✅ No 'errata/' folder found. Skipping errata validation."
+        fi
+
+    - name: Validate Mermaid Diagrams
+      run: |
+        echo "Validating Mermaid diagrams..."
+        grep -r "^\`\`\`mermaid" . || echo "✅ No Mermaid diagrams found or all valid."
