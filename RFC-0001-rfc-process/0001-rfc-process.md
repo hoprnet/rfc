@@ -108,7 +108,7 @@ RFC-0001-rfc-life-cycle-process/
 
 ### 3. Validation Rules
 
-- Repository **MUST** be prefixed with uppercased "RFC", followed by its RFC number,
+- Directory **MUST** be prefixed with uppercased "RFC", followed by its RFC number,
 and a succinct title all in lowercase joined by hyphens. E.g. `RFC-0001-rfc-life-cycle-process`
 - Main file **MUST** be prefixed with its RFC number and a succinct title
 all in lowercase joined by hyphens. E.g. `0001-rfc-life-cycle-process.md`
