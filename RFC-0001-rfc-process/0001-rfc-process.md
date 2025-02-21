@@ -40,15 +40,34 @@ A draft version is assigned as soon as the first PR is created.
 #### **Mermaid Diagram for RFC Life Cycle Stages**
 
 ```mermaid
-graph TD;
-    A[Raw - Initial unstructured ideas] --> B[Discussion - Collaborative refinement with feedback];
-    B --> C[Review - Focused evaluation to assess feasibility];
-    C --> D[Draft (v0.x.x) - Structured proposal ready for development, each version independently implementable];
-    D --> E[Implementation - PR Merge];
-    E --> F[Finalized (v1.0.0) - Stable and complete RFC];
-    F --> G[Errata (v1.0.x) - Minor technical corrections post-finalization];
-    F --> H[Superseded - New RFC required for significant updates];
-    A --> I[Rejected - Documented reasons for rejection];
+graph TD
+    A["`**Raw**
+      Initial unstructured ideas`"]
+    B["`**Discussion**
+      Collaborative refinement with feedback`"]
+    C["`**Review**
+      Focused evaluation to assess feasibility`"]
+    D["`**Draft** (v0.x.x)
+      Structured proposal ready for development, each version independently implementable`"]
+    E["`**Implementation**
+      PR Merge`"]
+    F["`**Finalized** (v1.0.0)
+      Stable and complete RFC`"]
+    G["`**Errata** (v1.0.x)
+      Minor technical corrections post-finalization`"]
+    H["`**Superseded**
+      New RFC required for significant updates`"]
+    I["`**Rejected**
+      Documented reasons for rejection`"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    F --> H
+    A --> I
 ```
 
 #### **Stage Descriptions:**
