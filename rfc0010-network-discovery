@@ -1,78 +1,115 @@
-# RFC-0010: \<RFC Title\>
+# RFC-0010: Network path discovery mechanism
 
 - **RFC Number:** 0010
 - **Title:** Network path discovery  
-- **Status:** Raw # | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded  
+- **Status:** Raw
 - **Author(s):** @Teebor-Choka  
 - **Created:** 2025-02-25  
 - **Updated:** 2025-03-05  
-- **Version:** v0.0.0 (Raw)     #, v1.x.x (Finalized)  
+- **Version:** v0.0.0 (Raw)
 - **Supersedes:** None 
-- **References:** [Related RFCs or Documentation Links]
+- **References:** **TODO**
 
 ## Abstract
 
-Provide a brief and clear summary of the RFC, outlining its purpose, context, and scope.
+The document describes a mechanism allowing real-time HOPR network probing using the HOPR transport mechanics, allowing construction of optimal anonymous paths for data transfer using HOPR protocol.
 
 ## Motivation
 
-Explain the problem this RFC aims to solve.
-Discuss existing limitations, technical gaps, and why the proposed solution is necessary.
+Bidirectional structured communication over the HOPR protocol requires the communication source to construct communication paths for communication over both directions in order to retain anonymity against the target.
+
+For the communication source to be able to assemble viable paths in the HOPR network and ensure maximum communication efficiency in the form of message delivery, it must be able to construct a realistic view of the current network status.
+
+HOPR protocol ensures anonymity by allowing the communication source to generate the entire transport path, thereby ensuring that intermediate relay nodes can only relay the data, but cannot affect the transport path taken.
+
+For uni- and bi-directional communication to react to the changing nature of the network the communication source must actively probe the network in a transparent way that will not allow the relays to identify the probing traffic in the actual data traffic and will allow the source to probe different properties of the transport path in order to construct a realistic transport graph serving as a basis for automatic path selection.
+
 
 ## Terminology
 
-Define key terms, abbreviations, and domain-specific language used throughout the RFC.
+Source - source generating the messages 
 
 ## Specification
 
-Comprehensive description of the proposed solution, including:
 
-- Protocol overview
-- Technical details (data formats, APIs, endpoints)
-- Supported use cases
-- Diagrams (stored in `assets/` and referenced as `![Diagram](assets/diagram-name.png)`)
-
-```mermaid
-flowchart LR
-
-A[Hard] -->|Text| B(Round)
-B --> C{Decision}
-C -->|One| D[Result 1]
-C -->|Two| E[Result 2]
-```
 
 ## Design Considerations
 
 Discuss critical design decisions, trade-offs, and justification for chosen approaches over alternatives.
 
+p2p transport level mechanism only
+
+Probing mechanism:
+1. immediate 0-hop: observe only whether ACK arrived from the counterparty and how long it took for it to arrive.
+2. 1-hop to self: first order checks - immediate peer connections - does not check anything extra other than 1, but does it in a stealthy way
+3. 2-hop to self: checks second order communication, can replace some 3-hop paths to decrease probing paths
+4. 3-hop to self: full path bidirectional channel probing for 1-hop
+
+Algorithm:
+- discovery algorithm works in competing modes: bread and width first
+- basic operations:
+  1. discover immediate peers
+  2. generate paths for n-hop connections (referential probing = low frequency)
+  3. for sessions prepopulate the cache from 
+  4. perform higher frequency checks up to X% of the original traffic
+
+
+Metrics:
+1. the connection to the node exists
+2. the latency of the connection 
+3. path traversability by sending a message
+4. telemetry (transfered as a message content)
+   - iterating counter to verify the mixing property over a path (must be certain mixed attribute)
+   - path identification for attribution
+   - send timestamp for channel latency observations
+- calculate load balancing over paths based on the min stake on the path
+
+Infrastructure changes:
+- remove the concept of channel graph's quality based on Network observations
+  - keep only the onchain channel
+- add a process:
+  - to generate a low rate continuous stream of all network paths
+  - to generate session specific paths for session obfuscation
+- new path graph resulting from this (binary option)
+- cache paths for a specific configurable minimal time window
+- session incorporation: session level metrics, session specific path probing, session derived cover traffic exploratory flow
+
+TESTING:
+- 2 types of graphs: sparsly connected, fully connected
+
+
 ## Compatibility
 
-Address backward compatibility, migration paths, and impact on existing systems.
+There is no backwards compatibility or incompatibility, this feature affects only a single node in the network that can arbitrarily change the behavior without affecting the network.
 
 ## Security Considerations
 
-Identify potential security risks, threat models, and mitigation strategies.
+The probing traffic is not free in terms of both the physical resources, as well as the value incurred on various levels of the HOPR protocol stack.
+
+Given a sufficiently volatile network, adversarial behavior could cause expenditure of the resources facilitating a draining attack.
 
 ## Drawbacks
 
-Discuss potential downsides, risks, or limitations associated with the proposed solution.
+The probing mechanism has several drawbacks:
+
+1. The probing activity is not free and a careful algorithm must be chosen to balance the probing and data transmission activity within a reasonable ratio.
+2. Fully probing large networks in real time is unfeasible, therefore the algorithm should always be capped into a certain subnetwork within which it can offer reasonable guarantess about network visibility.
+3. A priori knowledge about targets of interest is desired to minimize the time before the initial view of the network is established to allow non-blind data transmission.
 
 ## Alternatives
 
-Outline alternative approaches that were considered and reasons for their rejection.
+There are no alternative mechanisms that would retain the anonymity, hold trustless assumptions and consolidate the control over the probing mechanism under the communication source.
 
 ## Unresolved Questions
 
-Highlight questions or issues that remain open for discussion.
+
 
 ## Future Work
 
-Suggest potential areas for future exploration, enhancements, or iterations.
+Future exploration should focus on:
+
+1. improving the ability to collect additional network metrics primarily by extending the data payload transmitted along the loopback path
+2. new path generating strategies allowing statistical inference of information from the path section overlaps.
 
 ## References
 
-Include all relevant references, such as:
-
-- Other RFCs
-- Research papers
-- External documentation
