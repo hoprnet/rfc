@@ -37,7 +37,6 @@ producer - node originating the messages in the mixnet
 consumer - node receiving the message in the mixnet
 relayer - node passing the message from one of producer/relayer to one of consumer/relayer
 
-
 ## Design Considerations
 
 Each producer SHOULD:
@@ -45,15 +44,32 @@ Each producer SHOULD:
 - be capable of identifying unstable, malicious or adversarial nodes
 - be able to establish basic propagation metrics for Quality of Service (QoS) estimation
 
-Given the capabilities from the previous paragraph, the message producer is able to establish a workable snapshot of the network, its topology, state and constraints, allowing for optimal selection or slashing of message propagation paths. 
+Given the capabilities from the previous paragraph, the message producer should be able to establish a workable snapshot of the network, its topology, state and constraints, allowing for optimal selection or slashing of message propagation paths.
 
-The measurement or probing traffic MUST be indistinguishible from the ordinary traffic in order to gaurantee that proper message propagation characterstics of the network nodes are recorded. Due to dynamic and unstable nature of the decentralized peer-to-peer nature of the mixnet, the message producer SHOULDa
-For uni- and bi-directional communication to react to the changing nature of the network the producer MUST actively probe the network in a continuous manner.
+The probing traffic and measurement packets MUST be indistinguishible from the ordinary traffic in order to gaurantee recording of proper private message propagation characterstics of the network nodes. Due to dynamic and unstable nature of the decentralized peer-to-peer nature of the mixnet, the message producer SHOULD use a dynamic mechanism for establishing 
 
+For uni- and bi-directional communication to react to the changing nature of the network the producer MUST actively probe the network in a **continuous** manner.
 
-Discuss critical design decisions, trade-offs, and justification for chosen approaches over alternatives.
+The measurement traffic itself SHOULD obey economic feasability, i.e. it SHOULD be proportional to the actual traffic and COULD be used as part of the Cover Traffic (CT).
 
-p2p transport level mechanism only
+Any measurements obtained from the probing traffic SHOULD be node specific and MUST not be subject to data or topology exchange with other nodes.
+
+The collected telemetry for measured path:
+* MUST contain the path passability
+  * path traversability by a single or multiple message
+* COULD be used to provide extra information
+  1. the latency of message propagation over the path 
+  2. 
+  3. telemetry (transfered as a message content)
+     - iterating counter to verify the mixing property over a path (must be certain mixed attribute)
+     - path identification for attribution
+     - send timestamp for channel latency observations
+
+- calculate load balancing over paths based on the min stake on the path
+
+By having the probing traffic indistinguishable from the actual message propagation in the mixnet, it is not possible to verify some immediate properties of the nearest peers. For this purpose a separate mechanism not described in this document SHOULD exist.
+
+TODO: could there be a pure p2p transport level mechanism only?
 
 Probing mechanism:
 1. immediate 0-hop: observe only whether ACK arrived from the counterparty and how long it took for it to arrive.
@@ -70,15 +86,7 @@ Algorithm:
   4. perform higher frequency checks up to X% of the original traffic
 
 
-Metrics:
-1. the connection to the node exists
-2. the latency of the connection 
-3. path traversability by sending a message
-4. telemetry (transfered as a message content)
-   - iterating counter to verify the mixing property over a path (must be certain mixed attribute)
-   - path identification for attribution
-   - send timestamp for channel latency observations
-- calculate load balancing over paths based on the min stake on the path
+
 
 Infrastructure changes:
 - remove the concept of channel graph's quality based on Network observations
@@ -90,13 +98,15 @@ Infrastructure changes:
 - cache paths for a specific configurable minimal time window
 - session incorporation: session level metrics, session specific path probing, session derived cover traffic exploratory flow
 
-TESTING:
-- 2 types of graphs: sparsly connected, fully connected
-
 
 
 ## Specification
 
+
+Telemetry packet content:
+  - iterating counter to verify the mixing property over a path (must be certain mixed attribute)
+  - path identification for attribution
+  - send timestamp for channel latency observations
 
 
 ## Compatibility
