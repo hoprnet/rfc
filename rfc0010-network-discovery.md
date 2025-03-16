@@ -98,6 +98,50 @@ Infrastructure changes:
 - cache paths for a specific configurable minimal time window
 - session incorporation: session level metrics, session specific path probing, session derived cover traffic exploratory flow
 
+```mermaid
+graph TD;
+    A -->|blue| F;
+    A -->|blue| H;
+    A -->|blue| E;
+    A -->|blue| C;
+    A -->|red| D;
+    A -->|red| B;
+    A -->|red| J;
+    A -->|red| C;
+    
+    B -->|green| I;
+    B -->|green| G;
+    
+    D -->|green| J;
+    
+    E -->|green| D;
+    E -->|green| K;
+    
+    F -->|green| L;
+    F -->|blue| A;
+    
+    G -->|red| M;
+    
+    H -->|green| D;
+    H -->|blue| A;
+    
+    I -->|green| C;
+    I -->|red| O;
+    
+    L -->|red| E;
+    
+    M -->|green| F;
+    M -->|red| N;
+    
+    N -->|red| M;
+    N -->|green| H;
+    
+    O -->|red| I;
+    
+    C -->|blue| A;
+    C -->|green| I;
+    C -.-|red| C;
+```
 
 
 ## Specification
