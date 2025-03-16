@@ -58,45 +58,18 @@ The collected telemetry for measured path:
 * MUST contain the path passability
   * path traversability by a single or multiple message
 * COULD be used to provide extra information
-  1. the latency of message propagation over the path 
-  2. 
-  3. telemetry (transfered as a message content)
-     - iterating counter to verify the mixing property over a path (must be certain mixed attribute)
-     - path identification for attribution
-     - send timestamp for channel latency observations
-
-- calculate load balancing over paths based on the min stake on the path
+  * telemetry transfered as a message content
 
 By having the probing traffic indistinguishable from the actual message propagation in the mixnet, it is not possible to verify some immediate properties of the nearest peers. For this purpose a separate mechanism not described in this document SHOULD exist.
 
 TODO: could there be a pure p2p transport level mechanism only?
 
-Probing mechanism:
-1. immediate 0-hop: observe only whether ACK arrived from the counterparty and how long it took for it to arrive.
-2. 1-hop to self: first order checks - immediate peer connections - does not check anything extra other than 1, but does it in a stealthy way
-3. 2-hop to self: checks second order communication, can replace some 3-hop paths to decrease probing paths
-4. 3-hop to self: full path bidirectional channel probing for 1-hop
-
-Algorithm:
-- discovery algorithm works in competing modes: bread and width first
-- basic operations:
-  1. discover immediate peers
-  2. generate paths for n-hop connections (referential probing = low frequency)
-  3. for sessions prepopulate the cache from 
-  4. perform higher frequency checks up to X% of the original traffic
 
 
+## Specification
 
-
-Infrastructure changes:
-- remove the concept of channel graph's quality based on Network observations
-  - keep only the onchain channel
-- add a process:
-  - to generate a low rate continuous stream of all network paths
-  - to generate session specific paths for session obfuscation
-- new path graph resulting from this (binary option)
-- cache paths for a specific configurable minimal time window
-- session incorporation: session level metrics, session specific path probing, session derived cover traffic exploratory flow
+### Referential network topology
+The referential network topology introducing all types of possible situations in the oriented network graph are represented in the referential topology for this document.
 
 ```mermaid
 graph TD;
@@ -131,13 +104,44 @@ graph TD;
 ```
 
 
-## Specification
+### Throughput considerations
+Paths SHOULD be used by the discovery mechanism in a way that would allow sustained throughput, i.e. the maximum achievable packet rate 
+- calculate load balancing over paths based on the min stake on the path
+- actual throughput as measured by the real traffic
+- how to combine these together??
 
 
+### Probing mechanism
+1. immediate 0-hop: observe only whether ACK arrived from the counterparty and how long it took for it to arrive.
+2. 1-hop to self: first order checks - immediate peer connections - does not check anything extra other than 1, but does it in a stealthy way
+3. 2-hop to self: checks second order communication, can replace some 3-hop paths to decrease probing paths
+4. 3-hop to self: full path bidirectional channel probing for 1-hop
+
+Algorithm:
+- discovery algorithm works in competing modes: bread and width first
+- basic operations:
+  1. discover immediate peers
+  2. generate paths for n-hop connections (referential probing = low frequency)
+  3. for sessions prepopulate the cache from 
+  4. perform higher frequency checks up to X% of the original traffic
+
+
+### Telemetry
 Telemetry packet content:
   - iterating counter to verify the mixing property over a path (must be certain mixed attribute)
   - path identification for attribution
   - send timestamp for channel latency observations
+
+### Component requirements
+Infrastructure changes:
+- remove the concept of channel graph's quality based on Network observations
+  - keep only the onchain channel
+- add a process:
+  - to generate a low rate continuous stream of all network paths
+  - to generate session specific paths for session obfuscation
+- new path graph resulting from this (binary option)
+- cache paths for a specific configurable minimal time window
+- session incorporation: session level metrics, session specific path probing, session derived cover traffic exploratory flow
 
 
 ## Compatibility
