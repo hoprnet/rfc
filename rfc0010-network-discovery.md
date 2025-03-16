@@ -100,47 +100,34 @@ Infrastructure changes:
 
 ```mermaid
 graph TD;
-    A -->|blue| F;
-    A -->|blue| H;
-    A -->|blue| E;
-    A -->|blue| C;
-    A -->|red| D;
-    A -->|red| B;
-    A -->|red| J;
-    A -->|red| C;
+    A --> B;
+    A --> C;
+    A --> D;
     
-    B -->|green| I;
-    B -->|green| G;
+    B --> E;
+    B --> G;
+    B --> F;
     
-    D -->|green| J;
+    C --> E;
+    C --> F;
+
+    D --> E;
+    D --> G;
+
+    E --> C;
+    E --> O;
+
+    G --> M;
     
-    E -->|green| D;
-    E -->|green| K;
+    H --> D;
+
+    M --> F;
+    M --> N;
     
-    F -->|green| L;
-    F -->|blue| A;
+    N --> M;
+    N --> H;
     
-    G -->|red| M;
-    
-    H -->|green| D;
-    H -->|blue| A;
-    
-    I -->|green| C;
-    I -->|red| O;
-    
-    L -->|red| E;
-    
-    M -->|green| F;
-    M -->|red| N;
-    
-    N -->|red| M;
-    N -->|green| H;
-    
-    O -->|red| I;
-    
-    C -->|blue| A;
-    C -->|green| I;
-    C -.-|red| C;
+    O --> E;
 ```
 
 
