@@ -65,11 +65,49 @@ By having the probing traffic indistinguishable from the actual message propagat
 TODO: could there be a pure p2p transport level mechanism only?
 
 
-
 ## Specification
+The network probing mechanism aims to probe the network topology, therefore it SHOULD be guided by the graph network algorithms performing the discovery.
 
-### Referential network topology
-The referential network topology introducing all types of possible situations in the oriented network graph are represented in the referential topology for this document.
+Multiple graph search algorithms are specified for the probing functionality and both should be used together. With increasing network size it is unrealistic to probe the network for an up-to-date full topology.
+
+### Network probing
+The network discovery algorithms SHOULD make the following assumptions about the network:
+1. the network topology is not static
+   * the network topology can change as individual nodes peer preferences or open/close channels
+   * for peers that require a relay the disappearance of the relay can cause topologoy reconfiguration
+2. every other node can be unreliable
+   * rooted deeply in the physical network infrastructure performance
+3. every other node can be malicious
+   * any behavior resembling malicious behavior should be considered malicious and appropriately flagged
+
+Given these assumptions, the network probing algorithms for topology discovery should use multiple complementing mechanisms, a breadth-first and a depth-first algorithm.
+
+Initially, a general and close network discovery should be performed using primarily the breadth-first approach.
+
+Once a statistically sufficient topology is identified to support path randomization, the depth-first approach can take over to probe specific topology paths of interest (e.g. exit node peers).
+
+The advantage of depth-first approach lies in the fact that it's results can be combined with the breadth-first approach in order to identify potentially unreliable or malicious peers faster, but allows focusing on specific peers in the path as static anchors (for QoS, exit behavior functionality,...). 
+
+The network topology is an oriented graph structure that consists of nodes performing the probing data relay functionality. Each edge corresponds to a combination of properties defined by the physical transport and the HOPR protocol that MUST be present in order for the algorithm to present :
+1. existence of HOPR staking channel from the node in the path in the direction of the relayer
+2. presence of a physical transport connection allowing the data transfer
+
+While 1. is known from the blockchain, 2. must be discovered on the physical network and is subject to the network probing. The only exception to 1. in the HOPR protocol [], is the last (i.e. the last relayer to the destination), where a staking channel is not required for the data to be delivered.
+
+The network probing mechanism, abstracting the transport interactions completely consists of 3 components:
+1. path generating probing algorithm
+2. evaluation mechanism
+3. retention and slashing mechanism
+
+
+#### Path generating probing algorithm
+The primary responsibility of the path generating component is to apply different algorithms to prepare pre-generated paths that would offer insights in algorithm selected sections of the network with the goal of collecting path viability information.
+
+The algorithm MUST use a loopback form of communication to hide the nature of the probing traffic from the relayer, i.e. the probing node is both the sender and receiver of the probing traffic, effectively making every node used in the path a probed relayer and all individual edges between two consecutive relayers the probed connection. Using this approach does not guarantee that all necessary and relevant information can be extracted from the single probing attempt, but in combination with other results from other probing attempts aids in building the picture of the overall network topology and network dynamics.
+
+A combination of breadth-first and depth-first algorithms is used to ensure that the probing process does not anneal to a usable network topology slowly, or that it focuses only on small sub-topology due to the network size.
+
+The following referential network topology is used in the description of the network probing mechanisms to describe all possible network scenarios solved by the algorithms.
 
 ```mermaid
 graph TD;
@@ -103,6 +141,25 @@ graph TD;
     O --> E;
 ```
 
+Loopback probing options with respect to the sender:
+1. 1-hop to self: first order checks - immediate peer connections - does not check anything extra other than 1, but does it in a stealthy way
+2. 2-hop to self: checks second order communication, can replace some 3-hop paths to decrease probing paths
+3. 3-hop to self: full path bidirectional channel probing for 1-hop
+
+##### Breadth-first algorithm
+Breadth-First Search (BFS) is a graph traversal algorithm used to systematically explore nodes and edges in a graph. It starts at a selected node (often called the 'root') and explores all neighboring nodes at the current depth level before moving on to nodes at the next depth level.
+
+It is particularly useful in scenarios such as finding the shortest path in an unweighted graph, determining the shortest distance between nodes, and exploring the reachability of nodes in a graph.
+
+BFS uses a queue data structure to maintain the order of exploration. Unlike Depth-First Search (DFS), which dives deep into a path before backtracking, BFS explores all nodes level by level.
+
+
+##### Depth-first algorithm
+Depth-First Search (DFS) is a graph traversal algorithm that explores as far as possible along each branch before backtracking. It starts at a selected node (often called the 'root') and explores each branch of the graph deeply before moving to another branch.
+
+DFS is particularly useful in scenarios such as topological sorting, detecting cycles in a graph, finding connected components in an undirected graph, and solving problems related to maze exploration and pathfinding.
+
+DFS can be implemented using recursion or using an explicit stack data structure. Unlike Breadth-First Search (BFS), which explores level by level, DFS dives deeper into the graph before backtracking.
 
 ### Throughput considerations
 Paths SHOULD be used by the discovery mechanism in a way that would allow sustained throughput, i.e. the maximum achievable packet rate 
@@ -113,9 +170,7 @@ Paths SHOULD be used by the discovery mechanism in a way that would allow sustai
 
 ### Probing mechanism
 1. immediate 0-hop: observe only whether ACK arrived from the counterparty and how long it took for it to arrive.
-2. 1-hop to self: first order checks - immediate peer connections - does not check anything extra other than 1, but does it in a stealthy way
-3. 2-hop to self: checks second order communication, can replace some 3-hop paths to decrease probing paths
-4. 3-hop to self: full path bidirectional channel probing for 1-hop
+
 
 Algorithm:
 - discovery algorithm works in competing modes: bread and width first
