@@ -107,7 +107,20 @@ The algorithm MUST use a loopback form of communication to hide the nature of th
 
 A combination of breadth-first and depth-first algorithms is used to ensure that the probing process does not anneal to a usable network topology slowly, or that it focuses only on small sub-topology due to the network size.
 
-The following referential network topology is used in the description of the network probing mechanisms to describe all possible network scenarios solved by the algorithms.
+Loopback probing options with respect to the sender:
+1. 1-hop to self: first order checks - immediate peer connections - does not check anything extra other than 1, but does it in a stealthy way
+2. 2-hop to self: checks second order communication, can replace some 3-hop paths to decrease probing paths
+3. 3-hop to self: full path bidirectional channel probing for 1-hop
+
+
+##### Breadth-first algorithm (BFA)
+Breadth-First Search (BFS) is a graph traversal algorithm used to systematically explore nodes and edges in a graph. It MUST start at the sender and explores the neighboring nodes at the current depth level before moving on to nodes at the next depth level.
+
+BFA SHOULD primarily be used for the initial network topology discovery with the goal of identifying a statistically significant minimum number of peers with the desired QoS and connectability properties.
+
+This algorithm SHOULD be primarily implemented in terms of the **1-hop to self**.
+
+Given a network topology around the node A (Fig. 1):
 
 ```mermaid
 graph TD;
@@ -116,50 +129,87 @@ graph TD;
     A --> D;
     
     B --> E;
-    B --> G;
     B --> F;
     
     C --> E;
     C --> F;
 
     D --> E;
-    D --> G;
+```
+Fig. 1: Network topology for BFA inspired network probing 
 
-    E --> C;
-    E --> O;
-
-    G --> M;
-    
-    H --> D;
-
-    M --> F;
-    M --> N;
-    
-    N --> M;
-    N --> H;
-    
-    O --> E;
+The probing traffic from node `A` would follow the BFA pattern of establishing the telemetry from the immediate vicinity of `A` using a 1-hop probing traffic:
+```
+A -> B -> A
+A -> C -> A
+A -> D -> A
 ```
 
-Loopback probing options with respect to the sender:
-1. 1-hop to self: first order checks - immediate peer connections - does not check anything extra other than 1, but does it in a stealthy way
-2. 2-hop to self: checks second order communication, can replace some 3-hop paths to decrease probing paths
-3. 3-hop to self: full path bidirectional channel probing for 1-hop
+Once the immediate vicinity is probed, a larger share of the probin traffic should use the depth-first algorithm phasing the BFA into lower proportian.
 
-##### Breadth-first algorithm
-Breadth-First Search (BFS) is a graph traversal algorithm used to systematically explore nodes and edges in a graph. It starts at a selected node (often called the 'root') and explores all neighboring nodes at the current depth level before moving on to nodes at the next depth level.
+##### Depth-first algorithm (DFA)
+Depth-First Search (DFS) is a graph traversal algorithm that explores as far as possible along each branch before backtracking. It MUST start the current node to explore each branch of the graph deeply before moving to another branch.
 
-It is particularly useful in scenarios such as finding the shortest path in an unweighted graph, determining the shortest distance between nodes, and exploring the reachability of nodes in a graph.
+DFS is particularly useful for solving problems related to maze exploration and pathfinding.
 
-BFS uses a queue data structure to maintain the order of exploration. Unlike Depth-First Search (DFS), which dives deep into a path before backtracking, BFS explores all nodes level by level.
+This algorithm SHOULD be primarily implemented in terms of the **n-hop to self**, where `n > 1` and `n < MAX_HOPR_SUPPORTED_PATH_LENGTH`, with each edge probed as soon as feasible, but at the same time not at the expense of other edges in the topology. `n` SHOULD be chosen randomly, but MUST conform with the minimum requirement for edge traversal.
+
+Given a network topology around the node A (Fig. 2):
+
+```mermaid
+graph TD;
+    A --> B;
+    A --> C;
+    
+    B--> D;
+    B --> E;
+    B --> F;
+    
+    C --> E;
+    C --> F;
+
+    D --> E;
+
+    F --> E;
+```
+Fig. 2: Network topology for DFA inspired network probing 
+
+The probing traffic from node `A` would follow the DFA pattern of establishing the telemetry to the furthest interesting point in the network using an `n`-hop probing traffic with `n` generated randomly:
+```
+A -> B -> F -> A
+A -> C -> F -> E -> A
+A -> B -> D -> A
+```
+
+###### Average 
+Average values calculated over the differences of various observations can be used to establish individual properties. From the previous example, given multiple averaged telemetry values over the path it is possible to establish ansemble information about the topology.
+
+Example:
+With average path latencies observed over these paths as:
+```
+A -> B -> A = 421ms
+A -> B -> F -> A = 545ms
+```
+
+It is possible to establish the average latency of introducing the node `F` into the path as `A -> B -> F -> A` - `A -> B -> A` = 545 - 421 = 124ms.
 
 
-##### Depth-first algorithm
-Depth-First Search (DFS) is a graph traversal algorithm that explores as far as possible along each branch before backtracking. It starts at a selected node (often called the 'root') and explores each branch of the graph deeply before moving to another branch.
 
-DFS is particularly useful in scenarios such as topological sorting, detecting cycles in a graph, finding connected components in an undirected graph, and solving problems related to maze exploration and pathfinding.
+#### Next-hop telemetry (PPT)
+Supplemental PPT MUST be used as a source of information for a possibly channel opening and closing strategy responsible for reorganizing the first hop connections from the current node.
 
-DFS can be implemented using recursion or using an explicit stack data structure. Unlike Breadth-First Search (BFS), which explores level by level, DFS dives deeper into the graph before backtracking.
+The PPT SHOULD provide the basic evaluation of the transport channel in the absence of an open onchain channel and MUST provide at least these transport channel observations using 0-hop as specified in the HOPR protocol []:
+1. latency
+   - duration between a send-message and a corresponding acknowledgement
+2. packet drop
+   - track ratio of missing/all expected acknowledgements for each message on the channel 
+
+The PPT COULD be utilized as an information source by other mechanisms, e.g. the channel manipulation strategy optimizing the outgoing network topology.
+
+#### Non-probing telemetry
+The non-probing telemetry COULD track the next-hop telemetry targets with the goal of adding more relevant channel information for the nearest 0-hop.
+
+Each outgoing message should be tracked for the same 
 
 ### Throughput considerations
 Paths SHOULD be used by the discovery mechanism in a way that would allow sustained throughput, i.e. the maximum achievable packet rate 
