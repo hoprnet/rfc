@@ -244,7 +244,9 @@ Message   |     8B      |     8B     |     16B    |
           +-------------+------------+------------+
 ```
 
-### Component requirements
+### Component placement
+The network probing functionality, with the exception of the PTT mechanism, should be fully implemented using a HOPR loopback session.
+
 Infrastructure changes:
 - remove the concept of channel graph's quality based on Network observations
   - keep only the onchain channel
@@ -283,7 +285,7 @@ The probing mechanism has several drawbacks:
 There are no alternative mechanisms that would retain the anonymity, hold trustless assumptions and consolidate the control over the probing mechanism under the communication source.
 
 ## Unresolved Questions
-
+None
 
 
 ## Future Work
