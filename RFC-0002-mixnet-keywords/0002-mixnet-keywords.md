@@ -1,14 +1,14 @@
 # RFC-0002: Common mixnet terms and keywords
 
-- **RFC Number:** 0002  
-- **Title:** Common mixnet terms and keywords  
-- **Status:** Raw | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded  
-- **Author(s):** \<Name (GitHub Handle)\>  
-- **Created:** \<YYYY-MM-DD\>  
-- **Updated:** \<YYYY-MM-DD\>  
-- **Version:** v0.x.x (Raw), v1.x.x (Finalized)  
-- **Supersedes:** RFC-YYYY (if applicable)  
-- **References:** [Related RFCs or Documentation Links]
+- **RFC Number:** 0002
+- **Title:** Common mixnet terms and keywords
+- **Status:** Raw
+- **Author(s):** \<Tino Breddin (tolbrino)\>
+- **Created:** \<2025-04-01\>
+- **Updated:** \<2025-04-01\>
+- **Version:** v0.0.1 (Raw)
+- **Supersedes:** none
+- **References:** none
 
 ## Abstract
 
@@ -22,6 +22,9 @@ Discuss existing limitations, technical gaps, and why the proposed solution is n
 ## Terminology
 
 Define key terms, abbreviations, and domain-specific language used throughout the RFC.
+
+NOTE: This is a pre-liminary list of terms and keywords. It will be updated as
+the RFC evolves.
 
 ## Specification
 
