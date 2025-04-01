@@ -236,6 +236,7 @@ $$R = D -\sum_{i=1}^{batchSize} \frac{h_i \times p_{ticket}}{P_{win}}$$
 <!-- Discuss potential downsides, risks, or limitations associated with the proposed solution. -->
 1. Current low winning probability may stress the VSSS computation
 2. To directly use an ephemeral key for deposit. The ephemeral key should have access to HOPR tokens and necessary native tokens to complet such transactions.
+3. While malicious Recipients may attempt to troll Senders by initiating Sessions and preventing SURB usage (thereby locking deposits), they cannot profit from this behavior without successfully relaying packets. Mitigations such as slashing or reputation-based deterrents are potential solutions but are considered out of scope for this RFC.
 
 ## Alternatives
 
