@@ -1,3 +1,8 @@
+---
+sidebar_position: 1
+---
+
+
 # hopr-rfc
 
 Request for Comments (RFC) for HOPR protocol

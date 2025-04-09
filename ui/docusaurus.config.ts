@@ -40,7 +40,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           editUrl: 'https://github.com/hoprnet/rfc/ui',
-          path: '../docs',
+          path: '../rfcs',
           routeBasePath: '/',
           // *** Ketex START ***
           remarkPlugins: [remarkMath],
