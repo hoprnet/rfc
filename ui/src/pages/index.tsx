@@ -22,7 +22,20 @@ function HomepageHeader() {
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
-
+        <button
+          style={{
+            height: "30px",
+            minHeight: "42px",
+            fontSize: "20px",
+            padding: "8px",
+            background: "#050277",
+          }}
+          onClick={()=>{
+            window.location.href = '/intro';
+          }}
+        >
+          Click here to see the awesome RFCs
+        </button>
         </div>
       </div>
     </header>
@@ -36,10 +49,6 @@ export default function Home(): ReactNode {
       title={`${siteConfig.title}`}
       description={`Request for Comments (RFC) for HOPR protocol`}>
       <HomepageHeader />
-      <main>
-
-
-      </main>
     </Layout>
   );
 }
