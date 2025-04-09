@@ -154,20 +154,20 @@ all in lowercase joined by hyphens. E.g. `0001-rfc-life-cycle-process.md`
 ## References
 
 - [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119)
-- <https://www.rfc-editor.org/rfc/rfc2616>
-- <https://www.rfc-editor.org/styleguide/>
-- <https://datatracker.ietf.org/doc/rfc9114/>
-- <https://katzenpost.network/docs/>
-- <https://github.com/rust-lang/rfcs>
-- <https://github.com/rust-lang/rfcs/blob/master/0000-template.md>
-- <https://github.com/martinthomson/i-d-template/blob/main/example/draft-todo-yourname-protocol.md>
-- <https://github.com/rpaulo/quic-base-drafts/tree/master>
-- <https://www.rfc-editor.org/rfc/rfc2026.txt>
-- <https://rfc.zeromq.org>
-- <https://github.com/unprotocols/rfc>
-- <https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=120722035#LightweightRFCProcess-Collaboration>
-- <https://authors.ietf.org/en/templates-and-schemas>
-- <https://raw.githubusercontent.com/martinthomson/internet-draft-template/main/draft-todo-yourname-protocol.md>
-- <https://github.com/unprotocols/rfc/tree/master/2>
-- <https://zguide.wdfiles.com/local--files/main%3A_start/zguide-c.pdf>
-- <https://github.com/vacp2p/rfc-index>
+- https://www.rfc-editor.org/rfc/rfc2616
+- https://www.rfc-editor.org/styleguide/
+- https://datatracker.ietf.org/doc/rfc9114/
+- https://katzenpost.network/docs/
+- https://github.com/rust-lang/rfcs
+- https://github.com/rust-lang/rfcs/blob/master/0000-template.md
+- https://github.com/martinthomson/i-d-template/blob/main/example/draft-todo-yourname-protocol.md
+- https://github.com/rpaulo/quic-base-drafts/tree/master
+- https://www.rfc-editor.org/rfc/rfc2026.txt
+- https://rfc.zeromq.org
+- https://github.com/unprotocols/rfc
+- https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=120722035#LightweightRFCProcess-Collaboration
+- https://authors.ietf.org/en/templates-and-schemas
+- https://raw.githubusercontent.com/martinthomson/internet-draft-template/main/draft-todo-yourname-protocol.md
+- https://github.com/unprotocols/rfc/tree/master/2
+- https://zguide.wdfiles.com/local--files/main%3A_start/zguide-c.pdf
+- https://github.com/vacp2p/rfc-index
