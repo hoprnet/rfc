@@ -3,9 +3,30 @@ sidebar_position: 1
 ---
 
 
-# hopr-rfc
+# HOPR RFC Intro
 
 Request for Comments (RFC) for HOPR protocol
+
+# Table of Contents
+
+[RFC-0001: RFC Life Cycle and Process](./RFC-0001-rfc-process/rfc-process)
+
+[RFC-0002: Common mixnet terms and keywords](./RFC-0002-mixnet-keywords/mixnet-keywords)
+
+[RFC-0003: HOPR Packet Format and Protocol](./RFC-0003-hopr-packet-protocol/hopr-packet-protocol)
+
+[RFC-0004: Proof of Relay](./RFC-0004-proof-of-relay/proof-of-relay)
+
+[RFC-0005: HOPR Mixer](./RFC-0005-hopr-mixer/hopr-mixer)
+
+[RFC-0006: Automatic path discovery](./RFC-0006-automatic-path-discovery/automatic-path-discovery)
+
+[RFC-0007: Session protocol](./RFC-0007-session-protocol/session-protocol)
+
+[RFC-0008: Return path incentivization](./RFC-0008-return-path-incentivization/return-path-incentivization)
+
+
+
 
 ## Overview
 
@@ -28,23 +49,23 @@ This structure allows for storing associated assets such as images, diagrams, an
 │   ├── RFC-0001-rfc-process/             # Repository for RFC process documentation
 │   │   ├── assets/                       # Related assets (e.g., images, diagrams)
 │   │   │   └── process-flow.png
-│   │   ├── 0001-rfc-process.md           # RFC document
+│   │   └── 0001-rfc-process.md           # RFC document
 │   │
 │   ├── RFC-0002-core-protocol/           # Repository for core HOPR protocol
 │   │   ├── assets/
 │   │   │   └── core-protocol-diagram.mmd
-│   │   ├── 0002-core-protocol.md
+│   │   └── 0002-core-protocol.md
 │   │
 │   ├── RFC-0003-announcement-contract/   # Repository for announcement contract
 │   │   ├── assets/
-│   │   ├── 0003-announcement-contract.md
+│   │   └── 0003-announcement-contract.md
 │   │
-│   ├── RFC-0004-return-path/             # Repository for return path component
+│   └── RFC-0004-return-path/             # Repository for return path component
 │       ├── assets/
 │       ├── 0004-return-path.md
-│       └── templates/                    # Common RFC templates and guidelines
+│       ├── templates/                    # Common RFC templates and guidelines
 │       └── rfc-template.md 
-├── ui                                    # UI for displaying the RFCs
+└── ui                                    # UI for displaying the awesome RFCs
 ```
 
 ## Contributing to RFCs
