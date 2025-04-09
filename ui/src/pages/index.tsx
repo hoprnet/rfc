@@ -34,7 +34,6 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={`${siteConfig.title}`}
-      //@ts-ignore
       description={`Request for Comments (RFC) for HOPR protocol`}>
       <HomepageHeader />
       <main>
