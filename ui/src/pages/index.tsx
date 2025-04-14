@@ -1,6 +1,7 @@
-import type {ReactNode} from 'react';
+import {useEffect}, type {ReactNode} from 'react';
 import clsx from 'clsx';
 import { useHistory } from '@docusaurus/router';
+import * as Fathom from 'fathom-client';
 import Button from '../components/Button';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
@@ -10,6 +11,14 @@ import styles from './index.module.css';
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   const history = useHistory();
+
+  useEffect(() => {
+    Fathom.load('MTQEWUCK', {
+      url: 'https://cdn-eu.usefathom.com/script.js',
+      spa: 'auto',
+      excludedDomains: ['localhost:3000'],
+    });
+  }, []);
   
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>

@@ -23,6 +23,7 @@
     "@mdx-js/react": "^3.0.0",
     "@mui/material": "^7.0.2",
     "clsx": "^2.0.0",
+    "fathom-client": "^3.7.2",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
