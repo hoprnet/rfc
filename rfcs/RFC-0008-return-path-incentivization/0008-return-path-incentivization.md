@@ -242,7 +242,7 @@ Each SURB is sent to the intended Recipient $R$, and is accompanied by:
 
 This setup enables the Recipient to validate each share using the provided proof, decrypt it using the derived key from the acknowledgment tag $a_i$, and eventually reconstruct the original secret $b$ upon receiving at least $T$ valid shares.
 
-#### 6. Using SURBs
+### 6. Using SURBs
 Recipent verifies the valid deposit to the stealth address as well as the integrity of the commitments.
 
 When Recipient receives SURBs, SURBs are stored.
