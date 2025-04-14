@@ -2,18 +2,8 @@ import { forwardRef, Ref } from 'react';
 import styled from '@emotion/styled';
 import MuiButton, { ButtonProps } from '@mui/material/Button';
 
-type StyledButtonProps = ButtonProps & {
-  imageOnly?: boolean;
-  size70?: boolean;
-  standardWidth?: boolean;
-  fade?: boolean;
-  pending?: boolean;
-  nofade?: boolean;
-  outlined?: boolean;
-  target?: string;
-};
 
-const StyledButton = styled(MuiButton)<StyledButtonProps>`
+const StyledButton = styled(MuiButton)<ButtonProps>`
   background: linear-gradient(#000050, #0000b4);
   text-align: center;
   text-transform: none;
@@ -27,8 +17,7 @@ const StyledButton = styled(MuiButton)<StyledButtonProps>`
     font-family: "Inconsolata", monospace;
 `;
 
-
-const Button = forwardRef((props: StyledButtonProps, ref: Ref<HTMLButtonElement>) => {
+const Button = forwardRef((props: ButtonProps, ref: Ref<HTMLButtonElement>) => {
   return (
     <StyledButton
       variant="contained"
