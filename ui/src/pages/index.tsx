@@ -1,15 +1,16 @@
 import type {ReactNode} from 'react';
 import clsx from 'clsx';
-import Link from '@docusaurus/Link';
+import { useHistory } from '@docusaurus/router';
+import Button from '../components/Button';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
-
 import Heading from '@theme/Heading';
-
 import styles from './index.module.css';
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
+  const history = useHistory();
+  
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
@@ -22,20 +23,13 @@ function HomepageHeader() {
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
-        <button
-          style={{
-            height: "30px",
-            minHeight: "42px",
-            fontSize: "20px",
-            padding: "8px",
-            background: "#050277",
-          }}
+        <Button
           onClick={()=>{
-            window.location.href = '/intro';
+            history.push('/intro');
           }}
         >
           Click here to see the awesome RFCs
-        </button>
+        </Button>
         </div>
       </div>
     </header>
@@ -47,7 +41,8 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={`${siteConfig.title}`}
-      description={`Request for Comments (RFC) for HOPR protocol`}>
+      description={`Request for Comments (RFC) for HOPR protocol`}
+    >
       <HomepageHeader />
     </Layout>
   );
