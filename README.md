@@ -23,25 +23,25 @@ This structure allows for storing associated assets such as images, diagrams, an
 │   ├── RFC-0001-rfc-process/             # Repository for RFC process documentation
 │   │   ├── assets/                       # Related assets (e.g., images, diagrams)
 │   │   │   └── process-flow.png
-│   │   ├── 0001-rfc-process.md           # RFC document
+│   │   └── 0001-rfc-process.md           # RFC document
 │   │
 │   ├── RFC-0002-core-protocol/           # Repository for core HOPR protocol
 │   │   ├── assets/
 │   │   │   └── core-protocol-diagram.mmd
-│   │   ├── 0002-core-protocol.md
+│   │   └── 0002-core-protocol.md
 │   │
 │   ├── RFC-0003-announcement-contract/   # Repository for announcement contract
 │   │   ├── assets/
-│   │   ├── 0003-announcement-contract.md
+│   │   └── 0003-announcement-contract.md
 │   │
-│   ├── RFC-0004-return-path/             # Repository for return path component
+│   └── RFC-0004-return-path/             # Repository for return path component
 │       ├── assets/
 │       ├── 0004-return-path.md
-│       └── templates/                    # Common RFC templates and guidelines
+│       ├── templates/                    # Common RFC templates and guidelines
 │       └── rfc-template.md 
-├── ui                                    # UI for displaying the RFCs
+└── ui                                    # UI for displaying the awesome RFCs
 ```
 
 ## Contributing to RFCs
 
-The process of contributiong RFC is detailed in the `./rfcs/RFC-0001-rfc-process/`. A summary will be posted below.
+The process of contributing RFC is detailed in the `./rfcs/RFC-0001-rfc-process/`. A summary will be posted below.
