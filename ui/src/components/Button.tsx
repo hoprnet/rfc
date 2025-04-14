@@ -14,7 +14,7 @@ const StyledButton = styled(MuiButton)<ButtonProps>`
   letter-spacing: 0.25px;
   line-height: 1.5;
   height: unset;
-    font-family: "Inconsolata", monospace;
+  font-family: "Inconsolata", monospace;
 `;
 
 const Button = forwardRef((props: ButtonProps, ref: Ref<HTMLButtonElement>) => {
