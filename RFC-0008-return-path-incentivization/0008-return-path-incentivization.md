@@ -66,9 +66,15 @@ capitals, as shown here.
 - **Deposit Committment Secret $s_{c}$**: A random value known only to the Sender and used to generate the commitment.
 - **Deposit Committment $C_{d}$**: A cryptographic representation of a deposit. $C_{d} = H_2(s_n \Vert s_{c})$
 - **Stealth Secret $s_{s}$**: An one-time pad secret value jointly picked by the Sender and the Recipient.
-This value defines the derivation of the stealth address of Recipient. $s_{s} = a + b$
+The stealth secrets MAY be an array of pairs of one-time-pads ${(a_0+b_0), (a_1+b_1), (a_2+b_2), \ldots}$
+The deposit can be larger and deposit into multiple stealth addresses. 
+This value defines the derivation of the stealth address of Recipient. $s_{s_i} = a_i + b_i$
 - **Sender-picked nonce $a$**: Random value chosen by the Sender. Partial contribution to the stealth address.
+For one deposit, Sender can created multiple Sender-picked nonces $a_i$, and send the corresponding encrypted values $a_i * R$
+to the Recipient.
 - **Recipient-picked nonce $b$**: Random value chosen by the Recipient. Partial contribution to the stealth address.
+Recipient should generate an amount of Recipient-picked nonces $b_i$ equivalent to the amount of Sender-picked nonces,
+and send the encrypted valeus $b_i * R$ back to the Sender.
 - **Stealth Address $E_{B_s}$**: Stealth address of the Recipient. It has private key $b_{s}$ and public key $B_{s}$. 
 - **Winning Probability $P_{win}$**: Each ticket issuer decides on the probability at which this ticket can be a win. 
 A winning ticket can claim the associated value. The minimum winning probability is set globally at the network level.
@@ -79,8 +85,9 @@ The value is configurable per network. Every Sender MUST deposit the same value 
 In the context of SURB, Sender knows the secret and generates the shares as the solution to the PoR challenge.
 Each share gets returned to the Recipient through First Relays' acknowlegment.
 The number of shares corresponds to the size of the SURB batch.
-- **VSSS threshold**: The minimum number of shares needed to reconstruct the secret.
+- **VSSS threshold $T$**: The minimum number of shares needed to reconstruct the secret.
 - **VSSS sharing factor $F$**: The percentage of VSSS threshold over the size of SURB Batch.
+- **VSSS polynominal**: Polynominal used for secret sharing. The contant of the polynominal is the secret. This polynominal has a degree of $T-1$
 This value is set at the network level. Each relay node MUST use the same sharing factor.
 - **Acknowledgement Vector**: Set of FR responses ${ack_1,...ack_k}$ proving SURB usage
 
@@ -99,9 +106,8 @@ sequenceDiagram
     participant S as Sender
     participant R as Recipient (Exit)
     participant FR as First Relayer
-    participant ShieldedPool as Shielded Pool
-    participant SR as Stealth Recipient
     participant A as Gasless Agent
+    participant ShieldedPool as Shielded Pool
 
     Note over S,ShieldedPool: 💸 Shielded Deposit Phase
     S->>S: Generate commitment_secret and nullifier
@@ -109,39 +115,41 @@ sequenceDiagram
     S-->>ShieldedPool: Insert commitment in Merkle tree
     S->>S: Generate proof for Gasless Agent <br/> to withdraw to the stealth address
 
-    Note over S,R: 🔐 Session Initiation
-    R->>S: Send the public key to the recipient-picked nonce B
-    S->>S: Sender-picked secret a, its public key A, and stealth address
-    
-    Note over A,ShieldedPool: 📥 Zero-knowledge (ZK) allocation on chain
+    Note over S, R: 📬 Session Opening
+    S->>S: Pick Sender nonces a_i, create VSSS polynominals and commitments, choose Recipient
+    S->>R: Create SURB for session initiation request and send the request to Recipient
+
+    Note over S, R: 🔐 Recipient Commitment
+    R->>R: Recipient checks VSSS degree and store its commitments, Pick Recipient nonces b_i, and compute the stealth address
+    R->>S: Confirms session establishement and returns encrypted nonces b_i * R
+
+    Note over A,ShieldedPool: 📥 Zero-knowledge (ZK) Stealth allocation
+    A->>A: Compute stealth addresses.
     A->>ShieldedPool: Allocate the deposit to the stealth address with proof
-    ShieldedPool-->>SR: Reward allocated to the stealth address
+    ShieldedPool-->>ShieldedPool: Reward allocated to the stealth address
 
-    Note over S: 📦 SURB batch and Verifiable Shamir Secret Sharing (VSSS) creation
-    S->S: Create VSSS shared secrets and commitments for a
-    S->S: Create SURBs 
+    Note over S,R: 📢 SURB Generation
+    S->>S: Create VSSS shared secrets and proofs, generate SURBs, encrypt shared secrets with acknowledgements
+    S->>R: Send SURBs with encrypted shared secrets and proofs
 
-    Note over S,R: 📢 Send SURBs and VSSS
-    S->>R: Send SURBs with VSSS commitments, <br/> public stealth challenge, and <br/> ticket challenges to shared steath secret
-    R->>R: Compute stealth address and verify valid deposit
-    R->>R: Verify VSSS commitments
-
-    Note over R,FR: 🚀 Return Path Usage
-    R->>FR: Use SURB to send response
+    Note over R,FR: 📦 Return Path Usage
+    R->>R: Verify valid allocations to stealth addresses
+    R->>FR: Pick random SURB to send response
     FR-->>R: Return ack (VSSS share)
 
     loop Until all SURBs are used
         R->>FR: Use next SURB
         FR-->>R: Return ack (VSSS share)
+        R->>R: Validity check on the ack with VSSS commitments and proof. <br/>If invalid, terminate the session
     end
 
     Note over R: 🧩 Secret Reconstruction
-    R->>R: Reconstruct stealth secret from VSSS shares
-    R->>R: Compute private key to the stealth secret
+    R->>R: Reconstruct Sender-picked nonces a_i from VSSS shares
+    R->>R: Compute the stealth secrets
 
     Note over R,ShieldedPool: 🧾 Payment Retrieval 
     R->>ShieldedPool: (Gasless) Request to withdraw
-    SR-->>R: Reward transferred from stealth address to the Recipient
+    ShieldedPool-->>R: Reward transferred from stealth addresses to the Recipient
 ```
 
 ### 1. Zero-knowledge (ZK) deposit on chain
@@ -154,18 +162,42 @@ an adequate hash fuction to for zero-knowledge proofs.
 Sender uses any wallet that contains HOPR token for deposit to the shielded pool. 
 Sender interacts with the shielded pool to send HOPR token of amount $D$ and store the commitment $C_d$ to a leaf to the Merkle tree at a path.
 
-### 2. Session Initiation
-Recipient picks a random nonce $b$ as its secret to the that is used once per Session.
-During the Session initiation, Recipient send to Sender an ephemeral public key $B$ which is computed from $B = b * r * G$,
+### 2. Session Opening
+Sender generates uniformly some random nonces $a_i$ per Session. The amount of nonces corresponds to the number of stealth address and thus to the share of deposits. The deposit will be divided equally among stealth addresses.
+
+The Sender uniformly generates a set of random nonces $a_i$ for each Session. 
+The number of nonces corresponds to the number of stealth addresses and, by extension, determines the distribution of the deposit. 
+The total deposit is divided equally among these stealth addresses.
+
+For each nonce $a_i$, Sender constructs a random polynominal $Q(x)$ of degree $T-1$ where the constant term (i.e. the coefficient of degree zero) is $a_i$
+
+Sender picks a Recipient with public key $R$.
+During the Session initiation, Recipient encryptes the Sender-picked nonces with the public key of Sender: $a_i * R \equiv a_i * r * G$,
 where $G$ is the generator point of secp256k1 curve.
 
-### 3. Zero-knowledge (ZK) allocation on chain
-Sender MUST pick a nonce $a$, a 256-bit random value.
-Sender computes the stealth public key $B_s$ of the Recipient based on the ephemeral public key shared by the Recipient $B_s = B + a * R \equiv b * r * G + a * r * G \equiv s_s * r * G$ 
-where $B$ is the public key of the ephemeral Recipient and $G$ is the generator point of secp256k1 curve. 
-The address of Recipient's stealth address $E_{B_s}$ can calculated from the public key of the stealth address $B_s$
+Sender creates some SURBs for the Recipent.
 
-Sender generates zk proofs to shielded pool "withdrawal". This withdrawal assigns the deposit to the stealth address of the Recipient .
+Sender sends session initiation requests to Recipient, for each $a_i$, with:
+- Threshold $t$
+- Commitment to the polynominal coefficients
+- Encrypted nonce $a_i * R$
+
+### 3. Recipient Commitment
+Upon receiption of session initiation requests, Recipient checks if the threshold T is desired.
+
+Recipient MUST then pick an equal amount of nonce $b_i$ of 256-bit random value.
+
+Recipient confirms the session establishment and sends the encrypted nonces to Sender: $b_i * R \equiv b_i * r * G$
+
+Recipient can compute the stealth addresses: $E_{s_i} = a_i * R + b_i * R  \equiv (a_i + b_i) * r * G  \equiv s_{s_i} * r * G$
+
+
+### 4. Zero-knowledge (ZK) allocation on chain
+Sender computes the stealth public keys $B_{s_i}$ of the Recipient based on the encrypted nonces shared by the Recipient $B_{s_i} = b_i * R + a_i * R$ .
+The address of Recipient's stealth address $E_{B_{s_i}}$ can calculated from the public key of the stealth address $B_{s_i}$
+
+Sender generates zk proofs to shielded pool "withdrawal". 
+This withdrawal allocates the deposit to the stealth address of the Recipient within the stealth pool contract.
 This prevents Senders from cheating or prematurely claiming the deposit.
 Sender SHALL use an ephemeral wallet or a gasless agent to perform the allocation anonymously. 
 Tokens are still held in the Shielded Pool.
@@ -184,63 +216,50 @@ Agent:
     - *Public* Merkle root
     - *Public* Nullifier hash 
 
-### 4. SURB Batch Construction
+### 5. SURB Batch Construction
 Sender takes network-level properties and computes the relavant parametes for SURB creation.
 - Size of SURB Batch: Computed from the global set shielded pool deposit amount, Sender specific winning probability (which is at least the value of the global minimum winning probability), global ticket price. Shielded Pool Deposit Amount $D$ * winning_probability $P_{win}$ / (default_hop_count 3 * ticket_price $p_{ticket}$) 
 $$ N_{batch} = \frac{D \times P_{win}}{(3 \times p_{ticket})}$$
-- Threshold of VSSS for the batch $k$: VSSS threhsold factor $F$ * Size of SURB Batch 
-$k = F \times N_{batch}$. The threshold SHALL consider exit node reward into its computation.
+- Threshold of VSSS for the batch $T$: VSSS threhsold factor $F$ * Size of SURB Batch 
+$T = F \times N_{batch}$. The threshold SHALL consider exit node reward into its computation.
 
 Sender does the path selections and thus know a full list of the public keys of FRs.
 
-### 5. Verifiable Shamir Secret Sharing (VSSS) commitment
-Sender does the VSSS for the "Sender-picked nonce" $a$
-- The Sender generates a polynomial of degree $k = threshold \times N_{batch}$ for the size of SURB Batch $N_{batch}$.
-- Each SURB carries a share $s_i$.
-- The Sender publishes coefficient commitments: $C_j = g^a_j \hspace{0.5em} mod \hspace{0.5em} p$
+The Sender splits Sender-picked nonce $a_i$ into $N \geq T + 1$ shares, denoted $p_0$, $p_1$, $\ldots$, $p_{N-1}$, using Shamir’s Secret Sharing scheme. Each share $p_i = Q_i(x_i)$ is generated by evaluating the corresponding polynomial $Q_i(x)$ $at a distinct point $x_i$ .
 
-Each SURB in batch contains:
-- Header: Standard RP header (per [RFC0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md))
-- Share: $s_i = f(i)$ where f is VSSS polynomial
-- VSSS batchIndex: $i$
+For each share $p_i$, the Sender generates a proof $\pi_i$, demonstrating that $p_i$ satisfies the polynomial $Q_i(x)$ with the committed constant term $a_i$.
 
-When the SURB Batch gets sent to the Recipient. Public inputs of the deposit commitment is also sent along:
-- merkle path of the deposit
-- nullifier hash $h$
-- commitment $C_{d} = H_2(s_n \Vert s_{c})$
-- VSSS $\pi_{vsss}$:
-    - coefficient commitments: $[C_0,...C_{k-1}]$
-    - VSSS threshold: $k_{vsss}$
+The Sender then constructs $N$ Single-Use Reply Blocks (SURBs), each embedding an H4 acknowledgment tag derived from its associated nonce $a_i$.
 
-### 6. Sending SURBs
-Sender is MUST sends SURBs with 
-- commitments of shared secrets
-- public key to the Sender-picked nonce $A \equiv a * R \equiv a * r * G$
-- VSSS threshold $k$
+Each share $p_i$ is encrypted using a symmetric encryption function with a key derived from the corresponding nonce $a_i$:
 
+$\mathsf{EP}_i = \mathsf{ENC}(a_i, p_i)$
+
+Each SURB is sent to the intended Recipient $R$, and is accompanied by:
+
+- The encrypted share $\mathsf{EP}_i$
+- The corresponding proof $\pi_i$
+
+This setup enables the Recipient to validate each share using the provided proof, decrypt it using the derived key from the acknowledgment tag $a_i$, and eventually reconstruct the original secret $b$ upon receiving at least $T$ valid shares.
+
+#### 6. Using SURBs
 Recipent verifies the valid deposit to the stealth address as well as the integrity of the commitments.
 
-The stealth address can be computed as $B_{s} = A + b * R \equiv = (a + b) * r * G$
-Deposit can be verified in the Shielded Pool where deposit is allocated to the stealth address
+When Recipient receives SURBs, SURBs are stored.
 
-#### 7. Using SURBs
-- Upon SURB usage, the FR sends $s_i$ back to the Recipient.
-- The Recipient reconstructs `secret` from shares and verifies it using commitments.
+- Upon SURB usage, the FR sends the acknowledgement back to the Recipient.
+- Recipient reconstructs `secret` from decrypted acknowlegements.
+- Recipient checks the proof  $\pi_i$ using commitments.
 
 If any fraud is detected, Recipient SHALL immediately terminate the return of responses.
 
-
-### 8. Stealth secret reconstruction
-When a SURB is successfully used, the FR returns the acknowledgement of of a packet that contains the VSSS share $s_i$.
-The Recipient reconstructs the Sender-pick secret $a$ from shares and verifies it using coefficient commitments when the shares reaches the VSSS threshold $k_{vsss}$
-
 Once the Sender-pick secret is reconstructed, a stealth secret can be calculated as $s_s = a + b$
 
-### 9. Recipient claims Reward
+### 7. Recipient claims Reward
 
-To claim compensation, the Recipient SHALL directly claim from the Shielded Pool, providing the correct stealth secret as input $m$. 
-Any other wallet MAY claim for the Recipient, if the stealth secret $s_s$ is known to them.
-The Shielded Pool sends the deposit to the Recipient, if $m * G + R \equiv B_s$ holds
+To claim compensation, the Recipient SHALL directly claim from the Shielded Pool, providing the correct stealth secret as input $m_i$. 
+Any other wallet MAY claim for the Recipient, if the stealth secret $s_{s_i}$ is known to them.
+The Shielded Pool sends the deposit to the Recipient, if $m_i * R \equiv E_{B_{s_i}}$ holds
 
 
 ## Design Considerations
