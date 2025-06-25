@@ -3,7 +3,7 @@
 - **RFC Number:** 0008  
 - **Title:** Return path incentivization
 - **Status:** Discussion
-- **Author(s):** NumberFour8, QYuQianchen 
+- **Author(s):** Qianchen Yu(QYuQianchen), Lukas Pohanka (NumberFour8)
 - **Created:** 2025-03-28 
 - **Updated:** 2025-04-07
 - **Version:** v0.2.0 (Raw)  
@@ -161,6 +161,9 @@ Compute the deposit committment $C_{d} = H_2(s_n \Vert s_{c})$ where $H_2$ is
 an adequate hash fuction to for zero-knowledge proofs.
 Sender uses any wallet that contains HOPR token for deposit to the shielded pool. 
 Sender interacts with the shielded pool to send HOPR token of amount $D$ and store the commitment $C_d$ to a leaf to the Merkle tree at a path.
+
+Deposits can take place at any time prior to Session opening.
+Multiple deposits that will later on be used by different sessions can also be done jointly at this step.
 
 ### 2. Session Opening
 Sender generates uniformly some random nonces $a_i$ per Session. The amount of nonces corresponds to the number of stealth address and thus to the share of deposits. The deposit will be divided equally among stealth addresses.
