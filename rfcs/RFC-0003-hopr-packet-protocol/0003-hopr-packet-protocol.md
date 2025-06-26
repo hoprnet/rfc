@@ -79,6 +79,7 @@ The HOPR packet format requires certain cryptographic primitives in place, namel
 - a Key Derivation Function (KDF) allowing to:
   - generate secret key material from a high-entropy pre-key K, context string C, and a salt S: `KDF(C, K, S)`. KDF will perform the necessary expansion to match the size required by the output. The Salt `S` argument is optional and MAY be omitted.
   - if the above is applied to an EC point as `K`, the point MUST be in its compressed form.
+- Hash to Field (Scalar) operation `HS(S,T)`  which computes an element of the field  of the elliptic curve from RFC-0004, given the secret `S` and a tag `T` .
 
 The concrete instantiations of these primitives are discussed in Appendix 1. All the primitives MUST have corresponding security bounds (e.g. they all have 128-bit security) and the generated key material MUST also satisfy the required bounds of the primitives.
 
@@ -190,8 +191,9 @@ The input for the header creation is:
 - Sender pseudonym (represented as a sequence of bytes)
 
 Let `HeaderPrefix_i` be a single byte, where:
-- The first 4 most significant bits indicate the version, and currently MUST be set to `0001`. 
-- The 5th most significant bit MUST be set to 1 if the header is created for the return path, otherwise it MUST be zero.
+- The first 3 most significant bits indicate the version, and currently MUST be set to `001`. 
+- The 4th most significant bit indicates the `NoAckFlag`. It MUST be set to 1 when the recipient SHOULD NOT acknowledge the packet.
+- The 5th most significant bit indicates the `IsReplyFlag` and MUST be set to 1 if the header is created for the return path, otherwise it MUST be zero.
 -  The last remaining 3 bits represent the number `i`, in *most significant bits first* format.
 
 The `HeaderPrefix_i` MUST not be computed for `i > 7`.
@@ -341,7 +343,7 @@ The encryption of the padded payload follows the same procedure from [01].
 
 For each i=1 up to N:
 1. Generate `Kprp` = KDF("HASH_KEY_PRP", `SharedSecret_i`)
-2. Encrypt the `PaddedPayload` using PRP:
+2. Transform the `PaddedPayload` using PRP:
 
 ````
 EncPayload = PRP(Kprp, PaddedPayload)
@@ -417,7 +419,7 @@ The `SenderKey` (`sender_key` field) is extracted from the used `SURB`.
 The `PaddedPayload` of the reply packet MUST be encrypted as follows:
 
 1. Generate `Kprp_reply` = KDF("HASH_KEY_REPLY_PRP", `SenderKey`, `Pseudonym`)
-2. Encrypt the `PaddedPayload` as using PRP:
+2. Transform the `PaddedPayload` as using PRP:
 
 ````
 EncPayload = PRP(Kprp_reply, PaddedPayload)
@@ -451,13 +453,15 @@ In order to recover the `SharedSecret_i` , the `Alpha` value MUST be transformed
 Similarly as in section 2.2, the `B_i`  in step 3 MAY be additionally transformed so that it conforms to a valid field scalar usable in step 4.
 Shall the process fail in any of these steps (due to invalid EC point or field scalar), the process MUST terminate with an error and the entire packet MUST be rejected.
 
+Also derive the `ReplayTag` = KDF("HASH_KEY_PACKET_TAG", `SharedSecret_i`).
+Verify that `ReplayTag` has not yet been seen by this node, and if yes, the packet MUST be rejected.
 
 ### 4.2 Header processing
 In the next steps, the `Header` (field `header`) processed using the derived `SharedSecret_i` .
 
 As per section 2.4.1, the `Header` consists of two byte sequences of fixed length: the `header` and `oa_tag`.
 
-1. Generate `K_tag` = KDF("HASH_KEY_TAG", `SharedSecret_i`)
+1. Generate `K_tag` = KDF("HASH_KEY_TAG", 0, `SharedSecret_i`)
 2. Compute `oa_tag_c` = OA(`K_tag`, `header`)
 3. If `oa_tag_c` != `oa_tag`, the entire packet MUST be rejected.
 4. Initialize PRG with `SharedSecret_i` and XOR PRG bytes to `header`
@@ -465,13 +469,96 @@ As per section 2.4.1, the `Header` consists of two byte sequences of fixed lengt
    - Verify that the first 4 most significant bits represent the supported version (`00001`), otherwise the entire packet MUST be rejected. 
    - If 3 least significant bits are not all zeros (meaning this node not the recipient):
      - Let `i`  be the 3 least significant bits of `HeaderPrefix`
-    - Set `ID_i` = `header[|HeaderPrefix|..|HeaderPrefix| + |ID|`] where `|ID|` is the fixed length of the public key identifiers
+     - Set `ID_i` = `header[|HeaderPrefix|..|HeaderPrefix| + |ID|`] where `|ID|` is the fixed length of the public key identifiers
     - `Tag_i` = `header[|HeaderPrefix| + |Id|..|HeaderPrefix|+|Id|+|Tag|]`
     - `PoRString_i` = `header[|HeaderPrefix|+|Id|+|Tag|..|HeaderPrefix|+|Id|+|PoRString|]` where `|PorString|` is the length of entries in the `PorStrings_i` list
     - Shift `header` by `|HeaderPrefix|+|Id|+|Tag|..|HeaderPrefix|+|Id|+|PoRString|` bytes left (discarding those bytes)
     - Seek the PRG to the position`|HeaderLen|`
+    - Apply the PRG keystream to `header`
+   - Otherwise, if all 3 least significant bits are all zeroes, it means this node is the recipient:
+      - Recover `pseudonym` as `header[|HeaderPrefix|..|HeaderPrefix| + |Pseudonym|]`
+      - Recover the 5th and 4th most significant bit (`NoAckFlag` and `ReplyFlag`)
          
 
+### 4.3 Packet processing
+
+In the next step, the `encrypted_payload` is decrypted:
+
+1. Generate `Kprp` = KDF("HASH_KEY_PRP", `SharedSecret_i`)
+2. Transform the `encrypted_payload` using PRP:
+
+````
+new_payload = PRP(Kprp, encrypted_payload)
+````
+
+
+#### 4.3.1 Forwarded packet
+If the processed header indicated, that the packet is destined for another node, the `new_payload` is the `encrypted_payload: EncryptedPayload` . The updated `header` and `alpha` values from the previous steps are used to construct the forwarded packet. A new `ticket` structure is created for the recipient (as described in RFC-0004).
+
+The forwarded packet MUST have the identical structure :
+
+````
+HOPR_Packet {
+  alpha: Alpha,
+   header: Header,
+   encrypted_payload: EncPayload,
+   ticket: Ticket
+}
+````
+
+#### 4.3.2 Final packet
+If the processed header indicated, that this node is the final destination of the packet, the `ReplyFlag` is used to indicate subsequent processing.
+
+#### 4.3.2.1 Forward packet
+If the `ReplyFlag` is set to 0, the packet is a forward (not a reply) packet. 
+
+The `new_payload` MUST be the `PaddedPayload`. 
+
+
+#### 4.3.2.2 Reply packet
+
+If the `ReplyFlag` is set to 1, it indicates that this is a reply packet, that requires further processing.
+The `pseudonym` extracted during header processing is used to find the corresponding `ReplyOpener`. If it is not found, the packet MUST be rejected.
+
+Once the `ReplyOpener` is found, the `rp_shared_secrets` are used to decrypt the `new_payload`:
+
+For each `SharedSecret_k` in `rp_shared_secrets` do:
+1. Generate `Kprp` = KDF("HASH_KEY_PRP", `SharedSecret_k`)
+2. Transform the `new_payload` using PRP:
+
+````
+new_payload = PRP(Kprp, new_payload)
+````
+
+This will invert the PRP transformations done at each forwarding hop. Finally, the additional reply PRP transformation has to be inverted (using `sender_key` from the `ReplyOpener` and `pseudonym` ):
+
+1. Generate `Kprp_reply` = KDF("HASH_KEY_REPLY_PRP", `sender_key`, `pseudonym`)
+2. Transform the `new_payload` as using PRP:
+
+````
+new_payload = PRP(Kprp_reply, new_payload)
+````
+
+The `new_payload` now MUST be `PaddedPayload`.
+
+#### 4.3.3 Interpreting the payload
+
+In any case, the `new_payload` is `PaddedPayload`.
+
+The `zeros` are removed until the `padding_tag` is found. If it cannot be found, the packet MUST be rejected. 
+The `payload: PacketPayload` is extracted. If `num_surbs` > 0, the contained SURBs SHOULD be stored to be used for future reply packet creation, indexed by the `pseudonym` extracted during header processing.
+
+The `user_payload` can then be used by the upper protocol layer.
+
+
+### 4.4 Ticket verification and acknowledgement
+
+In the next step the, `ticket`  MUST be pre-verified using the `SharedSecret_i`, as defined in RFC-0004. 
+If the packet was not destined for this node (not final) OR the packet is final and the `NoAckFlag` is 0, the packet MUST be acknowledged.
+
+The acknowledgement of the successfully processed packet is created as per RFC-0004 using `ack_key` = HS(`SharedSecret_i`, "HASH_ACK_KEY"). The `ack_key` is the scalar in the field of the elliptic curve chosen in RFC-0004. The acknowledgement is sent back to the previous hop.
+
+If the packet processing was not successful, a random acknowledgement MUST be generated (as defined in RFC-0004) and sent to the previous hop. 
 
 
 ## Appendix 1
@@ -481,4 +568,5 @@ The current version is instantiated using the following cryptographic primitives
 - Curve25519 elliptic curve with the corresponding scalar field
 - Both PRP and PRG are instantiated using Chacha20 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
 - OA is instantiated with Poly1305 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
-- KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`: `KDF(C,K,S) = blake3_kdf(C, S || K)`
+- KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`: `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
+- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC9380](https://www.rfc-editor.org/info/rfc9380). `S` is used a the secret input, and `T` as an additional domain separator.
