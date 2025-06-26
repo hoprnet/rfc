@@ -228,11 +228,11 @@ For each i = 1 up to N+1 do:
    - Copy bytes of `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen`  to offset `RoutingInfoLen` in `HdrExt`
    - Set `HdrExt[i]` to `HeaderPrefix_{i-1}`
    - Copy `ID_{N-i+2}` to `HdrExt` starting at offset 1
-   - Copy Tag to `HdrExt` starting at offset `1 + |ID_{N-i+2}|`
+   - Copy `OATag` to `HdrExt` starting at offset `1 + |ID_{N-i+2}|`
    - Copy bytes of `PoRString_i` to `HdrExt` starting at offset `1 + |ID_{N-i+2}| + |T|`
    - XOR PRG bytes to `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen`
 4. Compute `K_tag` = KDF("HASH_KEY_HMAC", `SharedSecret_{N-i+2}`)
-5. Compute `OA(K_tag, HdrExt[ from offset 0 up to 1 + |Pseudonym| + 3 * RoutingInfoLen)` and copy its output of `|T|` bytes to OATag
+5. Compute `OA(K_tag, HdrExt[ from offset 0 up to 1 + |Pseudonym| + 3 * RoutingInfoLen)` and copy its output of `|T|` bytes to `OATag`
 
 The output is the contents of `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen` and the `OATag`:
 
