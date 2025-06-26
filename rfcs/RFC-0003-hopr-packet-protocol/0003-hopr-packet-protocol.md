@@ -193,8 +193,13 @@ The input for the header creation is:
 Let `HeaderPrefix_i` be a single byte, where:
 - The first 3 most significant bits indicate the version, and currently MUST be set to `001`. 
 - The 4th most significant bit indicates the `NoAckFlag`. It MUST be set to 1 when the recipient SHOULD NOT acknowledge the packet.
-- The 5th most significant bit indicates the `IsReplyFlag` and MUST be set to 1 if the header is created for the return path, otherwise it MUST be zero.
+- The 5th most significant bit indicates the `ReplyFlag` and MUST be set to 1 if the header is created for the return path, otherwise it MUST be zero.
 -  The last remaining 3 bits represent the number `i`, in *most significant bits first* format.
+
+For example, the binary representation of `HeaderPrefix_3` with `ReplyFlag` set and `NoAckFlag` not set looks like this:
+```
+HeaderPrefix_3 = 0 0 1 0 1 0 1 1 
+```
 
 The `HeaderPrefix_i` MUST not be computed for `i > 7`.
 
@@ -205,7 +210,7 @@ Let RoutingInfoLen be equal to `1 + |ID_i| + |T| + |PoRString_i|`.
 Allocate a zeroized `HdrExt` buffer of  `1 + |Pseudonym| + 4 * RoutingInfoLen` bytes and another zeroized buffer `OATag` of `|T|` bytes.
 
 For each i = 1 up to N+1 do:
-1. Initialize PRG with `SharedSecret_N-i+2`
+1. Initialize PRG with `SharedSecret_{N-i+2}`
 2. If i is equal to 1
    - Set `HdrExt[0]` to `HeaderPrefix_0`
    - Copy all bytes of `Pseudonym` to `HdrExt` at offset 1
@@ -221,12 +226,12 @@ For each i = 1 up to N+1 do:
     - Copy the Filler bytes to `HdrExt` at offset `1 + |Pseudonym| + (5 - N) * RoutingInfoLen`
 3. If i is greater than 1:
    - Copy bytes of `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen`  to offset `RoutingInfoLen` in `HdrExt`
-   - Set `HdrExt[i]` to `HeaderPrefix_i-1`
-   - Copy `ID_N-i+2` to `HdrExt` starting at offset 1
-   - Copy Tag to `HdrExt` starting at offset `1 + |ID_N-i+2|`
-   - Copy bytes of `PoRString_i` to `HdrExt` starting at offset `1 + |ID_N-i+2| + |T|`
+   - Set `HdrExt[i]` to `HeaderPrefix_{i-1}`
+   - Copy `ID_{N-i+2}` to `HdrExt` starting at offset 1
+   - Copy Tag to `HdrExt` starting at offset `1 + |ID_{N-i+2}|`
+   - Copy bytes of `PoRString_i` to `HdrExt` starting at offset `1 + |ID_{N-i+2}| + |T|`
    - XOR PRG bytes to `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen`
-4. Compute `K_tag` = KDF("HASH_KEY_HMAC", `SharedSecret_N-i+2`)
+4. Compute `K_tag` = KDF("HASH_KEY_HMAC", `SharedSecret_{N-i+2}`)
 5. Compute `OA(K_tag, HdrExt[ from offset 0 up to 1 + |Pseudonym| + 3 * RoutingInfoLen)` and copy its output of `|T|` bytes to OATag
 
 The output is the contents of `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen` and the `OATag`:
@@ -325,7 +330,7 @@ The packet payload MUST be padded in accordance to [01] to exactly `PacketMax + 
 
 The process works as follows:
 
-The payload MUST be always prepended with a `PaddingTag`. The `PaddingTag` SHOULD be 1 byte long.
+The payload MUST be always pre-pended with a `PaddingTag`. The `PaddingTag` SHOULD be 1 byte long.
 
 If the length of the payload is still less than `PacketMax + |PaddingTag|` bytes, zero bytes MUST be prepended, until the length is exactly `PacketMax + |PaddingTag|` bytes.
 
@@ -466,13 +471,13 @@ As per section 2.4.1, the `Header` consists of two byte sequences of fixed lengt
 3. If `oa_tag_c` != `oa_tag`, the entire packet MUST be rejected.
 4. Initialize PRG with `SharedSecret_i` and XOR PRG bytes to `header`
 5. The first byte of the transformed `header` represents the `HeaderPrefix`:
-   - Verify that the first 4 most significant bits represent the supported version (`00001`), otherwise the entire packet MUST be rejected. 
+   - Verify that the first 3 most significant bits represent the supported version (`001`), otherwise the entire packet MUST be rejected. 
    - If 3 least significant bits are not all zeros (meaning this node not the recipient):
      - Let `i`  be the 3 least significant bits of `HeaderPrefix`
-     - Set `ID_i` = `header[|HeaderPrefix|..|HeaderPrefix| + |ID|`] where `|ID|` is the fixed length of the public key identifiers
-    - `Tag_i` = `header[|HeaderPrefix| + |Id|..|HeaderPrefix|+|Id|+|Tag|]`
-    - `PoRString_i` = `header[|HeaderPrefix|+|Id|+|Tag|..|HeaderPrefix|+|Id|+|PoRString|]` where `|PorString|` is the length of entries in the `PorStrings_i` list
-    - Shift `header` by `|HeaderPrefix|+|Id|+|Tag|..|HeaderPrefix|+|Id|+|PoRString|` bytes left (discarding those bytes)
+     - Set `ID_i` = `header[|HeaderPrefix|..|HeaderPrefix| + |ID|`] where `|ID|` is the fixed length of the public key identifiers (each `|ID_i|` = `|ID|`)
+    - `Tag_i` = `header[|HeaderPrefix| + |ID|..|HeaderPrefix|+|ID|+|Tag|]`
+    - `PoRString_i` = `header[|HeaderPrefix|+|ID|+|Tag|..|HeaderPrefix|+|ID|+|PoRString|]` where `|PorString|` is the length of entries in the `PorStrings_i` list
+    - Shift `header` by `|HeaderPrefix|+|ID|+|Tag|..|HeaderPrefix|+|ID|+|PoRString|` bytes left (discarding those bytes)
     - Seek the PRG to the position`|HeaderLen|`
     - Apply the PRG keystream to `header`
    - Otherwise, if all 3 least significant bits are all zeroes, it means this node is the recipient:
