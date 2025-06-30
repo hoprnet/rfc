@@ -1,33 +1,35 @@
-# RFC-0010: Network path discovery mechanism
+# RFC-0010: Network topology discovery
 
 - **RFC Number:** 0010
-- **Title:** Network path discovery  
+- **Title:** Network topology discovery
 - **Status:** Raw
 - **Author(s):** @Teebor-Choka  
 - **Created:** 2025-02-25  
-- **Updated:** 2025-03-05  
-- **Version:** v0.0.0 (Raw)
+- **Updated:** 2025-06-30  
+- **Version:** v0.0.1 (Raw)
 - **Supersedes:** None 
 - **References:** **TODO**
 
 ## Abstract
 
-This document describes a dynamic network probing mechanism allowing real-time network link reliability evaluation in a fully anonymous manner using the HOPR protocol mechanics. A realistic network topology view is essential for mechanisms improving the end-to-end transport by dynamically enforcing slashing of paths containing nodes with unstable or adversarial behavior.
+This document specifies a dynamic network probing mechanism that enables real-time evaluation of network link reliability in a fully anonymous manner, leveraging the HOPR protocol's cryptographic properties. An accurate and current view of network topology MUST be maintained to support mechanisms that improve end-to-end message transport by identifying and removing paths containing nodes exhibiting unstable performance or adversarial behavior from the routing selection.
 
 ## Notational convention
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all capitals, as shown here.
 
 ## Motivation
 
-HOPR network is a continuous unstructured decentralized peer-to-peer mix network (mixnet), composed of nodes serving either as a producer, relayer or consumer of messages. The primary tenet of this network is the HOPR protocol enforcing cryptographic privacy guarantees for the end-to-end communication and hiding the message producer from the message consumer. HOPR protocol ensures privacy by allowing the message producer to generate the entire propagation path, thereby ensuring that intermediate relay nodes can only relay the data, but cannot affect the transport path taken.
+The HOPR network is a continuous unstructured decentralized peer-to-peer mix network (mixnet) comprised of nodes that function as producers, relayers, or consumers of messages. The fundamental principle of this network is the HOPR protocol, which enforces cryptographic privacy guarantees for end-to-end communication and conceals the message producer from the message consumer. Privacy is ensured by enabling the message producer to determine the complete propagation path, thereby ensuring that intermediate relay nodes can only forward data without the ability to alter the transport path.
 
-Structured end-to-end communication over the HOPR protocol requires the communication producer to select communication paths across the entire network:
-- from the producer to the consumer
-- in case of a bidirectional communication also from the consumer to the producer
+Effective end-to-end communication over the HOPR protocol requires the communication producer to select viable paths across the network:
+- From producer to consumer for unidirectional communication
+- Additionally, from consumer to producer using the Return Path mechanism [TODO: add ref] for bidirectional communication
 
-As such, the HOPR protocol does not specify any communication flow control with upper protocol layers handling that instead, putting pressure on the transport components to create as stable propagation paths in terms of transport link properties, as possible.
+The HOPR protocol does not define communication flow control, as this is handled by upper protocol layers. This design decision places responsibility of every network element to keep track of peer and network status to allow establishing stable propagation paths with consistent transport link properties.
 
-Because in the mixnet both the forward and the return path must be constructed by the producer to guarantee its anonymity, the producer MUST have a working view of the recent network topology in order to be able to create a forward and return path pool.
+In the mixnet architecture, both forward and return paths MUST be constructed by the producer to preserve anonymity. Consequently, the producer MUST maintain an accurate and current view of the network topology to create effective forward and return path pools.
+
+Relayers and consumers must also discover the network in order to make sure the incentivized layer and network transport are aligned. 
 
 
 ## Terminology
@@ -40,35 +42,37 @@ relayer - node passing the message from one of producer/relayer to one of consum
 ## Design Considerations
 
 Each producer SHOULD:
-- be able to distinguish a sufficiently large amount of nodes in the network to guarantee privacy by the sheer size of the path pool
-- be capable of identifying unstable, malicious or adversarial nodes
-- be able to establish basic propagation metrics for Quality of Service (QoS) estimation
+- Be able to identify a sufficiently large number of network nodes to ensure privacy through path pool diversity
+- Be capable of detecting unstable, malicious, or adversarial nodes
+- Be able to establish basic propagation metrics for Quality of Service (QoS) estimation
 
-Given the capabilities from the previous paragraph, the message producer should be able to establish a workable snapshot of the network, its topology, state and constraints, allowing for optimal selection or slashing of message propagation paths.
+Given the capabilities described above, the message producer SHOULD be able to construct a functional representation of the network topology, state, and constraints, enabling optimal selection and exclusion of message propagation paths.
 
-The probing traffic and measurement packets MUST be indistinguishible from the ordinary traffic in order to gaurantee recording of proper private message propagation characterstics of the network nodes. Due to dynamic and unstable nature of the decentralized peer-to-peer nature of the mixnet, the message producer SHOULD use a dynamic mechanism for establishing 
+The multihop probing traffic and measurement packets MUST be indistinguishable from ordinary traffic to ensure accurate recording of network node propagation characteristics. Due to the dynamic nature of decentralized peer-to-peer networks, the message producer SHOULD employ adaptive mechanisms for establishing and maintaining topological awareness.
 
-For uni- and bi-directional communication to react to the changing nature of the network the producer MUST actively probe the network in a **continuous** manner.
+For both unidirectional and bidirectional communication to adapt to changing network conditions, the producer MUST actively probe the network in a continuous manner.
 
-The measurement traffic itself SHOULD obey economic feasability, i.e. it SHOULD be proportional to the actual traffic and MAY be used as part of the Cover Traffic (CT).
+The measurement traffic itself SHOULD adhere to economic feasibility constraints, i.e., it SHOULD be proportional to actual message traffic and MAY be incorporated as part of the Cover Traffic (CT).
 
-Any measurements obtained from the probing traffic SHOULD be node specific and MUST not be subject to data or topology exchange with other nodes.
+Any measurements obtained from the probing traffic SHOULD be node-specific and MUST NOT be subject to data or topology exchange with other nodes.
 
-The collected telemetry for measured path:
-* MUST contain the path passability
-  * path traversability by a single or multiple message
-* MAY be used to provide extra information
-  * telemetry transfered as a message content
+The collected telemetry for measured paths:
+* MUST contain path passability data
+  * Path traversability by single or multiple messages
+* MAY include additional information
+  * Telemetry transferred as message content
 
-By having the probing traffic indistinguishable from the actual message propagation in the mixnet, it is not possible to verify some immediate properties of the nearest peers. For this purpose a separate mechanism not described in this document SHOULD exist.
+By designing probing traffic to be indistinguishable from actual message propagation in the mixnet, direct verification of immediate peer properties becomes infeasible. For this purpose, a separate mechanism not described in this document SHOULD exist.
 
-TODO: could there be a pure p2p transport level mechanism only?
+The nearest one-hop probing mechanism MAY NOT comply with the anonymity requirement, since it:
+1. mimics the 0-hop session which does not fully benefit from relaying mechanisms
+2. could be used as a first layer for relayers to discover viable candidates for future channels, if no channels are open to that peer
 
 
 ## Specification
-The network probing mechanism aims to probe the network topology, therefore it SHOULD be guided by the graph network algorithms performing the discovery.
+The network probing mechanism SHALL utilize graph-based algorithms to efficiently discover and maintain network topology information. 
 
-Multiple graph search algorithms are specified for the probing functionality and both should be used together. With increasing network size it is unrealistic to probe the network for an up-to-date full topology.
+This specification defines multiple complementary graph search algorithms for topology discovery. Implementations MUST support both algorithms and employ them in concert, as complete topology discovery becomes computationally prohibitive as network size increases.
 
 ### Network probing
 The network discovery algorithms SHOULD make the following assumptions about the network:
@@ -80,47 +84,46 @@ The network discovery algorithms SHOULD make the following assumptions about the
 3. every other node can be malicious
    * any behavior resembling malicious behavior should be considered malicious and appropriately flagged
 
-Given these assumptions, the network probing algorithms for topology discovery should use multiple complementing mechanisms, a breadth-first and a depth-first algorithm.
+Given these assumptions, the network probing algorithms for topology discovery SHOULD use multiple complementary mechanisms: a breadth-first and a depth-first algorithm.
 
-Initially, a general and close network discovery should be performed using primarily the breadth-first approach.
+Initially, implementers SHALL perform a general network discovery using primarily the breadth-first approach.
 
-Once a statistically sufficient topology is identified to support path randomization, the depth-first approach can take over to probe specific topology paths of interest (e.g. exit node peers).
+Once a statistically sufficient topology is identified to support path randomization, the depth-first approach SHOULD be employed to probe specific topology paths of interest (e.g., exit node peers).
 
-The advantage of depth-first approach lies in the fact that it's results can be combined with the breadth-first approach in order to identify potentially unreliable or malicious peers faster, but allows focusing on specific peers in the path as static anchors (for QoS, exit behavior functionality,...). 
+The advantage of the depth-first approach is that its results can be combined with the breadth-first approach to identify potentially unreliable or malicious peers more efficiently, while allowing focus on specific peers in the path as static anchors (for QoS, exit behavior functionality, etc.).
 
-The network topology is an oriented graph structure that consists of nodes performing the probing data relay functionality. Each edge corresponds to a combination of properties defined by the physical transport and the HOPR protocol that MUST be present in order for the algorithm to present :
-1. existence of HOPR staking channel from the node in the path in the direction of the relayer
-2. presence of a physical transport connection allowing the data transfer
+The network topology is an oriented graph structure consisting of nodes performing the probing data relay functionality. Each edge corresponds to a combination of properties defined by the physical transport and the HOPR protocol that MUST be present:
+1. Existence of a HOPR staking channel from the node in the path in the direction of the relayer
+2. Presence of a physical transport connection allowing data transfer
 
-While 1. is known from the blockchain, 2. must be discovered on the physical network and is subject to the network probing. The only exception to 1. in the HOPR protocol [], is the last (i.e. the last relayer to the destination), where a staking channel is not required for the data to be delivered.
+While property 1 is known from the blockchain, property 2 MUST be discovered on the physical network and is subject to network probing. The only exception to property 1 in the HOPR protocol [] is the last hop (i.e., the last relayer to the destination), where a staking channel is not required for data delivery.
 
-The network probing mechanism, abstracting the transport interactions completely consists of 3 components:
-1. path generating probing algorithm
-2. evaluation mechanism
-3. retention and slashing mechanism
+The network probing mechanism, abstracting transport interactions completely, consists of 3 components:
+1. Path generating probing algorithm
+2. Evaluation mechanism
+3. Retention and slashing mechanism
 
 
 #### Path generating probing algorithm
 The primary responsibility of the path generating component is to apply different algorithms to prepare pre-generated paths that would offer insights in algorithm selected sections of the network with the goal of collecting path viability information.
 
-The algorithm MUST use a loopback form of communication to hide the nature of the probing traffic from the relayer, i.e. the probing node is both the sender and receiver of the probing traffic, effectively making every node used in the path a probed relayer and all individual edges between two consecutive relayers the probed connection. Using this approach does not guarantee that all necessary and relevant information can be extracted from the single probing attempt, but in combination with other results from other probing attempts aids in building the picture of the overall network topology and network dynamics.
+The algorithm MUST use a loopback form of communication to conceal the nature of the probing traffic from relayers. In this approach, the probing node functions as both sender and receiver of the probing traffic, effectively designating each node in the path as a probed relayer and each edge between consecutive relayers as a probed connection. While this approach does not guarantee extraction of all relevant information from a single probing attempt, when combined with results from multiple probing attempts, it enables construction of a comprehensive view of network topology and dynamics.
 
-A combination of breadth-first and depth-first algorithms is used to ensure that the probing process does not anneal to a usable network topology slowly, or that it focuses only on small sub-topology due to the network size.
+A combination of breadth-first and depth-first algorithms SHALL be employed to ensure the probing process neither anneals too slowly to a usable network topology nor focuses exclusively on small sub-topologies due to network size constraints.
 
-Loopback probing options with respect to the sender:
-1. immediate 0-hop: observe only whether ACK arrived from the counterparty and how long it took for it to arrive, use the junk format
-2. 1-hop to self: first order checks - immediate peer connections - does not check anything extra other than 1, but does it in a stealthy way
-3. 2-hop to self: checks second order communication, can replace some 3-hop paths to decrease probing paths
-4. 3-hop to self: full path bidirectional channel probing for 1-hop
-
+Loopback probing methods with respect to the sender:
+1. Immediate 0-hop: Observe only whether acknowledgment was received from the counterparty and measure response latency, using the junk format
+2. 1-hop to self: First-order checks of immediate peer connections - functionally equivalent to option 1 but executed in a manner that conceals probing activity
+3. 2-hop to self: Checks second-order communication paths, MAY replace some 3-hop paths to reduce total probing paths
+4. 3-hop to self: Full path bidirectional channel probing for 1-hop connections
 
 Algorithm:
-- discovery algorithm works in competing modes: bread and width first
-- basic operations:
-  1. discover immediate peers
-  2. generate paths for n-hop connections (referential probing = low frequency)
-  3. for sessions prepopulate the cache from 
-  4. perform higher frequency checks up to X% of the original traffic
+- Discovery algorithm SHALL operate in complementary modes: breadth-first and depth-first
+- Basic operations:
+  1. Discover immediate peers
+  2. Generate paths for n-hop connections (referential probing with low frequency)
+  3. Prepopulate the cache for session establishment
+  4. Perform higher frequency checks up to X% of the original traffic
 
 
 ##### Breadth-first algorithm (BFA)
@@ -155,7 +158,7 @@ A -> C -> A
 A -> D -> A
 ```
 
-Once the immediate vicinity is probed, a larger share of the probin traffic should use the depth-first algorithm phasing the BFA into lower proportian.
+Once the immediate vicinity is probed, a larger share of the probing traffic SHOULD use the depth-first algorithm phasing the BFA into smaller proportion.
 
 ##### Depth-first algorithm (DFA)
 Depth-First Search (DFS) is a graph traversal algorithm that explores as far as possible along each branch before backtracking. It MUST start the current node to explore each branch of the graph deeply before moving to another branch.
@@ -203,18 +206,19 @@ A -> B -> F -> A = 545ms
 
 It is possible to establish the average latency of introducing the node `F` into the path as `A -> B -> F -> A` - `A -> B -> A` = 545 - 421 = 124ms.
 
+Assuming artificial mixer delays introducing additional anonymity, repeated observations of this value averaged over longer windows would provide an average expected latency introduced by element `F`.
+
 
 #### Throughput considerations
 Paths SHOULD be used by the discovery mechanism in a way that would allow sustained throughput, i.e. the maximum achievable packet rate 
 - calculate load balancing over paths based on the min stake on the path
 - actual throughput as measured by the real traffic
-- how to combine these together??
 
 ### Telemetry
 Refers to data and metadata collected by the probing mechanism about the traversed transport path.
 
-#### Next-hop telemetry (PPT)
-Supplemental PPT MUST be used as a source of information for a possibly channel opening and closing strategy responsible for reorganizing the first hop connections from the current node.
+#### Next-hop telemetry
+Supplemental per path telemetry (PPT) MUST be used as a source of information for a possibly channel opening and closing strategy responsible for reorganizing the first hop connections from the current node.
 
 The PPT SHOULD provide the basic evaluation of the transport channel in the absence of an open onchain channel and MUST provide at least these transport channel observations using 0-hop as specified in the HOPR protocol []:
 1. latency
@@ -238,62 +242,64 @@ The content of the probing message:
   - timestamp of packet creation for channel latency observations
 
 ```
-          +-------------+------------+------------+
-Probing   |   Counter   |   PathId   |  Timestamp |
-Message   |     8B      |     8B     |     16B    |
-          +-------------+------------+------------+
++-------------+------------+------------+
+|   Counter   |   PathId   |  Timestamp |
+|     8B      |     8B     |     16B    |
++-------------+------------+------------+
 ```
 
 ### Component placement
-The network probing functionality, with the exception of the PTT mechanism, should be fully implemented using a HOPR loopback session.
+The network probing functionality, with the exception of the PPT mechanism, MUST be implemented using HOPR loopback sessions.
 
-Infrastructure changes:
-- remove the concept of channel graph's quality based on Network observations
-  - keep only the onchain channel
-- add a process:
-  - to generate a low rate continuous stream of all network paths
-  - to generate session specific paths for session obfuscation
-- new path graph resulting from this (binary option)
-- cache paths for a specific configurable minimal time window
-- session incorporation: session level metrics, session specific path probing, session derived cover traffic exploratory flow
+Implementation requirements:
+- The concept of channel graph quality based on network observations SHALL be removed
+  - Only the onchain channel information SHALL be retained
+- Implementations MUST provide processes to:
+  - Generate a low-rate continuous stream of network path probes
+  - Generate session-specific paths for session obfuscation
+- A new path graph system SHALL be derived from these processes
+- Paths SHALL be cached for a configurable minimum time window
+- Session metrics SHALL incorporate:
+  - Session-level performance metrics
+  - Session-specific path probing data
+  - Session-derived cover traffic for exploratory network traversal
 
 
 ## Compatibility
 
-This feature affects only a single node in the network that can arbitrarily change the behavior without affecting the network.
+This feature affects only a single node in the network and MAY be modified without impacting overall network operation.
 
 The network probing mechanism MUST be compatible with the loopback session mechanism [].
 
 ## Security Considerations
 
-The probing traffic is not free in terms of both the physical resources, as well as the value incurred on various levels of the HOPR protocol stack.
+The probing traffic consumes both physical resources and value at various levels of the HOPR protocol stack.
 
-Security considerations could be in terms of resource use split into sub-issues:
-1. Given a sufficiently volatile network, adversarial behavior could cause expenditure of the resources facilitating a draining attack.
-2. The PPT could be a potential source of Denial of Service (DoS).
+Security considerations related to resource utilization include:
+1. In highly volatile networks, adversarial behavior MAY cause excessive resource expenditure, potentially enabling resource depletion attacks.
+2. The PPT mechanism MAY serve as an attack vector for Denial of Service (DoS) attempts.
 
 ## Drawbacks
 
-The probing mechanism has several drawbacks:
+The network probing mechanism has several inherent limitations:
 
-1. The probing activity is not free and a careful algorithm must be chosen to balance the probing and data transmission activity within a reasonable ratio.
-2. Fully probing large networks in real time is unfeasible, therefore the algorithm should always be capped into a certain subnetwork within which it can offer reasonable guarantess about network visibility.
-3. A priori knowledge about targets of interest is desired to minimize the time before the initial view of the network is established to allow non-blind data transmission.
+1. Probing activity consumes resources; implementations MUST carefully balance probing and data transmission activities to maintain reasonable resource utilization ratios.
+2. Complete real-time probing of large networks is computationally prohibitive; algorithms SHOULD operate within bounded subnetworks where they can provide reasonable network visibility guarantees.
+3. Prior knowledge of target nodes is advantageous to minimize initialization time before establishing a sufficient network view for informed path selection.
 
 ## Alternatives
 
-There are no alternative mechanisms that would retain the anonymity, hold trustless assumptions and consolidate the control over the probing mechanism under the communication source.
+No alternative mechanisms exist that simultaneously preserve anonymity, maintain trustless properties, and consolidate probing control under the communication source.
 
 ## Unresolved Questions
 None
 
-
 ## Future Work
 
-Future exploration should focus on:
+Future development SHOULD focus on:
 
 1. improving the ability to collect additional network metrics primarily by extending the data payload transmitted along the loopback path
 2. new path generating strategies allowing statistical inference of information from the path section overlaps.
 
 ## References
-
+[TODO: add references]
