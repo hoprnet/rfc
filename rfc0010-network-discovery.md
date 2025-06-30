@@ -269,7 +269,7 @@ Implementation requirements:
 
 This feature affects only a single node in the network and MAY be modified without impacting overall network operation.
 
-The network probing mechanism MUST be compatible with the loopback session mechanism [].
+The network probing mechanism MUST be compatible with the loopback session mechanism [RFC-0007](https://github.com/hoprnet/rfc/blob/main/rfcs/RFC-0007-session-protocol/0007-session-protocol.md)
 
 ## Security Considerations
 
