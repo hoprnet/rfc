@@ -3,7 +3,7 @@
 - **RFC Number:** 0004  
 - **Title:** Proof of Relay 
 - **Status:** Implementation
-- **Author(s):** Lukas Pohanka (NumberFour8)
+- **Author(s):** Lukas Pohanka (NumberFour8), Qianchen Yu (QYuQianchen)
 - **Created:** 2025/04/02  
 - **Updated:** 2025/04/02  
 - **Version:** v1.0.0 (Finalized)  
@@ -59,11 +59,12 @@ instantiations below SHALL NOT have less than 128-bits of security.
 - **EC group** refers to a specific elliptic curve group over a finite field, where computational Diffie-Hellman problem is AT LEAST as
 difficult as the chosen security parameter `L`. The elements of the field are denoted using lower-case letter, whereas the elements (also referred to as elliptic curve points, or EC points) of the EC group are denoted using upper-case letters.
 - **MUL(a,B) (or simply a.B)** represents a multiplication of an EC point `B` by a scalar `a` from the corresponding finite field.
+- **ADD(A,B)** represents an addition of two EC points `A` and `B` from the corresponding finite field.
 - **Public key** refers to a non-identity EC group element (or its equivalent) of a large order.
 - **Private key** refers to a scalar from a finite field of the chosen EC group. It represents a private key for a certain public key.
-- **Hash `H(x)`** referst to a cryptographic hash function taking an input of any size, and returning a fixed length output. Security of `H`
+- **Hash `H(x)`** refers to a cryptographic hash function taking an input of any size, and returning a fixed length output. Security of `H`
 against cryptographic attacks SHALL NOT be less than `L`.
-
+- **Verifiable Random Function (VRF)** produces a pseudo-random value that is publicly verifiable but cannot be forged or precomputed.
 
 
 ## 3 Payment channels
@@ -80,6 +81,8 @@ For the purpose of this RFC, the amount of funds MUST be strictly greater than 0
 There MUST NOT be more than a single payment channel between any two nodes A and B in this direction. Since
 channel is uni-directional, there MAY BE channel A -> B and also B -> A at the same time.
 
+Each channel has a unique channel ID, typically deterministic. 
+The channel ID of the channel A -> B MAY be computed as a truncated version of `H(f(P_A)||f(P_B))` for efficient representation, where `||` stands for byte-wise concatenation.
 
 The channel MUST always be in one of the 3 logical states:
 
@@ -133,41 +136,110 @@ The increment MAY be done by an independent trusted third party supervising the 
 
 The initiator A SHALL transition the channel state to `CLOSED` (changing the `status` to `CLOSED`). Such transition MUST NOT be possible
 before `T_closure` has elapsed. The transition MUST be communicated to B.
-In such state, the 
+In such state, the node A MUST NOT be allowed to communicate with C via B, and B MUST NOT be allowed to claim any unclaimed
+rewards from the channel. 
+The `balance` in the channel A -> B MUST be reset to `0` and its `channel_epoch` MUST be incremented by `1`.
 
+At any point of time when the channel is at the state other than `CLOSED`, the channel destination B MAY unilaterally transition the 
+channel A -> B to state `CLOSED`. 
+Node B SHALL claim unclaimed rewards before the state transition, because any unclaimed rewards becomes unclaimable after
+the state transit, resulting a lost for node B.
 
-## Design Considerations
+### 3.2 Balance update in payment channels: Probablistic winning tickets
 
-Discuss critical design decisions, trade-offs, and justification for chosen approaches over alternatives.
+Probabilistic Payment Channels leverage probabilistic micropayments, reducing the number of on-chain transactions.
+Payments are structured so that only a fraction (probability) results in an actual on-chain transfer, whereas most payments remain off-chain, 
+significantly reducing transaction fees and maintaining privacy.
 
-## Compatibility
+Probabilistic tickets issued between nodes have a consistent payout and do not require sequential processing or frequent on-chain operations.
+The ticket winning probability is determined based on the anticipated throughput of the channel, allowing nodes with higher traffic 
+to use lower winning probabilities and those with lower traffic to select probabilities closer to 1.
+Both ticket issuer and receiver MUST NOT know the outcome (winning or losing) of the ticket before redemption to maintain fairness.
 
-Address backward compatibility, migration paths, and impact on existing systems.
+A ticket is a winner if:
+```
+keccak256(ticketHash || porSecret || vrfParams) < ticket.winProb
+```
+where
+- `ticketHash` is the hash of the received ticket, known by both ticket issuer and recipient. 
+- The `porSecret` is known by the ticket issuer and can be reconstructed by the ticket recipient as part of the PoR scheme upon receiving the acknowledgment for the forwarded ticket, as detailed in the next section. 
+- The `vrfParams` refers to the deterministic pseudo-random value that is chosen by the ticket recipient, and is verifiable by using its public key. This value is unique for each ticket and adds entropy that can only be known by the ticket redeemer.
 
-## Security Considerations
+### 3.3 Verify winning tickets with VRF
 
-Identify potential security risks, threat models, and mitigation strategies.
+The VRF verification algorithm for ticket validation is:
 
-## Drawbacks
+1. Compute `ticketHash` from the received ticket.
+2. Generate pseudo-random curve point (`bX`, `bY`):
+```
+(bX, bY) = hashToCurve(signer || ticketHash, domainSeparator)
+```
+3. Execute elliptic curve operations:
+```
+sB = scalarMult(s, bX, bY)
+hV = scalarMult(h, vx, vy)
+R = sB - hV
+```
+Compute verification scalar (`hCheck`):
+```
+hCheck = hashToScalar(signer || vx || vy || Rx || Ry || ticketHash, domainSeparator)
+```
+Validate VRF proof by ensuring: `hCheck == h`
+## 4. Construction of Proof-of-Relay (PoR) secrets
 
-Discuss potential downsides, risks, or limitations associated with the proposed solution.
+### 4.1 Secret Sharing
 
-## Alternatives
+In the PoR mechanism, a cryptographic secret is established between relay nodes and their adjacent nodes on the route.
+The construction algorithm utilizes two key derivations:
 
-Outline alternative approaches that were considered and reasons for their rejection.
+* **HASH\_KEY\_ACK\_KEY**: Each node `n_i` derives `s_ack_i` from the shared secret (`s_i`) provided by the SPHINX packet. 
+This secret acknowledgment key (`s_ack_{i+1}`) is held by the next downstream node (n_{i+1}) and sent as an acknowledgement upon successful packet delivery.
+`s_ack_i = KDF("HASH_KEY_ACK_KEY", s_i)`
 
-## Unresolved Questions
+* **HASH\_KEY\_OWN\_KEY**: Each node ni also derives its own secret key (`s_own_i`) directly from the shared secret (`s_i`) provided by the SPHINX packet: `s_own_i = KDF("HASH_KEY_OWN_KEY", s_i)`
 
-Highlight questions or issues that remain open for discussion.
+Both keys together form a 2-out-of-2 secret sharing scheme, wherein the relay node MUST possess both `s_own_i` and `s_ack_{i+1}` to reconstruct `s_response_i` and claim rewards.
 
-## Future Work
+### 4.2 Generation of Hint and Challenges
 
-Suggest potential areas for future exploration, enhancements, or iterations.
+Hints and challenges are generated through elliptic curve operations:
+
+* **Generation of Challenges**: Each challenge `C_i` is generated by combining the secrets derived from the node’s own key (`s_own_i`) and the next downstream node's acknowledgment key (`s_ack_{i+1}`):
+
+  ```
+  C_i = MUL(s_own_i + s_ack_{i+1}, G)
+  ```
+
+* **Generation of Hint**: To prove to the relay node that the challenge is valid and solvable, the sender generates a hint derived solely from the acknowledgment key (`s_ack_i+1`):
+
+  ```
+  hint_i = MUL(s_ack_{i+1}, G)
+  ```
+
+The relay node receiving the challenge and hint MUST verify the following condition immediately upon receipt:
+
+```
+ADD(MUL(s_own_i, G), hint_i) = C_i
+```
+
+This ensures the relay node is assured of the challenge’s solvability, thus validating the sender's possession of the necessary secrets.
+This verification step confirms the challenge’s solvability without revealing `s_ack_{i+1}`, leveraging the infeasibility of inverting scalar multiplication on the chosen elliptic curve. 
+The sender MUST embed `hint_i` within the SPHINX packet’s readable section for node `n_i`, enabling immediate validation of the embedded challenge.
+
+### 4.3 Challenge Response
+
+Each packet sent through the network includes a cryptographic challenge (`C_i`), derived from:
+
+```
+C_i = MUL(s_own_i + s_ack_{i+1}, G} = MUL(response_i, G)
+```
+
+where `G` is the base point on the elliptic curve used in the key exchange. 
+Relay node B MUST solve this challenge (`response_i`) by combining both its own secret (`s_own_i`) and the secret acknowledgment key (`s_ack_{i+1}`) received from node C upon successful packet delivery.
 
 ## References
 
 Include all relevant references, such as:
 
-- Other RFCs
-- Research papers
-- External documentation
+- Other RFCs: RFC-0003 HOPR Packet Protocol
+- External documentation: Coefficients used for simplified SWU mapping used by the hash to curve function: https://www.ietf.org/archive/id/draft-irtf-cfrg-hash-to-curve-16.html#name-suites-for-secp256k1
