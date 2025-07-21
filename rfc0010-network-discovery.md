@@ -3,11 +3,11 @@
 - **RFC Number:** 0010
 - **Title:** Network topology discovery
 - **Status:** Raw
-- **Author(s):** @Teebor-Choka  
-- **Created:** 2025-02-25  
-- **Updated:** 2025-07-21  
+- **Author(s):** @Teebor-Choka
+- **Created:** 2025-02-25
+- **Updated:** 2025-07-21
 - **Version:** v0.0.1 (Raw)
-- **Supersedes:** None 
+- **Supersedes:** None
 - **References:** **TODO**
 
 ## Abstract
@@ -15,6 +15,7 @@
 This document specifies a dynamic network probing mechanism that enables real-time evaluation of network link reliability in a fully anonymous manner, leveraging the HOPR protocol's cryptographic properties. An accurate and current view of network topology MUST be maintained to support mechanisms that improve end-to-end message transport by identifying and removing paths containing nodes exhibiting unstable performance or adversarial behavior from the routing selection.
 
 ## Notational convention
+
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all capitals, as shown here.
 
 ## Motivation
@@ -29,15 +30,14 @@ The HOPR protocol does not define communication flow control, as this is handled
 
 In the mixnet architecture, both forward and return paths MUST be constructed by the producer to preserve anonymity. Consequently, the producer MUST maintain an accurate and current view of the network topology to create effective forward and return path pools.
 
-Relayers and consumers must also discover the network in order to make sure the incentivized layer and network transport are aligned. 
-
+Relayers and consumers must also discover the network in order to make sure the incentivized layer and network transport are aligned.
 
 ## Terminology
 
-mixnet - network composed of relayers performing message mixing
-producer - node originating the messages in the mixnet 
-consumer - node receiving the message in the mixnet
-relayer - node passing the message from one of producer/relayer to one of consumer/relayer
+- **mixnet**: network composed of relayers performing message mixing
+- **producer**: node originating the messages in the mixnet
+- **consumer**: node receiving the message in the mixnet
+- **relayer**: node passing the message from one of producer/relayer to one of consumer/relayer
 
 ## Design Considerations
 
@@ -67,7 +67,6 @@ By designing probing traffic to be indistinguishable from actual message propaga
 The nearest one-hop probing mechanism MAY NOT comply with the anonymity requirement, since it:
 1. mimics the 0-hop session which does not fully benefit from relaying mechanisms
 2. could be used as a first layer for relayers to discover viable candidates for future channels, if no channels are open to that peer
-
 
 ## Specification
 The network probing mechanism SHALL utilize graph-based algorithms to efficiently discover and maintain network topology information. 
@@ -140,13 +139,10 @@ graph TD;
     A --> B;
     A --> C;
     A --> D;
-    
     B --> E;
     B --> F;
-    
     C --> E;
     C --> F;
-
     D --> E;
 ```
 Fig. 1: Network topology for BFA inspired network probing 
@@ -173,16 +169,12 @@ Given a network topology around the node A (Fig. 2):
 graph TD;
     A --> B;
     A --> C;
-    
-    B--> D;
+    B --> D;
     B --> E;
     B --> F;
-    
     C --> E;
     C --> F;
-
     D --> E;
-
     F --> E;
 ```
 Fig. 2: Network topology for DFA inspired network probing 
@@ -210,9 +202,9 @@ Assuming artificial mixer delays introducing additional anonymity, repeated obse
 
 
 #### Throughput considerations
-Paths SHOULD be used by the discovery mechanism in a way that would allow sustained throughput, i.e. the maximum achievable packet rate 
-- calculate load balancing over paths based on the min stake on the path
-- actual throughput as measured by the real traffic
+Paths SHOULD be used by the discovery mechanism in a way that would allow sustained throughput, i.e. the maximum achievable packet rate:
+- Calculate load balancing over paths based on the min stake on the path
+- Actual throughput as measured by the real traffic
 
 ### Telemetry
 Refers to data and metadata collected by the probing mechanism about the traversed transport path.
@@ -237,9 +229,9 @@ Each outgoing message should be tracked for the same set of telemetry as the PPT
 Telemetry data pertains to the content of the probing message sent over the network. All multi-byte integer fields MUST be transmitted in network byte order (big endian).
 
 The content of the probing message:
-  - iterating counter to verify the mixing property over a path 
-  - path identification for attribution
-  - timestamp of packet creation for channel latency observations
+- Iterating counter to verify the mixing property over a path
+- Path identification for attribution
+- Timestamp of packet creation for channel latency observations
 
 ```
 +-------------+------------+------------+
@@ -298,8 +290,8 @@ None
 
 Future development SHOULD focus on:
 
-1. improving the ability to collect additional network metrics primarily by extending the data payload transmitted along the loopback path
-2. new path generating strategies allowing statistical inference of information from the path section overlaps.
+1. Improving the ability to collect additional network metrics primarily by extending the data payload transmitted along the loopback path
+2. Developing new path generating strategies allowing statistical inference of information from the path section overlaps
 
 ## References
 - RFC-0007 – Session protocol
