@@ -5,7 +5,7 @@
 - **Status:** Raw
 - **Author(s):** @Teebor-Choka  
 - **Created:** 2025-02-25  
-- **Updated:** 2025-06-30  
+- **Updated:** 2025-07-21  
 - **Version:** v0.0.1 (Raw)
 - **Supersedes:** None 
 - **References:** **TODO**
@@ -122,8 +122,8 @@ Algorithm:
 - Basic operations:
   1. Discover immediate peers
   2. Generate paths for n-hop connections (referential probing with low frequency)
-  3. Prepopulate the cache for session establishment
-  4. Perform higher frequency checks up to X% of the original traffic
+  3. for sessions, prepopulate the cache from sufficiently recent historical knowledge of successful paths
+  4. perform higher frequency probing checks
 
 
 ##### Breadth-first algorithm (BFA)
@@ -234,7 +234,7 @@ The non-probing telemetry MAY track the next-hop telemetry targets with the goal
 Each outgoing message should be tracked for the same set of telemetry as the PPT on the per message basis.
 
 #### Probing telemetry
-Telemetry data pertains to the content of the probing message sent over the network. 
+Telemetry data pertains to the content of the probing message sent over the network. All multi-byte integer fields MUST be transmitted in network byte order (big endian).
 
 The content of the probing message:
   - iterating counter to verify the mixing property over a path 
@@ -276,7 +276,7 @@ The network probing mechanism MUST be compatible with the loopback session mecha
 The probing traffic consumes both physical resources and value at various levels of the HOPR protocol stack.
 
 Security considerations related to resource utilization include:
-1. In highly volatile networks, adversarial behavior MAY cause excessive resource expenditure, potentially enabling resource depletion attacks.
+1. In highly volatile networks, adversarial behavior may cause excessive resource expenditure, potentially enabling resource depletion attacks.
 2. The PPT mechanism MAY serve as an attack vector for Denial of Service (DoS) attempts.
 
 ## Drawbacks
@@ -302,4 +302,5 @@ Future development SHOULD focus on:
 2. new path generating strategies allowing statistical inference of information from the path section overlaps.
 
 ## References
-[TODO: add references]
+- RFC-0007 – Session protocol
+- RFC-0009 – Cover traffic
