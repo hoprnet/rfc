@@ -8,10 +8,10 @@
 - **Updated:** 2025-06-26  
 - **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
-- **References:** [01](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf)
+- **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md)
 
 ## Abstract
-This RFC describes the wire format of a HOPR packet and its encoding and decoding protocol. The HOPR packet format is heavily based on the Sphinx packet format, as it aims to fulfil the similiar set of goals: to provide anonymous indistinguishable packets, hiding the path length and unlinkability of messages. Moreover, the HOPR packet format adds additional information to the header, which allows incentivization of individual relay nodes via Proof of Relay.
+This RFC describes the wire format of a HOPR packet and its encoding and decoding protocol. The HOPR packet format is heavily based on the Sphinx packet format [01], as it aims to fulfil the similiar set of goals: to provide anonymous indistinguishable packets, hiding the path length and unlinkability of messages. Moreover, the HOPR packet format adds additional information to the header, which allows incentivization of individual relay nodes via Proof of Relay.
 
 The Proof of Relay (PoR) is described in the separate RFC-0004.
 
@@ -575,3 +575,7 @@ The current version is instantiated using the following cryptographic primitives
 - OA is instantiated with Poly1305 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
 - KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`: `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
 - HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC9380](https://www.rfc-editor.org/info/rfc9380). `S` is used a the secret input, and `T` as an additional domain separator.
+
+## References
+
+[01] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). *2009 30th IEEE Symposium on Security and Privacy*, 262-277.
