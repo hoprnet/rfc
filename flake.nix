@@ -63,7 +63,8 @@
               config.treefmt.build.programs
             ];
           };
-          in {
+        in
+        {
           treefmt = {
             inherit (config.flake-root) projectRootFile;
 
