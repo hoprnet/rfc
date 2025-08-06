@@ -27,7 +27,7 @@ truth for the terminology used in the HOPR ecosystem.
 
 ## Terminology
 
-- **Node:** A process which implements the HOPR protocol and participates in 
+- **Node:** A process which implements the HOPR protocol and participates in
   the mixnet. Nodes can be run by anyone. A node can be a sender, destination or
   a relay node which helps to relay messages through the network [01, 02].
 
@@ -55,7 +55,7 @@ truth for the terminology used in the HOPR ecosystem.
 - **Hop:** A relay node in the message path. E.g. a 0-hop message is sent
   directly from the sender to the destination, while a 1-hop message goes
   through one relay node before reaching the destination [01, 02]. More hops in
-  the path generally increase the anonymity of the message, but also increase 
+  the path generally increase the anonymity of the message, but also increase
   latency and cost.
 
 - **Mix Nodes:** These are the proxy servers that make up the mixnet. They
@@ -68,7 +68,7 @@ truth for the terminology used in the HOPR ecosystem.
 
 - **Metadata:** Data that provides information about other data. In the context
   of mixnets, this includes things like the sender's and receiver's IP
-  addresses, the size of the message, and the time it was sent or received. 
+  addresses, the size of the message, and the time it was sent or received.
   Mixnets work to shuffle this metadata to protect user privacy [01, 06].
 
 - **Onion Routing:** A technique for anonymous communication over a network. It
@@ -91,14 +91,14 @@ truth for the terminology used in the HOPR ecosystem.
 
 ## References
 
-[01] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf). *Communications of the ACM, 24*(2), 84-90.
+[01] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf). _Communications of the ACM, 24_(2), 84-90.
 
-[02] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). *2009 30th IEEE Symposium on Security and Privacy*, 262-277.
+[02] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 
-[03] El-Atawy, A., & Al-Shaer, E. (2010). [A Survey on Mix Networks and Their Secure Applications](https://dl.acm.org/doi/10.1145/1749603.1749605). *ACM Computing Surveys (CSUR), 42*(4), 1-33.
+[03] El-Atawy, A., & Al-Shaer, E. (2010). [A Survey on Mix Networks and Their Secure Applications](https://dl.acm.org/doi/10.1145/1749603.1749605). _ACM Computing Surveys (CSUR), 42_(4), 1-33.
 
-[04] Reed, M. G., Syverson, P. F., & Goldschlag, D. M. (1998). [Anonymous Connections and Onion Routing](https://www.onion-router.net/Publications/JSAC-1998.pdf). *IEEE Journal on Selected Areas in Communications, 16*(4), 482-494.
+[04] Reed, M. G., Syverson, P. F., & Goldschlag, D. M. (1998). [Anonymous Connections and Onion Routing](https://www.onion-router.net/Publications/JSAC-1998.pdf). _IEEE Journal on Selected Areas in Communications, 16_(4), 482-494.
 
-[05] Shannon, C. E. (1949). [Communication Theory of Secrecy Systems](https://www.cs.ru.nl/~jhh/pub/secsem/shannon1949.pdf). *Bell System Technical Journal, 28*(4), 656-715.
+[05] Shannon, C. E. (1949). [Communication Theory of Secrecy Systems](https://www.cs.ru.nl/~jhh/pub/secsem/shannon1949.pdf). _Bell System Technical Journal, 28_(4), 656-715.
 
-[06] Tyagi, S., Ponomarev, D., & Shmatikov, V. (2019). [Distributed Differential Privacy via Mixnets](https://petsymposium.org/2019/files/papers/issue4/popets-2019-0069.pdf). *Proceedings on Privacy Enhancing Technologies, 2019*(4), 269-286.
+[06] Tyagi, S., Ponomarev, D., & Shmatikov, V. (2019). [Distributed Differential Privacy via Mixnets](https://petsymposium.org/2019/files/papers/issue4/popets-2019-0069.pdf). _Proceedings on Privacy Enhancing Technologies, 2019_(4), 269-286.

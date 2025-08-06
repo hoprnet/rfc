@@ -1,11 +1,11 @@
 # RFC-0001: RFC Life Cycle and Process
 
-- **RFC Number:** 0001  
+- **RFC Number:** 0001
 - **Title:** RFC Life Cycle and Process
 - **Status:** Raw
-- **Author(s):** QYuQianchen  
-- **Created:** 2025-02-20  
-- **Updated:** 2025-02-20  
+- **Author(s):** QYuQianchen
+- **Created:** 2025-02-20
+- **Updated:** 2025-02-20
 - **Version:** v0.1.0 (Raw)
 - **Supersedes:** N/A
 - **References:**
@@ -73,23 +73,23 @@ graph TD
 #### **Stage Descriptions:**
 
 - **Raw:** The RFC **MUST** begin as a raw draft reflecting initial ideas.
-The draft MAY contain incomplete details but MUST provide a clear objective.
+  The draft MAY contain incomplete details but MUST provide a clear objective.
 - **Discussion:** Upon submission of the initial PR, the RFC number and `v0.1.0` version are assigned.
-Feedback SHALL be gathered via PRs, with iterative updates reflected in version increments `(v0.x.x)`.
+  Feedback SHALL be gathered via PRs, with iterative updates reflected in version increments `(v0.x.x)`.
 - **Review:** The RFC **MUST** undergo at least one review cycle.
-The draft **SHOULD** incorporate significant feedback and each iteration **MUST** be independently implementable.
+  The draft **SHOULD** incorporate significant feedback and each iteration **MUST** be independently implementable.
 - **Draft:** The RFC moves into active development and refinement.
-Each update **SHALL** increment the version (`v0.x.x`) to indicate progress.
+  Each update **SHALL** increment the version (`v0.x.x`) to indicate progress.
 - **Implementation:** Merging to the main branch signifies readiness for practical use, triggering the finalization process.
 - **Finalized:** The RFC is considered stable and complete, with version `v1.0.0` assigned.
-Only errata modifications are permitted afterward.
+  Only errata modifications are permitted afterward.
 - **Errata:** Minor technical corrections post-finalization **MUST** be documented
-and result in a patch version increment (`v1.0.x`).
-Errata are technical corrections or factual updates made after an RFC has been finalized.
-They **MUST NOT** alter the intended functionality or introduce new features.
+  and result in a patch version increment (`v1.0.x`).
+  Errata are technical corrections or factual updates made after an RFC has been finalized.
+  They **MUST NOT** alter the intended functionality or introduce new features.
 - **Superseded:** Significant updates requiring functionality changes **MUST** be documented in a new RFC,
-starting at `v2.0.0` or higher. The original RFC must include information that it has been superseded,
-accompanied with a link to the new RFC that supersedes it.
+  starting at `v2.0.0` or higher. The original RFC must include information that it has been superseded,
+  accompanied with a link to the new RFC that supersedes it.
 - **Rejected:** If an RFC does not progress past the discussion stage, reasons **MUST** be documented.
 
 ### 2. File Structure
@@ -109,9 +109,9 @@ RFC-0001-rfc-life-cycle-process/
 ### 3. Validation Rules
 
 - Directory **MUST** be prefixed with uppercased "RFC", followed by its RFC number,
-and a succinct title all in lowercase joined by hyphens. E.g. `RFC-0001-rfc-life-cycle-process`
+  and a succinct title all in lowercase joined by hyphens. E.g. `RFC-0001-rfc-life-cycle-process`
 - Main file **MUST** be prefixed with its RFC number and a succinct title
-all in lowercase joined by hyphens. E.g. `0001-rfc-life-cycle-process.md`
+  all in lowercase joined by hyphens. E.g. `0001-rfc-life-cycle-process.md`
 - All assets **MUST** reside in the `assets/` folder.
 - Errata **MUST** reside in the `errata/` folder.
 
