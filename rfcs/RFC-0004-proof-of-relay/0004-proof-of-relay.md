@@ -41,6 +41,13 @@ In addition, this document also uses the following terms:
 
 - **Ticket**: a structure that holds cryptographic material allowing probabilistic fund transfer within the Payment channel.
 
+- **MIN_USED_BALANCE**: Minimum HOPR token values used in funding (including opening) channels and in redeeming tickets. Its default value is `1e-18` HOPR.
+- **MAX_USED_BALANCE**: Maximum HOPR token values used in funding (including opening) channels and in redeeming tickets. Its default value is `1e7` HOPR.
+- **VERSION**: Current version of the ledger that stores channel states. For hoprd v3.0, the version is "2.0.0".
+- **domainSeparator**: To prevent replay attacks across different domains (e.g., contracts, chains) where the ledger that stores channel states MAY be deployed, all cryptographic signatures in the HOPR protocol are bound to a specific execution context using a domain separator.
+- **chainId**: The chainId is a unique identifier for the ledger that stores channel states MAY be deployed.
+- **Notice period (T_closure)**: Minimum elaspe required for an outgoing channel to transit from `PENDING_TO_CLOSE` to `CLOSED`
+
 The above terms are formally defined in the following sections.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",
@@ -66,6 +73,26 @@ difficult as the chosen security parameter `L`. The elements of the field are de
 against cryptographic attacks SHALL NOT be less than `L`.
 - **Verifiable Random Function (VRF)** produces a pseudo-random value that is publicly verifiable but cannot be forged or precomputed.
 
+### 2.2 Channel Errors
+The following errors MAYB be thrown by the channels and MUST be handled accordinglyL
+- **InvalidBalance**: Thrown if the balance provided is below the acceptable minimum value (`MIN_USED_BALANCE`). This check MUST be done before funding (including opening) a channel and before claiming rewards. 
+- **BalanceExceedsGlobalPerChannelAllowance**: Raised if a balance exceeds the per-channel max (`MAX_USED_BALANCE`). MUST limit channel funding and ticket redemption to protocol-defined maximums.
+- **SourceEqualsDestination**: Triggered if source equals destination during channel creation. MUST ensure distinct addresses.
+- **ZeroAddress**: Thrown if an address (Node identifier) is empty. MUST validate all provided addresses.
+- **TokenTransferFailed**: Raised when HOPR token transfer fails. MUST check for successful token transfers.
+- **InvalidNoticePeriod**: Thrown when initializing a contract with zero notice period (`T_closure`). MUST configure valid timeouts.
+- **NoticePeriodNotDue**: Raised if attempting to finalize closure before timeout (`T_closure`). MUST validate block time against closure timestamp.
+- **WrongChannelState**: Thrown if the channel is in an invalid state for the operation. MUST verify current state before action.
+- **InvalidTicketSignature**: Raised when a ticket signature is invalid. MUST verify off-chain before submitting.
+- **InvalidVRFProof**: Raised if VRF fails verification. MUST ensure integrity of VRF proofs.
+- **InsufficientChannelBalance**: Raised when redeeming a ticket without enough funds. MUST track ticket values against balance.
+- **TicketIsNotAWin**: Thrown if the ticket fails the win probability check. MUST handle rejection gracefully.
+- **InvalidAggregatedTicketInterval**: Raised for malformed aggregation indexes. MUST ensure valid index and offset combinations.
+- **WrongToken**: Raised when non-HOPR token is received. MUST restrict token types.
+- **InvalidTokenRecipient**: Raised when tokens are sent to wrong recipient. MUST use the contract address.
+- **InvalidTokensReceivedUsage**: Raised if token usage is malformed. MUST follow defined payload structures.
+
+Nodes and clients MUST implement handling for each of the above to ensure compliance and fault tolerance within the HOPR PoR protocol.
 
 ## 3 Payment channels
 
@@ -124,6 +151,7 @@ Such structure is sufficient to describe the payment channel A -> B.
 
 A payment channel between nodes A -> B MUST always be initiated by node A. It MUST be initialized with a non-zero `balance`,
 a `ticket_index` equal to `0`, `channel_epoch` equal to `1` and `status` equal to `Open`.
+To prevent spamming, the funding `balance` MUST be larger than `MIN_USED_BALANCE` and smaller than `MAX_USED_BALANCE`.
 
 In such state, the node A is allowed communicate with node C via B and the node B can claim certain fixed amounts of `balance` to be paid out to it in return - as a reward for the relaying work. This will described in the later sections.
 
@@ -144,6 +172,7 @@ At any point of time when the channel is at the state other than `CLOSED`, the c
 channel A -> B to state `CLOSED`. 
 Node B SHALL claim unclaimed rewards before the state transition, because any unclaimed rewards becomes unclaimable after
 the state transit, resulting a lost for node B.
+To prevent spamming, the reward amount MUST be larger than `MIN_USED_BALANCE` and smaller than `MAX_USED_BALANCE`.
 
 ### 3.2 Balance update in payment channels: Probablistic winning tickets
 
@@ -174,6 +203,19 @@ The VRF verification algorithm for ticket validation is:
 ```
 (bX, bY) = hashToCurve(signer || ticketHash, domainSeparator)
 ```
+where the `domainSeparator` is calculated as:
+```
+domainSeparator = keccak256(
+  abi.encode(
+    keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+    keccak256(bytes("HoprChannels")),
+    keccak256(bytes(VERSION)),
+    chainId,
+    address(this)
+  )
+)
+```
+
 3. Execute elliptic curve operations:
 ```
 sB = scalarMult(s, bX, bY)
@@ -184,7 +226,8 @@ Compute verification scalar (`hCheck`):
 ```
 hCheck = hashToScalar(signer || vx || vy || Rx || Ry || ticketHash, domainSeparator)
 ```
-Validate VRF proof by ensuring: `hCheck == h`
+Validate VRF proof by ensuring: `hCheck == h
+
 ## 4. Construction of Proof-of-Relay (PoR) secrets
 
 ### 4.1 Secret Sharing
