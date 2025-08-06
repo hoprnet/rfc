@@ -60,8 +60,8 @@
           devShell = pkgs.mkShell {
             buildInputs = [
               config.treefmt.build.wrapper
-              config.treefmt.build.programs
-            ];
+            ]
+            ++ (pkgs.lib.attrValues config.treefmt.build.programs);
           };
         in
         {
