@@ -1,7 +1,6 @@
-import { forwardRef, Ref } from 'react';
-import styled from '@emotion/styled';
-import MuiButton, { ButtonProps } from '@mui/material/Button';
-
+import { forwardRef, Ref } from "react";
+import styled from "@emotion/styled";
+import MuiButton, { ButtonProps } from "@mui/material/Button";
 
 const StyledButton = styled(MuiButton)<ButtonProps>`
   background: linear-gradient(#000050, #0000b4);
@@ -19,16 +18,12 @@ const StyledButton = styled(MuiButton)<ButtonProps>`
 
 const Button = forwardRef((props: ButtonProps, ref: Ref<HTMLButtonElement>) => {
   return (
-    <StyledButton
-      variant="contained"
-      {...props}
-      ref={ref}
-    >
+    <StyledButton variant="contained" {...props} ref={ref}>
       {props.children}
     </StyledButton>
   );
 });
 
-Button.displayName = 'Button'; // Set the display name here
+Button.displayName = "Button"; // Set the display name here
 
 export default Button;
