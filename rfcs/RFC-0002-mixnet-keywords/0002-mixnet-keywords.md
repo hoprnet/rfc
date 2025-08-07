@@ -3,7 +3,7 @@
 - **RFC Number:** 0002
 - **Title:** Common mixnet terms and keywords
 - **Status:** Raw
-- **Author(s):** tolbrino
+- **Author(s):** Tino Breddin (@tolbrino)
 - **Created:** 2025-08-01
 - **Updated:** 2025-08-01
 - **Version:** v0.0.1 (Raw)
