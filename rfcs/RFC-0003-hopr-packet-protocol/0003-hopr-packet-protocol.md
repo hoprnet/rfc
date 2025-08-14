@@ -586,11 +586,15 @@ If the packet processing was not successful, a random acknowledgement MUST be ge
 The current version is instantiated using the following cryptographic primitives:
 
 - Curve25519 elliptic curve with the corresponding scalar field
-- Both PRP and PRG are instantiated using Chacha20 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
-- OA is instantiated with Poly1305 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
+- Both PRP and PRG are instantiated using Chacha20 [02]
+- OA is instantiated with Poly1305 [02]
 - KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`: `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
-- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC9380](https://www.rfc-editor.org/info/rfc9380). `S` is used a the secret input, and `T` as an additional domain separator.
+- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [03]. `S` is used a the secret input, and `T` as an additional domain separator.
 
 ## 7. References
 
 [01] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
+
+[02] Nir, Y., & Langley, A. (2015). [ChaCha20 and Poly1305 for IETF Protocols](https://www.rfc-editor.org/rfc/rfc7539.html). _IETF RFC 7539_.
+
+[03] Faz-Hernandez, A., et al. (2023). [Hashing to Elliptic Curves](https://www.rfc-editor.org/rfc/rfc9380.html). _IETF RFC 9380_.
