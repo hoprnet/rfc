@@ -111,10 +111,10 @@ truth for the terminology used in the HOPR ecosystem.
 
 [02] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 
-[03] El-Atawy, A., & Al-Shaer, E. (2010). A Survey on Mix Networks and Their Secure Applications. _ACM Computing Surveys (CSUR), 42_(4), 1-33. DOI: 10.1145/1749603.1749605
+[03] K. Sampigethaya and R. Poovendran, A Survey on Mix Networks and Their Secure Applications. Proceedings of the IEEE, vol. 94, no. 12, pp. 2142-2181, Dec. 2006.
 
 [04] Reed, M. G., Syverson, P. F., & Goldschlag, D. M. (1998). [Anonymous Connections and Onion Routing](https://www.onion-router.net/Publications/JSAC-1998.pdf). _IEEE Journal on Selected Areas in Communications, 16_(4), 482-494.
 
 [05] Shannon, C. E. (1949). Communication Theory of Secrecy Systems. _Bell System Technical Journal, 28_(4), 656-715. DOI: 10.1002/j.1538-7305.1949.tb00928.x
 
-[06] Tyagi, S., Ponomarev, D., & Shmatikov, V. (2019). [Distributed Differential Privacy via Mixnets](https://petsymposium.org/2019/files/papers/issue4/popets-2019-0069.pdf). _Proceedings on Privacy Enhancing Technologies, 2019_(4), 269-286.
+[06] Cheu, A., Smith, A., Ullman, J., Zeber, D., & Zhilyaev, M. (2019, April). Distributed differential privacy via shuffling. In Annual international conference on the theory and applications of cryptographic techniques (pp. 375-403). Cham: Springer International Publishing.
