@@ -29,34 +29,44 @@ truth for the terminology used in the HOPR ecosystem.
 
 - **Node:** A process which implements the HOPR protocol and participates in
   the mixnet. Nodes can be run by anyone. A node can be a sender, destination or
-  a relay node which helps to relay messages through the network [01, 02].
+  a relay node which helps to relay messages through the network. Also referred to as "peer" [01, 02].
 
-- **Sender:** The node that sends a message through the mixnet.
-  This is typically an application which wants to send a message anonymously [01, 02].
+- **Sender:** The node that initiates communication by sending out a packet
+  through the mixnet. This is typically an application which wants to send a message anonymously [01, 02].
 
-- **Destination:** The node that receives a message sent through the mixnet [01, 02].
+- **Destination:** The node that receives a message sent through the mixnet. Also
+  referred to as "receiver" in some contexts [01, 02].
 
 - **Peer**: A node that is connected to another node in the p2p network.
   Each peer has a unique identifier and can communicate with other peers.
+  The terms "peer" and "node" are often used interchangeably.
 
 - **Cover Traffic:** Dummy data packets that are introduced into the network to
   further obscure what's happening. These data packets can be generated on any
   node and are used to make it harder to distinguish between real user traffic
   and dummy traffic [01, 03].
 
-- **Message Path:** The path a message takes through the mixnet. A path can be
-  direct from sender to destination, or it can go through multiple hops (relay
-  nodes) before reaching the destination [01, 02].
+- **Path:** The route a message takes through the mixnet, defined as a set of
+  hops between sender and receiver. A path can be direct from sender to destination,
+  or it can go through multiple relay nodes before reaching the destination.
+  Also referred to as "message path" [01, 02].
+
+- **Forward Path:** A path that is used to deliver a packet only in the direction
+  from the sender to the receiver.
+
+- **Return Path:** A path that is used to deliver a packet in the opposite direction
+  than the forward path. The return path may be disjoint with the forward path.
 
 - **Relay Node:** A node that forwards messages from one node to another
   in the mixnet. Relay nodes help to obscure the sender's identity by routing
   messages through multiple nodes [01, 02].
 
-- **Hop:** A relay node in the message path. E.g. a 0-hop message is sent
-  directly from the sender to the destination, while a 1-hop message goes
-  through one relay node before reaching the destination [01, 02]. More hops in
-  the path generally increase the anonymity of the message, but also increase
-  latency and cost.
+- **Hop:** A relay node in the message path that is neither the sender nor the
+  destination. E.g. a 0-hop message is sent directly from the sender to the
+  destination, while a 1-hop message goes through one relay node before reaching
+  the destination. The terms "hop" and "relay" are often used interchangeably [01, 02].
+  More hops in the path generally increase the anonymity of the message, but also
+  increase latency and cost.
 
 - **Mix Nodes:** These are the proxy servers that make up the mixnet. They
   receive messages from multiple senders, shuffle them, and then send them back
@@ -88,6 +98,12 @@ truth for the terminology used in the HOPR ecosystem.
 - **Traffic Analysis:** The process of intercepting and examining messages in
   order to deduce information from patterns in communication. Mixnets are
   designed to make traffic analysis very difficult [01].
+
+- **Forward Message:** A packet that is sent along the forward path. Also referred
+  to as "forward packet".
+
+- **Reply Message:** A packet that is sent along the return path. Also referred
+  to as "reply packet".
 
 ## 4. References
 

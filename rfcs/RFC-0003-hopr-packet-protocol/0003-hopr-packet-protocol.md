@@ -18,7 +18,7 @@ The Proof of Relay (PoR) is described in the separate RFC-0004.
 
 ## 2. Introduction
 
-The HOPR packet format is the fundamental building block of the HOPR protocol, allowing to build the HOPR mixnet. The format is designed to create indistinguishable packets sent between source and destination node using a set of relays (called the _path_, the individual relays on the path are sometimes called _hops_). Thus achieving anonymity and unlinkability of messages between sender and destination.
+The HOPR packet format is the fundamental building block of the HOPR protocol, allowing to build the HOPR mixnet. The format is designed to create indistinguishable packets sent between source and destination node using a set of relays (called the path, the individual relays on the path are sometimes called hops as defined in [RFC-0002]). Thus achieving anonymity and unlinkability of messages between sender and destination.
 In HOPR protocol, the relays SHOULD also perform packet mixing, as described in [RFC-0005].
 The format is built using the Sphinx packet format [01], but adds additional information for each hop, in order to allow incentivization of the hops (except the last one) for the relaying duties. The incentivization of the last hop is exempt from the HOPR packet format itself and is subject to a separate [RFC-0008].
 
@@ -41,27 +41,11 @@ capitals, as shown here.
 
 Terms defined in [RFC-0002] are used, as well as some following additional terms:
 
-_peer_ (also _node_): participant of the network that can send, process and receive network packets
-
 _peer public/private key_ (also _pubkey_ or _privkey_): part of a cryptographic key-pair owned by a peer.
 
-_sender_: peer that initiates communication by sending out a packet
-
-_receiver_: peer that is the destination of a packet
-
-_hop_ (also _relay_): a peer that is not the sender nor destination of a packet
-
-_path_: a set of hops between sender and receiver of a packet
-
-_forward path_: a path that is used to deliver packet only in the direction from the sender to the receiver
-
-_return path_: a path that is used to deliver packet in the opposite direction than _forward path_. The return path MAY be disjoint with the forward path.
+_receiver_: peer that is the destination of a packet (equivalent to "destination" in [RFC-0002])
 
 _extended path_: a forward or return path which in addition contains the receiver or sender respectively.
-
-_forward message_ (also _forward packet_): packet that is sent along the forward path.
-
-_reply message_ (also _reply packet_): packet that is sent along the return path.
 
 _pseudonym_: a randomly generated identifier of the sender. The pseudonym MAY be prefixed with a static prefix. The length such static prefix MUST NOT exceed half of the entire pseudonym's size. The pseudonym used in the forward message MUST be the same as the pseudonym used in the reply message.
 
