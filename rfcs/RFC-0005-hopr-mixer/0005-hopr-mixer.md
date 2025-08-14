@@ -19,6 +19,7 @@ This RFC describes the HOPR Mixer component, a critical element of the HOPR mixn
 In mixnets, simply forwarding packets through multiple hops is insufficient to prevent traffic analysis attacks. Adversaries can correlate packets by observing timing patterns, even if packet contents are encrypted and routes are obscured. Without temporal mixing, an observer monitoring network traffic can potentially link incoming and outgoing packets based on their timing relationships.
 
 The HOPR Mixer addresses this attack vector by:
+
 - Breaking temporal correlations between packet arrival and departure times
 - Providing configurable delay parameters to balance anonymity and performance
 - Using an efficient queuing mechanism that maintains packet ordering based on release times
@@ -39,6 +40,7 @@ _mixing buffer_: A priority queue that holds packets ordered by their release ti
 ### 4.1. Overview
 
 The HOPR Mixer follows a flow-based design which is split into these steps:
+
 1. Accepts packets from upstream components
 2. Assigns random delays to each packet
 3. Stores packets in a time-ordered buffer
@@ -58,6 +60,7 @@ The actual delay for each packet is randomly selected from the interval `[min_de
 #### 4.3.1. Delay Assignment
 
 When a packet arrives, the mixer:
+
 1. Generates a random delay using a cryptographically secure random number generator
 2. Calculates the release timestamp as `current_time + random_delay`
 3. Wraps the packet with its release timestamp
@@ -67,6 +70,7 @@ The random delay generation MUST use uniform distribution to prevent statistical
 #### 4.3.2. Mixing Buffer
 
 The mixer maintains packets in a data structure where:
+
 - Packets are ordered by their release timestamps
 - The packet with the earliest release time is always at the top
 - Insertion and extraction operations have O(log n) complexity
@@ -80,12 +84,14 @@ FIXME: maybe too implementation specific and can be removed?
 The mixer provides a channel-like interface with:
 
 **Sender capabilities:**
+
 - Send individual packets
 - Support for both synchronous and asynchronous sending
 - Automatic wake-up of the receiver when new packets arrive
 - Error handling for closed channels
 
 **Receiver capabilities:**
+
 - Receive packets in release-time order
 - Automatic sleeping when no packets are ready
 - Stream-based interface for continuous processing
@@ -106,6 +112,7 @@ The mixer provides a channel-like interface with:
 #### 4.4.2. Timer Management
 
 The mixer requires a timer that is able to:
+
 - Wake the mixer at the next packet's release time
 - Use minimal system calls and context switches
 - Handle concurrent access safely
@@ -115,6 +122,7 @@ The mixer requires a timer that is able to:
 #### 4.5.1. Zero Delay Configuration
 
 When both `min_delay` and `delay_range` are zero:
+
 - Packets pass through without mixing
 - Original packet order is preserved
 - Useful for testing or non-anonymous operation modes
@@ -124,6 +132,7 @@ When both `min_delay` and `delay_range` are zero:
 ### 5.1. Performance Optimization
 
 An implementation should prioritize:
+
 - **Minimal allocations**: Pre-allocated buffer reduces memory pressure
 - **Efficient data structures**: Binary heap provides O(log n) operations
 - **Lock minimization**: Fine-grained locking for concurrent access
@@ -138,10 +147,12 @@ An implementation should prioritize:
 ### 5.3. Monitoring and Metrics
 
 The mixer should track:
+
 - Current queue size
 - Average packet delay (over configurable window)
 
 These metrics aid in:
+
 - Performance tuning
 - Detecting abnormal traffic patterns
 - Capacity planning
@@ -151,6 +162,7 @@ These metrics aid in:
 ### 6.1. Threat Model
 
 The mixer defends against:
+
 - **Timing correlation attacks**: Observers cannot link input/output packets by timing
 - **Statistical traffic analysis**: Random delays prevent pattern detection
 - **Queue manipulation**: Authenticated packet handling prevents injection attacks
@@ -158,6 +170,7 @@ The mixer defends against:
 ### 6.2. Limitations
 
 The mixer does not protect against:
+
 - **Global passive adversaries**: With unlimited observation capability
 - **Active attacks**: Packet dropping or delaying by malicious nodes
 - **Side channels**: CPU, memory, or network-level information leaks
@@ -171,6 +184,7 @@ The mixer does not protect against:
 ## 8. Alternatives
 
 Alternative mixing strategies considered:
+
 - **Batch mixing**: Release packets in fixed-size batches (higher latency)
 - **Threshold mixing**: Release when buffer reaches certain size (variable latency)
 - **Stop-and-go mixing**: Fixed delays at each hop (predictable patterns)
