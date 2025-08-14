@@ -2,28 +2,28 @@
 
 - **RFC Number:** 0005
 - **Title:** HOPR Mixer
-- **Status:** Raw | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded
-- **Author(s):** \<Name (GitHub Handle)\>
-- **Created:** \<YYYY-MM-DD\>
-- **Updated:** \<YYYY-MM-DD\>
-- **Version:** v0.x.x (Raw), v1.x.x (Finalized)
-- **Supersedes:** RFC-YYYY (if applicable)
-- **References:** [Related RFCs or Documentation Links]
+- **Status:** Raw
+- **Author(s):** Tino Breddin (@tolbrino)
+- **Created:** 2025-08-05
+- **Updated:** 2025-08-05
+- **Version:** v0.1.0 (Raw)
+- **Supersedes:** N/A
+- **References:** none
 
-## Abstract
+## 1. Abstract
 
 Provide a brief and clear summary of the RFC, outlining its purpose, context, and scope.
 
-## Motivation
+## 2. Motivation
 
 Explain the problem this RFC aims to solve.
 Discuss existing limitations, technical gaps, and why the proposed solution is necessary.
 
-## Terminology
+## 3. Terminology
 
 Define key terms, abbreviations, and domain-specific language used throughout the RFC.
 
-## Specification
+## 4. Specification
 
 Comprehensive description of the proposed solution, including:
 
@@ -41,35 +41,35 @@ C -->|One| D[Result 1]
 C -->|Two| E[Result 2]
 ```
 
-## Design Considerations
+## 5. Design Considerations
 
 Discuss critical design decisions, trade-offs, and justification for chosen approaches over alternatives.
 
-## Compatibility
+## 6. Compatibility
 
 Address backward compatibility, migration paths, and impact on existing systems.
 
-## Security Considerations
+## 7. Security Considerations
 
 Identify potential security risks, threat models, and mitigation strategies.
 
-## Drawbacks
+## 8. Drawbacks
 
 Discuss potential downsides, risks, or limitations associated with the proposed solution.
 
-## Alternatives
+## 9. Alternatives
 
 Outline alternative approaches that were considered and reasons for their rejection.
 
-## Unresolved Questions
+## 10. Unresolved Questions
 
 Highlight questions or issues that remain open for discussion.
 
-## Future Work
+## 11. Future Work
 
 Suggest potential areas for future exploration, enhancements, or iterations.
 
-## References
+## 12. References
 
 Include all relevant references, such as:
 

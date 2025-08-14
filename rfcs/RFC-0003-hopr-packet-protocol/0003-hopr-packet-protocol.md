@@ -10,13 +10,13 @@
 - **Supersedes:** N/A
 - **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md)
 
-## Abstract
+## 1. Abstract
 
 This RFC describes the wire format of a HOPR packet and its encoding and decoding protocol. The HOPR packet format is heavily based on the Sphinx packet format [01], as it aims to fulfil the similiar set of goals: to provide anonymous indistinguishable packets, hiding the path length and unlinkability of messages. Moreover, the HOPR packet format adds additional information to the header, which allows incentivization of individual relay nodes via Proof of Relay.
 
 The Proof of Relay (PoR) is described in the separate RFC-0004.
 
-## 1. Introduction
+## 2. Introduction
 
 The HOPR packet format is the fundamental building block of the HOPR protocol, allowing to build the HOPR mixnet. The format is designed to create indistinguishable packets sent between source and destination node using a set of relays (called the _path_, the individual relays on the path are sometimes called _hops_). Thus achieving anonymity and unlinkability of messages between sender and destination.
 In HOPR protocol, the relays SHOULD also perform packet mixing, as described in [RFC-0005].
@@ -32,7 +32,7 @@ The HOPR packet consists of two primary components:
 
 **This document describes version 1.0.0 of the HOPR Packet format and protocol.**
 
-### 1.1 Conventions and terminology
+### 2.1. Conventions and terminology
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",
 "MAY", and "OPTIONAL" in this document are to be interpreted as described
@@ -69,7 +69,7 @@ _public key identifier_: a reasonably short identifier of public key of each pee
 
 _|x|_: denotes length of binary representation of x in bytes.
 
-### 1.2 Global packet format parameters
+### 2.2. Global packet format parameters
 
 The HOPR packet format requires certain cryptographic primitives in place, namely:
 
@@ -86,7 +86,7 @@ The concrete instantiations of these primitives are discussed in Appendix 1. All
 
 The global value of `PacketMax` is the maximum size of the data in bytes allowed inside the packet payload.
 
-## 2. Forward packet creation
+## 3. Forward packet creation
 
 The REQUIRED inputs for the packet creation are as follows:
 
@@ -108,15 +108,15 @@ The forward and return paths MAY be represented by public keys of individual hop
 
 The size of the forward and return paths (number of hops) MUST be between 0 and 3.
 
-### 2.1 Partial Ticket creation
+### 3.1. Partial Ticket creation
 
 The creation of the HOPR packet starts with creation of the partial Ticket structure as defined in RFC-0004. If Ticket creation fails at this point, the packet creation process MUST be terminated.
 
 The Ticket is created almost complete, apart from the Challenge field, which can be populated only after the Proof of Relay values have been fully created for the packet.
 
-### 2.2 Generating the Shared secrets
+### 3.2. Generating the Shared secrets
 
-In the next step, shared secrets for individual hops on the forward path are generated, as described in Section 3.2 in [1]:
+In the next step, shared secrets for individual hops on the forward path are generated, as described in Section 3.2 in [01]:
 
 Assume the length of the path is N (between 0 and 3) and each hop's public key is `Phop_i`.
 The public key of the destination is `Pdst`.
@@ -143,7 +143,7 @@ After KDF_expand, the `B_i` MAY be additionally transformed so that it conforms 
 
 The returned `Alpha` value MAY be encoded to an equivalent representation (such as using elliptic curve point compression), so that space is preserved.
 
-### 2.3 Generating the Proof of Relay
+### 3.3. Generating the Proof of Relay
 
 The packet generation continues with generation of per-hop proof of relay values, Ticket challenge and Acknowledgement challenge for the first downstream node. This generation is done for the
 
@@ -167,7 +167,7 @@ Also here, both values are EC points, where the latter MAY be represented via th
 
 This tuple is called `PoRValues` and is used to finalize the partial Ticket - the Ticket challenge fills in the missing part in the `Ticket`.
 
-### 2.4 Forward Meta Packet creation
+### 3.4. Forward Meta Packet creation
 
 At this point, there is enough information to generate the Meta packet, which is a logical construct that does not contain the `Ticket` yet.
 
@@ -185,9 +185,9 @@ The `Header` is created differently depending whether this packet is a forward p
 
 The creation of of the `EncPayload` depends on whether the packet is routed via the forward path or return path.
 
-#### 2.4.1 Header creation
+#### 3.4.1. Header creation
 
-The header creation also closely follows [1] Section 3.2. Its creation is almost identical whether it is being created for the forward or return path.
+The header creation also closely follows [01] Section 3.2. Its creation is almost identical whether it is being created for the forward or return path.
 
 The input for the header creation is:
 
@@ -252,7 +252,7 @@ Header {
 }
 ```
 
-#### 2.4.2 Forward payload creation
+#### 3.4.2. Forward payload creation
 
 The packet payload consists of User payload given at the beginning of section 2. However, if any non-zero number of return paths has been given as well, the packet payload MUST consist of that many Single Use Reply Blocks (SURBs) that are prepended to the User payload.
 
@@ -274,7 +274,7 @@ PacketPayload {
 }
 ```
 
-#### 2.4.3 Generating SURBs
+#### 3.4.3. Generating SURBs
 
 The Single Use Reply Block is always generated by the Sender for its chosen pseudonym. Its purpose is to allow reply packet generation sent on the return path from the recipient back to sender.
 
@@ -299,11 +299,11 @@ The public key of the sender is `Psrc`.
 Let the extended return path be a list of `Phop_i` and `Psrc` (for i = 1 .. N).
 For N = 0, the Extended return path consists of just `Psrc`.
 
-1. generate Shared secret list (`SharedSecret_i`) for the extended return path and the corresponding `Alpha` value as given in section 2.2.
+1. generate Shared secret list (`SharedSecret_i`) for the extended return path and the corresponding `Alpha` value as given in section 3.2.
 2. generate PoR for the given extended return path: list of `PoRStrings_i` and `PoRValues`
-3. generate Reply packet `Header` for the extended return path as in section 2.4.1:
+3. generate Reply packet `Header` for the extended return path as in section 3.4.1:
    - The list of `PoRStrings_i` and list of `SharedSecret_i` from the step 1 and 2 are used
-   - The 5th bit of the `HeaderPrefix` is set to 1 (see section 2.4.1)
+   - The 5th bit of the `HeaderPrefix` is set to 1 (see section 3.4.1)
 4. generate a random cryptographic key material, for at least the selected security boundary (`SenderKey` as a sequence of bytes)
 
 `SURB` MUST consist of:
@@ -338,7 +338,7 @@ ReplyOpener {
 
 The Sender keeps the `ReplyOpener` (MUST be indexed by the chosen pseudonym), and puts the `SURB` in the forward packet payload.
 
-#### 2.4.4 Payload padding
+#### 3.4.4. Payload padding
 
 The packet payload MUST be padded in accordance to [01] to exactly `PacketMax + |PaddingTag|` bytes.
 
@@ -356,7 +356,7 @@ PaddedPayload {
 }
 ```
 
-#### 2.4.5 Payload encryption
+#### 3.4.5. Payload encryption
 
 The encryption of the padded payload follows the same procedure from [01].
 
@@ -371,7 +371,7 @@ EncPayload = PRP(Kprp, PaddedPayload)
 
 The Meta packet is formed from `Alpha`, `Header`, and `EncPayload`.
 
-### 2.5 Final forward packet overview
+### 3.5. Final forward packet overview
 
 The final structure of the HOPR packet format MUST consists of the logical Meta packet with the `Ticket` attached:
 
@@ -389,7 +389,7 @@ The packet is then sent to the peer represented by the first public key of the f
 Note that the size of the packet is exactly `|HOPR_Packet| = |Alpha| + |Header| + |PacketMax| + |PaddingTag| + |Ticket|`.
 It can be also referred to the size of the logical Meta packet plus `|Ticket|`.
 
-## 3. Reply packet creation
+## 4. Reply packet creation
 
 Upon receiving a forward packet, instead of sending the response back using an "inverse" forward path, the forward packet recipient SHOULD create a reply packet using one of a SURB. This is possible only if the Recipient received a SURB (with this or any previous forward packets) from an equal pseudonym.
 
@@ -407,7 +407,7 @@ OPTIONALLY, a unique bidirectional map between peer pubkeys and public key ident
 
 The final reply packet is a `HOPR_Packet` and the means of obtaining the values needed for its construction are given in the next sections.
 
-### 3.1 Reply packet ticket creation
+### 4.1. Reply packet ticket creation
 
 The `PoRValues` and first reply hop key identifiers are extracted from the used `SURB`.
 
@@ -415,13 +415,13 @@ The mapper is used to map the key identifier (`first_hop_ident`) to the public k
 
 The Challenge from the `PoRValues` (`por_values`) in the `SURB` is used to construct the complete `Ticket` for the first hop.
 
-### 3.2 Reply meta packet creation
+### 4.2. Reply meta packet creation
 
 The `Alpha` value (`alpha` field) and the packet `Header` (`header` field) are extracted from the used `SURB`.
 
-#### 3.2.1 Reply payload creation
+#### 4.2.1. Reply payload creation
 
-The reply payload is constructed as `PacketPayload` in section 2.4.2. However, the reply payload MUST not contain any SURBs.
+The reply payload is constructed as `PacketPayload` in section 3.4.2. However, the reply payload MUST not contain any SURBs.
 
 ```
 PacketPayload {
@@ -431,9 +431,9 @@ PacketPayload {
 }
 ```
 
-The `PacketPayload` then MUST be padded to obtain `PaddedPayload` as described in section 2.4.4.
+The `PacketPayload` then MUST be padded to obtain `PaddedPayload` as described in section 3.4.4.
 
-#### 3.2.2 Reply payload encryption
+#### 4.2.2. Reply payload encryption
 
 The `SenderKey` (`sender_key` field) is extracted from the used `SURB`.
 
@@ -450,7 +450,7 @@ This finalizes all the fields of the `HOPR_Packet` of for the reply.
 The `HOPR_Packet` is sent to the peer represented by a public key, corresponding to `first_hop_ident` extracted from the `SURB` (that is the first peer on the return path).
 For this operation, the mapper MAY be used to obtain the actual public key to route the packet.
 
-## 4. Packet processing
+## Packet processing
 
 This section describes the behavior of processing a `HOPR_Packet` instance, when received by a peer (hop).
 Let `Phop_priv` be the private key corresponding to the public key `Phop` of the peer processing the packet.
@@ -459,9 +459,9 @@ Upon reception of a sequence of bytes that is at least `|HOPR_Packet|` bytes lon
 
 The resulting Meta packet is processed first, and if this processing is successful, the `Ticket` is validated as well, as defined in RFC-0004.
 
-If any of the operations fail, the packet MUST be rejected and subsequently, it MUST be acknowledged. See Section 4.5
+If any of the operations fail, the packet MUST be rejected and subsequently, it MUST be acknowledged. See section 5.4
 
-### 4.1 Advancing the Alpha value
+### 5.1. Advancing the Alpha value
 
 In order to recover the `SharedSecret_i` , the `Alpha` value MUST be transformed using the following transformation:
 
@@ -470,17 +470,17 @@ In order to recover the `SharedSecret_i` , the `Alpha` value MUST be transformed
 3. `B_i` = KDF("HASH_KEY_SPHINX_BLINDING", `SharedPreKey_i`, `Alpha`)
 4. `Alpha` = `B_i` \* `Alpha`
 
-Similarly as in section 2.2, the `B_i` in step 3 MAY be additionally transformed so that it conforms to a valid field scalar usable in step 4.
+Similarly as in section 3.2, the `B_i` in step 3 MAY be additionally transformed so that it conforms to a valid field scalar usable in step 4.
 Shall the process fail in any of these steps (due to invalid EC point or field scalar), the process MUST terminate with an error and the entire packet MUST be rejected.
 
 Also derive the `ReplayTag` = KDF("HASH_KEY_PACKET_TAG", `SharedSecret_i`).
 Verify that `ReplayTag` has not yet been seen by this node, and if yes, the packet MUST be rejected.
 
-### 4.2 Header processing
+### 5.2. Header processing
 
 In the next steps, the `Header` (field `header`) processed using the derived `SharedSecret_i` .
 
-As per section 2.4.1, the `Header` consists of two byte sequences of fixed length: the `header` and `oa_tag`.
+As per section 3.4.1, the `Header` consists of two byte sequences of fixed length: the `header` and `oa_tag`.
 
 1. Generate `K_tag` = KDF("HASH_KEY_TAG", 0, `SharedSecret_i`)
 2. Compute `oa_tag_c` = OA(`K_tag`, `header`)
@@ -500,7 +500,7 @@ As per section 2.4.1, the `Header` consists of two byte sequences of fixed lengt
      - Recover `pseudonym` as `header[|HeaderPrefix|..|HeaderPrefix| + |Pseudonym|]`
      - Recover the 5th and 4th most significant bit (`NoAckFlag` and `ReplyFlag`)
 
-### 4.3 Packet processing
+### 5.3. Packet processing
 
 In the next step, the `encrypted_payload` is decrypted:
 
@@ -511,7 +511,7 @@ In the next step, the `encrypted_payload` is decrypted:
 new_payload = PRP(Kprp, encrypted_payload)
 ```
 
-#### 4.3.1 Forwarded packet
+#### 5.3.1. Forwarded packet
 
 If the processed header indicated, that the packet is destined for another node, the `new_payload` is the `encrypted_payload: EncryptedPayload` . The updated `header` and `alpha` values from the previous steps are used to construct the forwarded packet. A new `ticket` structure is created for the recipient (as described in RFC-0004).
 
@@ -526,17 +526,17 @@ HOPR_Packet {
 }
 ```
 
-#### 4.3.2 Final packet
+#### 5.3.2. Final packet
 
 If the processed header indicated, that this node is the final destination of the packet, the `ReplyFlag` is used to indicate subsequent processing.
 
-#### 4.3.2.1 Forward packet
+##### 5.3.2.1. Forward packet
 
 If the `ReplyFlag` is set to 0, the packet is a forward (not a reply) packet.
 
 The `new_payload` MUST be the `PaddedPayload`.
 
-#### 4.3.2.2 Reply packet
+##### 5.3.2.2. Reply packet
 
 If the `ReplyFlag` is set to 1, it indicates that this is a reply packet, that requires further processing.
 The `pseudonym` extracted during header processing is used to find the corresponding `ReplyOpener`. If it is not found, the packet MUST be rejected.
@@ -563,7 +563,7 @@ new_payload = PRP(Kprp_reply, new_payload)
 
 The `new_payload` now MUST be `PaddedPayload`.
 
-#### 4.3.3 Interpreting the payload
+#### 5.3.3. Interpreting the payload
 
 In any case, the `new_payload` is `PaddedPayload`.
 
@@ -572,7 +572,7 @@ The `payload: PacketPayload` is extracted. If `num_surbs` > 0, the contained SUR
 
 The `user_payload` can then be used by the upper protocol layer.
 
-### 4.4 Ticket verification and acknowledgement
+### 5.4. Ticket verification and acknowledgement
 
 In the next step the, `ticket` MUST be pre-verified using the `SharedSecret_i`, as defined in RFC-0004.
 If the packet was not destined for this node (not final) OR the packet is final and the `NoAckFlag` is 0, the packet MUST be acknowledged.
@@ -581,7 +581,7 @@ The acknowledgement of the successfully processed packet is created as per RFC-0
 
 If the packet processing was not successful, a random acknowledgement MUST be generated (as defined in RFC-0004) and sent to the previous hop.
 
-## Appendix 1
+## 6. Appendix A
 
 The current version is instantiated using the following cryptographic primitives:
 
@@ -591,6 +591,6 @@ The current version is instantiated using the following cryptographic primitives
 - KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`: `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
 - HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC9380](https://www.rfc-editor.org/info/rfc9380). `S` is used a the secret input, and `T` as an additional domain separator.
 
-## References
+## 7. References
 
 [01] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). _2009 30th IEEE Symposium on Security and Privacy_, 262-277.

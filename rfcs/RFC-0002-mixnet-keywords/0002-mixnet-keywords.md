@@ -10,14 +10,14 @@
 - **Supersedes:** none
 - **References:** none
 
-## Abstract
+## 1. Abstract
 
 This RFC provides a glossary of common terms and keywords related to mixnets and
 the HOPR protocol specifically.
 It aims to establish a shared vocabulary for developers, researchers, and users
 involved in the HOPR project.
 
-## Motivation
+## 2. Motivation
 
 The HOPR project involves a diverse community of people with different
 backgrounds and levels of technical expertise. A shared vocabulary is essential
@@ -25,7 +25,7 @@ for clear communication and a common understanding of the concepts and
 technologies used in the project. This RFC aims to provide a single source of
 truth for the terminology used in the HOPR ecosystem.
 
-## Terminology
+## 3. Terminology
 
 - **Node:** A process which implements the HOPR protocol and participates in
   the mixnet. Nodes can be run by anyone. A node can be a sender, destination or
@@ -89,7 +89,7 @@ truth for the terminology used in the HOPR ecosystem.
   order to deduce information from patterns in communication. Mixnets are
   designed to make traffic analysis very difficult [01].
 
-## References
+## 4. References
 
 [01] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf). _Communications of the ACM, 24_(2), 84-90.
 
