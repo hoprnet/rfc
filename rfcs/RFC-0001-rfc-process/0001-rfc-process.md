@@ -8,7 +8,7 @@
 - **Updated:** 2025-08-14
 - **Version:** v0.2.0 (Raw)
 - **Supersedes:** N/A
-- **References:** none
+- **Related Links:** none
 
 ## 1. Abstract
 
@@ -128,13 +128,13 @@ Every RFC **MUST** begin with the following metadata structure:
 
 - **RFC Number:** XXXX
 - **Title:** [Title in Title Case]
-- **Status:** Raw | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded
+- **Status:** Raw | Discussion | Review | Draft | Implementation | Finalized | Errata | Rejected | Superseded
 - **Author(s):** [Name (GitHub Handle)]
 - **Created:** YYYY-MM-DD
 - **Updated:** YYYY-MM-DD
 - **Version:** vX.X.X (Status)
 - **Supersedes:** RFC-YYYY (if applicable) | N/A
-- **References:** [RFC-XXXX](../RFC-XXXX-[slug]/XXXX-[slug].md) | none
+- **Related Links:** [RFC-XXXX](../RFC-XXXX-[slug]/XXXX-[slug].md) | none
 ```
 
 #### 4.4.2. Reference Styles
@@ -143,7 +143,7 @@ RFCs **MUST** use two distinct reference styles:
 
 ##### 4.4.2.1. RFC-to-RFC References
 
-- RFC references to other HOPR RFCs **MUST** be listed in the metadata's **References:** field
+- RFC references to other HOPR RFCs **MUST** be listed in the metadata's **Related Links:** field
 - Format: `[RFC-XXXX](../RFC-XXXX-[slug]/XXXX-[slug].md)`
 - Multiple references **SHALL** be separated by commas
 - If no RFC references exist, the field **MUST** contain "none"

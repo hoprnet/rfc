@@ -8,7 +8,7 @@
 - **Updated:** 2025-08-14
 - **Version:** v0.1.0 (Raw)
 - **Supersedes:** N/A
-- **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)
 
 ## 1. Abstract
 
@@ -142,7 +142,7 @@ An implementation should prioritize:
 
 - **Timing attacks**: Random delays must use cryptographically secure randomness
 - **Statistical analysis**: Uniform distribution prevents delay prediction
-- **Buffer overflow**: Unbounded channel prevents packet loss but requires monitoring
+- **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behavior when full (e.g., drop-tail oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
 
 ### 5.3. Monitoring and Metrics
 

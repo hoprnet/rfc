@@ -8,7 +8,7 @@
 - **Updated:** 2025-06-26
 - **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
-- **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md)
 
 ## 1. Abstract
 
@@ -434,7 +434,7 @@ This finalizes all the fields of the `HOPR_Packet` of for the reply.
 The `HOPR_Packet` is sent to the peer represented by a public key, corresponding to `first_hop_ident` extracted from the `SURB` (that is the first peer on the return path).
 For this operation, the mapper MAY be used to obtain the actual public key to route the packet.
 
-## Packet processing
+## 5. Packet processing
 
 This section describes the behavior of processing a `HOPR_Packet` instance, when received by a peer (hop).
 Let `Phop_priv` be the private key corresponding to the public key `Phop` of the peer processing the packet.

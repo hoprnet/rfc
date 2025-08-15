@@ -8,7 +8,7 @@
 - **Updated:** \<YYYY-MM-DD\>
 - **Version:** v0.x.x (Raw), v1.x.x (Finalized)
 - **Supersedes:** RFC-YYYY (if applicable)
-- **References:** [Related RFCs or Documentation Links]
+- **Related Links:** [Related RFCs or Documentation Links]
 
 ## 1. Abstract
 

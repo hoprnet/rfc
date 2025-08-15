@@ -8,7 +8,7 @@
 - **Updated:** 2025-08-01
 - **Version:** v0.0.1 (Raw)
 - **Supersedes:** none
-- **References:** none
+- **Related Links:** none
 
 ## 1. Abstract
 
@@ -45,7 +45,7 @@ truth for the terminology used in the HOPR ecosystem.
 node and are used to make it harder to distinguish between real user traffic
 and dummy traffic [01, 03].
 
-- **Path:** The route a message takes through the mixnet, defined as a set of
+- **Path:** The route a message takes through the mixnet, defined as a sequence of
   hops between sender and receiver. A path can be direct from sender to destination,
   or it can go through multiple relay nodes before reaching the destination.
   Also referred to as "message path" [01, 02].
