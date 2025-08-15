@@ -41,10 +41,9 @@ truth for the terminology used in the HOPR ecosystem.
   Each peer has a unique identifier and can communicate with other peers.
   The terms "peer" and "node" are often used interchangeably.
 
-- **Cover Traffic:** Dummy data packets that are introduced into the network to
-  further obscure what's happening. These data packets can be generated on any
-  node and are used to make it harder to distinguish between real user traffic
-  and dummy traffic [01, 03].
+- **Cover Traffic:** Artificial data packets introduced into the network to obscure traffic patterns with adaptive noise. These data packets can be generated on any
+node and are used to make it harder to distinguish between real user traffic
+and dummy traffic [01, 03].
 
 - **Path:** The route a message takes through the mixnet, defined as a set of
   hops between sender and receiver. A path can be direct from sender to destination,
