@@ -63,7 +63,8 @@ flowchart TD
 
 ### 4.1 Data Sources
 
-Data is gathered from multiple sources to build a comprehensive view of the network and its participants. The HOPR node API provides a list of currently visible peers and the network topology, including open payment channels and their balances. The subgraph, an off-chain data indexer, supplies information about registered nodes (and their associated safes), NFT holders, allocations (which may increase a peer's effective stake), and EOA (Externally Owned Account) balances. This combination of sources ensures that both the live state of the network and relevant historical or off-chain data are considered in the reward process.
+Data is gathered from multiple sources to build a comprehensive view of the network and its participants. The HOPR node API provides a list of currently visible peers and the network topology, including open payment channels and their balances. Subgraphs supplies information about registered nodes, and their associated safes. Direct RPC calls are used to provide specific allocations targetted accounts (which may increase a peer's effective stake), and those accounts EOA balances. Finally, a static list of NFT owners is used to allow rewards distribution to people holding a special "OG NFT".
+This combination of sources ensures that both the live state of the network and relevant historical or off-chain data are considered in the reward process.
 
 ### 4.2 Data Enrichment
 
@@ -73,14 +74,17 @@ The following diagram illustrates the data enrichment process:
 
 ```mermaid
 flowchart LR
-    subgraph Subgraph
+    subgraph RPC
         Alloc[Allocations]
         EOA[EOA Balances]
+    end
+    subgraph Subgraph
         RegNodes[Registered Nodes]
     end
     subgraph API
         Topo[Topology]
     end
+
     Peer[Peer]
     RegNodes --> Peer
     Alloc --> Peer
@@ -161,6 +165,7 @@ Finally, the system enforces strict eligibility checks before sending messages. 
 ## 10. Appendix: Data Structures
 
 ### Registered Node
+
 | Variable Name | Type   | Purpose                                      |
 |--------------|--------|----------------------------------------------|
 | address      | str    | Node's unique address                        |
@@ -168,6 +173,7 @@ Finally, the system enforces strict eligibility checks before sending messages. 
 | ...          | ...    | (Other metadata as provided by subgraph)     |
 
 ### Safe
+
 | Variable Name      | Type   | Purpose                                      |
 |-------------------|--------|----------------------------------------------|
 | address           | str    | Safe contract address                        |
@@ -178,6 +184,7 @@ Finally, the system enforces strict eligibility checks before sending messages. 
 | ...               | ...    | (Other metadata as provided by subgraph)     |
 
 ### Allocation
+
 | Variable Name     | Type    | Purpose                                      |
 |------------------|---------|----------------------------------------------|
 | address          | str     | Allocation contract address                  |
@@ -186,6 +193,7 @@ Finally, the system enforces strict eligibility checks before sending messages. 
 | num_linked_safes | int     | Number of safes linked                       |
 
 ### EOA Balance
+
 | Variable Name     | Type    | Purpose                                      |
 |------------------|---------|----------------------------------------------|
 | address          | str     | EOA address                                  |
@@ -194,12 +202,14 @@ Finally, the system enforces strict eligibility checks before sending messages. 
 | num_linked_safes | int     | Number of safes linked                       |
 
 ### Topology Entry
+
 | Variable Name     | Type    | Purpose                                      |
 |------------------|---------|----------------------------------------------|
 | address          | str     | Peer address                                 |
 | channels_balance | Balance | Total balance in outgoing channels           |
 
 ### Peer (Enriched)
+
 | Variable Name         | Type      | Purpose                                      |
 |----------------------|-----------|----------------------------------------------|
 | address              | Address   | Peer’s unique address                        |
