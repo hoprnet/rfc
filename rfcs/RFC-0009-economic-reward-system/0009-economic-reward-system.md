@@ -20,7 +20,7 @@ This RFC describes mechanisms around the economic reward system such as how the 
 
 <!-- Explain the problem this RFC aims to solve.
 Discuss existing limitations, technical gaps, and why the proposed solution is necessary. -->
-The rewards calculation can be seen as an opaque procedure selecting who receives which amount. This RPC aims to raise the veil and clarify the reasoning behind it.
+The rewards calculation can be seen as an opaque procedure selecting who receives which amount. This RFC aims to raise the veil and clarify the reasoning behind it.
 
 The economic reward system is a necessary component of the HOPR mixnet, as it incentivize node runners to keep their node running, in order to have a network topology as stable as possible. It must be a fair logic, to never favour or disadvantage a subset of node runners, that encourages sustainability without compromising decentralization. It must also incentivize node runners to be connected to other nodes in the network with channels. Isolated nodes are way less useful to the network than well intricately connected nodes. 
  
@@ -63,7 +63,7 @@ flowchart TD
 
 ### 4.1 Data Sources
 
-Data is gathered from multiple sources to build a comprehensive view of the network and its participants. The HOPR node API provides a list of currently visible peers and the network topology, including open payment channels and their balances. Subgraphs supplies information about registered nodes, and their associated safes. Direct RPC calls are used to provide specific allocations targetted accounts (which may increase a peer's effective stake), and those accounts EOA balances. Finally, a static list of NFT owners is used to allow rewards distribution to people holding a special "OG NFT".
+Data is gathered from multiple sources to build a comprehensive view of the network and its participants. The HOPR node API provides a list of currently visible peers and the network topology, including open payment channels and their balances. Subgraphs supply information about registered nodes, and their associated safes. Direct RPC calls are used to provide specific allocations targeted accounts (which may increase a peer's effective stake), and those accounts EOA balances. Finally, a static list of NFT owners is used to allow rewards distribution to people holding a special "OG NFT".
 This combination of sources ensures that both the live state of the network and relevant historical or off-chain data are considered in the reward process.
 
 ### 4.2 Data Enrichment
@@ -82,14 +82,14 @@ flowchart LR
         RegNodes[Registered Nodes]
     end
     subgraph API
-        Topo[Topology]
+        Topology[Topology]
     end
 
     Peer[Peer]
     RegNodes --> Peer
     Alloc --> Peer
     EOA --> Peer
-    Topo --> Peer
+    Topology --> Peer
 ```
  
 ## 5. Peer Eligibility Filtering
