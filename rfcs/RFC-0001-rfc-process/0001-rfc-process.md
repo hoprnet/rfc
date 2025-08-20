@@ -5,7 +5,7 @@
 - **Status:** Raw
 - **Author(s):** Qianchen Yu (@QYuQianchen), Tino Breddin (@tolbrino)
 - **Created:** 2025-02-20
-- **Updated:** 2025-08-14
+- **Updated:** 2025-08-20
 - **Version:** v0.2.0 (Raw)
 - **Supersedes:** N/A
 - **Related Links:** none
@@ -205,7 +205,7 @@ All RFCs **MUST** include the following sections:
 
 - Automated validation tools
 - CI/CD integration for automated versioning and errata checks
-- Web interface for publishing RPCs
+- Web interface for publishing RFCs
 
 ## 12. References
 

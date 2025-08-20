@@ -5,7 +5,7 @@
 - **Status:** Raw
 - **Author(s):** Tino Breddin (@tolbrino)
 - **Created:** 2025-08-14
-- **Updated:** 2025-08-14
+- **Updated:** 2025-08-20
 - **Version:** v0.1.0 (Raw)
 - **Supersedes:** N/A
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)
@@ -65,7 +65,13 @@ When a packet arrives, the mixer:
 2. Calculates the release timestamp as `current_time + random_delay`
 3. Wraps the packet with its release timestamp
 
-The random delay generation MUST use uniform distribution to prevent statistical attacks. Note that while the current specification uses uniform distribution, more advanced mixing strategies like Poisson mixing (as used in Loopix [01]) provide stronger anonymity properties by making packet timings indistinguishable from cover traffic patterns.
+Random delay generation:
+
+- MUST use a CSPRNG with sufficient entropy
+- MUST be independent per packet (no reuse/correlation across packets)
+- SHOULD allow uniform distribution as the baseline; other distributions MAY be added via configuration
+
+Note: Uniform distribution is a simple baseline. More advanced strategies like Poisson mixing (as used in Loopix [01]) can provide stronger anonymity properties by making packet timings less distinguishable from cover traffic patterns.
 
 #### 4.3.2. Mixing Buffer
 
@@ -74,6 +80,7 @@ The mixer maintains packets in a data structure where:
 - Packets are ordered by their release timestamps
 - The packet with the earliest release time is always at the top
 - Insertion and extraction operations have O(log n) complexity
+- If multiple packets share the same `release_time`, the ordering MUST be stable FIFO by insertion sequence
 
 This ensures efficient processing even under high load conditions.
 
@@ -106,16 +113,20 @@ The mixer provides a channel-like interface with:
 3. Release timestamp calculated: release_time = now() + delay
 4. Packet wrapped with timestamp and inserted into buffer
 5. Receiver woken if sleeping
+5a. If the inserted packet has an earlier `release_time` than the current head, re-arm the timer to the new head
 6. When current_time ≥ release_time, packet is released to Receiver
+6a. Upon wake (including after system sleep), release all packets with `release_time` ≤ current_time before sleeping again
 ```
 
 #### 4.4.2. Timer Management
 
 The mixer requires a timer that is able to:
 
-- Wake the mixer at the next packet's release time
+- Wake the mixer at the next packet's `release_time`
 - Use minimal system calls and context switches
 - Handle concurrent access safely
+- Use a monotonic clock source (not wall-clock) for computing `release_time`
+- Handle system sleep/clock adjustments by releasing all overdue packets immediately upon wake
 
 ### 4.5. Special Cases
 
