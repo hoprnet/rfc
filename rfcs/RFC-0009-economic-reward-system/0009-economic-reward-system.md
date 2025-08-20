@@ -63,7 +63,7 @@ flowchart TD
 
 ### 4.1 Data Sources
 
-Data is gathered from multiple sources to build a comprehensive view of the network and its participants. The HOPR node API provides a list of currently visible peers and the network topology, including open payment channels and their balances. Subgraphs supply information about registered nodes, and their associated safes. Direct RPC calls are used to provide specific allocations targeted accounts (which may increase a peer's effective stake), and those accounts EOA balances. Finally, a static list of NFT owners is used to allow rewards distribution to people holding a special "OG NFT".
+Data is gathered from multiple sources to build a comprehensive view of the network and its participants. The HOPR node API provides a list of currently visible peers and the network topology, including open payment channels and their balances. Subgraphs supply information about registered nodes and their associated Safes. Direct RPC calls are used to provide specific allocations to targeted accounts (which may increase a peer's effective stake) and to retrieve those accounts' EOA balances. Finally, a static list of NFT owners is used to allow rewards distribution to people holding a special “OG NFT”.
 This combination of sources ensures that both the live state of the network and relevant historical or off-chain data are considered in the reward process.
 
 ### 4.2 Data Enrichment
