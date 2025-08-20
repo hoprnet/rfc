@@ -535,21 +535,21 @@ The Session Start protocol is transport-agnostic:
 - Transport-level security (e.g., HOPR packet encryption) MUST be used
 - Session targets may expose service information if not encrypted at transport
 
-## 11. Future Work
+## 8. Future Work
 
 - Enhanced acknowledgement schemes for better efficiency
 - Forward error correction for high-loss environments
 
-## 12. Implementation Notes
+## 9. Implementation Notes
 
-### 12.1 Testing Recommendations
+### 9.1 Testing Recommendations
 
 - Test with various MTU sizes (256, 512, 1024, 1500, 9000)
 - Simulate packet loss, reordering, and duplication
 - Verify termination handling under all conditions
 - Stress test with maximum frame sizes and counts
 
-## 13. References
+## 10. References
 
 [01] Postel, J. (1981). [Transmission Control Protocol](https://datatracker.ietf.org/doc/html/rfc793). _IETF RFC 793_.
 
