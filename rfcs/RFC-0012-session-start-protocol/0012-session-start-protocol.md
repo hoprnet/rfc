@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0012
 - **Title:** Session Start Protocol
-- **Status:** Raw
-- **Author(s):** Tino Breddin (tolbrino)
-- **Created:** 2025-08-18
-- **Updated:** 2025-08-18
-- **Version:** v0.1.0 (Raw)
+- **Status:** Draft
+- **Author(s):** Tino Breddin (@tolbrino)
+- **Created:** 2025-08-20
+- **Updated:** 2025-08-20
+- **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md), [RFC-0007](../RFC-0007-session-protocol/0007-session-protocol.md)
 
@@ -16,7 +16,7 @@ This RFC specifies the HOPR Session Start Protocol, a handshake protocol for est
 
 ## 2. Motivation
 
-The HOPR mixnet requires a standardized mechanism for establishing communication sessions between nodes. While the Session Data Protocol (RFC-0007) handles data transmission, there needs to be a separate protocol for:
+The HOPR mixnet requires a standardized mechanism for establishing communication sessions between nodes. While the Session Data Protocol (see RFC-0007) handles data transmission, there needs to be a separate protocol for:
 
 - Establishing sessions with capability negotiation
 - Exchanging session identifiers and targets
@@ -27,8 +27,6 @@ The HOPR mixnet requires a standardized mechanism for establishing communication
 The Session Start Protocol fills this gap by providing a lightweight, transport-agnostic handshake mechanism specifically designed for the HOPR ecosystem.
 
 ## 3. Terminology
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119 [01].
 
 - **Challenge**: A 64-bit random value used to correlate requests and responses in the handshake process.
 
@@ -42,7 +40,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 - **Exit Node**: The node that receives and responds to a session establishment request.
 
-- **CBOR (Concise Binary Object Representation)**: A binary data serialization format defined in RFC 7049 [02], used for encoding session identifiers and targets.
+- **CBOR (Concise Binary Object Representation)**: A binary data serialization format defined in RFC 7049 [01], used for encoding session identifiers and targets.
 
 ## 4. Specification
 
@@ -165,9 +163,9 @@ Maintains session liveness.
 sequenceDiagram
     participant Entry
     participant Exit
-    
+
     Entry->>Exit: StartSession(Challenge, Target, Capabilities)
-    
+
     alt Success
         Exit->>Entry: SessionEstablished(Challenge, SessionID)
         Entry->>Exit: KeepAlive(SessionID)
@@ -183,7 +181,7 @@ sequenceDiagram
 
 1. Challenge values MUST be randomly generated using cryptographically secure random number generation
 2. Session IDs MUST be unique per responder
-3. Targets and Session IDs use CBOR encoding [02]
+3. Targets and Session IDs use CBOR encoding [01]
 4. Messages MUST fit within HOPR packet payload limits
 5. KeepAlive messages SHOULD be sent periodically to maintain session state
 6. Implementations MUST handle all defined error conditions gracefully
@@ -195,8 +193,8 @@ Complete session establishment and maintenance:
 
 ```
 Entry → Exit:
-  StartSession(challenge=0x1234567890ABCDEF, 
-               target="127.0.0.1:8080", 
+  StartSession(challenge=0x1234567890ABCDEF,
+               target="127.0.0.1:8080",
                capabilities=0x00,
                additional_data=0x00000000)
 
@@ -215,6 +213,7 @@ Entry → Exit:
 ### 5.1 CBOR Encoding
 
 The use of CBOR (Concise Binary Object Representation) for Session IDs and Targets provides:
+
 - Flexible data types without fixed-size constraints
 - Compact binary encoding
 - Language-agnostic serialization
@@ -223,6 +222,7 @@ The use of CBOR (Concise Binary Object Representation) for Session IDs and Targe
 ### 5.2 Challenge-Response Design
 
 The 64-bit challenge provides:
+
 - Correlation between requests and responses
 - Protection against replay attacks (when combined with transport security)
 - Simple state tracking for pending sessions
@@ -230,6 +230,7 @@ The 64-bit challenge provides:
 ### 5.3 Capability Negotiation
 
 The single-byte capability field allows:
+
 - Up to 8 independent capability flags
 - Future protocol extensions
 - Backward compatibility through ignored bits
@@ -237,6 +238,7 @@ The single-byte capability field allows:
 ### 5.4 Transport Independence
 
 The Session Start protocol is transport-agnostic:
+
 - Works over any packet-based transport
 - Designed for HOPR packets but not limited to them
 - No assumptions about ordering or reliability
@@ -244,6 +246,7 @@ The Session Start protocol is transport-agnostic:
 ### 5.5 Error Handling
 
 The protocol provides structured error reporting:
+
 - Specific error codes for common failure scenarios
 - Challenge correlation for error attribution
 - Graceful handling of resource exhaustion
@@ -264,9 +267,9 @@ The protocol provides structured error reporting:
 - Compatible with any transport providing packet delivery
 - Designed for HOPR mixnet but not limited to it
 
-### 6.3 Integration with Session Data Protocol
+### 6.3 Integration with HOPR Session Data Protocol
 
-- Session Start Protocol establishes sessions for use by Session Data Protocol (RFC-0007)
+- HOPR Session Start Protocol establishes sessions for use by HOPR Session Data Protocol (see RFC-0007)
 - Session IDs from this protocol are used to identify data sessions
 - Protocol operates independently but provides foundation for data exchange
 
@@ -293,76 +296,14 @@ The protocol provides structured error reporting:
 - Use unpredictable session identifiers
 - Consider implementing session timeout mechanisms
 
-## 8. Drawbacks
-
-- No built-in protection against replay attacks
-- Session targets may leak service information
-- Limited capability negotiation (single byte)
-- No support for session migration or resumption
-- Dependent on transport security for confidentiality
-
-## 9. Alternatives
-
-### 9.1 Inline Session Establishment
-
-- **Alternative**: Embed session establishment in data protocol
-- **Rejected**: Increases complexity and coupling between protocols
-
-### 9.2 Stateless Operation
-
-- **Alternative**: No explicit session establishment
-- **Rejected**: Makes session management and capability negotiation difficult
-
-### 9.3 Extended Capability Negotiation
-
-- **Alternative**: Multi-byte capability fields or structured negotiation
-- **Rejected**: Added complexity not justified by current requirements
-
-## 10. Unresolved Questions
-
-- Should the protocol support session parameter renegotiation?
-- How should session migration between different transports be handled?
-- Should there be explicit session termination messages?
-- What additional capability flags should be standardized?
-- How should session timeout behavior be standardized?
-
-## 11. Future Work
+## 8. Future Work
 
 - Session parameter renegotiation mechanisms
-- Session migration and resumption support
-- Enhanced capability negotiation
-- Formal security analysis of protocol properties
-- Integration with authentication and authorization frameworks
 - Performance optimizations for high-frequency session establishment
 
-## 12. Implementation Notes
+## 9. Implementation Notes
 
-### 12.1 Reference Implementation
-
-The reference implementation in Rust (`hopr-protocol-start` crate) provides:
-- Generic implementation over HOPR packet transport
-- Support for all message types
-- CBOR encoding/decoding for session data
-- Configurable timeouts and retry mechanisms
-
-### 12.2 Implementation Guidelines
-
-1. **State Management**:
-   - Track pending session requests by challenge
-   - Implement session timeout mechanisms
-   - Use secure random number generation for challenges
-
-2. **Error Handling**:
-   - Gracefully handle malformed messages
-   - Implement retry logic with exponential backoff
-   - Log protocol violations for debugging
-
-3. **Performance Considerations**:
-   - Cache CBOR encoders/decoders
-   - Implement connection pooling for session management
-   - Use efficient data structures for session tracking
-
-### 12.3 Testing Recommendations
+### 9.1 Testing Recommendations
 
 - Test with various session target formats
 - Simulate network failures and timeouts
@@ -370,12 +311,6 @@ The reference implementation in Rust (`hopr-protocol-start` crate) provides:
 - Test capability negotiation edge cases
 - Validate CBOR encoding/decoding correctness
 
-## 13. References
+## 10. References
 
-[01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
-
-[02] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.
-
-[03] Postel, J. (1981). [Transmission Control Protocol](https://datatracker.ietf.org/doc/html/rfc793). _IETF RFC 793_.
-
-[04] Postel, J. (1980). [User Datagram Protocol](https://datatracker.ietf.org/doc/html/rfc768). _IETF RFC 768_.
+[01] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.

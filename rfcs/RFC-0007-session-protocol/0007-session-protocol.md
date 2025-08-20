@@ -3,22 +3,22 @@
 - **RFC Number:** 0007
 - **Title:** Session Data Protocol
 - **Status:** Draft
-- **Author(s):** Tino Breddin (tolbrino)
+- **Author(s):** Tino Breddin (@tolbrino)
 - **Created:** 2025-08-15
 - **Updated:** 2025-08-20
-- **Version:** v0.4.0 (Draft)
+- **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md), [RFC-0012](../RFC-0012-session-start-protocol/0012-session-start-protocol.md)
 
 ## 1. Abstract
 
-This RFC specifies the HOPR Session Data Protocol, which provides reliable and unreliable data transmission capabilities over the HOPR mixnet. The protocol implements TCP-like [01] features including message segmentation, reassembly, acknowledgement, and retransmission while maintaining simplicity and efficiency. This protocol works in conjunction with the Session Start Protocol (RFC-0012) [04] to provide complete session management capabilities for applications within the HOPR mixnet ecosystem.
+This RFC specifies the HOPR Session Data Protocol, which provides reliable and unreliable data transmission capabilities over the HOPR mixnet. The protocol implements TCP-like [01] features including message segmentation, reassembly, acknowledgement, and retransmission while maintaining simplicity and efficiency. This protocol works in conjunction with the HOPR Session Start Protocol (see RFC-0012) to provide complete session management capabilities for applications within the HOPR mixnet ecosystem.
 
 ## 2. Motivation
 
-The HOPR mixnet uses HOPR packets (see [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)) to send data between nodes. This fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to implement TCP [01] or UDP all over again.
+The HOPR mixnet uses HOPR packets (see RFC-0003) to send data between nodes. This fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to implement TCP [01] or UDP all over again.
 
-The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the Session Start Protocol (RFC-0012) [04], while this protocol focuses exclusively on data transmission.
+The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the HOPR Session Start Protocol, while this protocol focuses exclusively on data transmission.
 
 ## 3. Terminology
 
@@ -40,7 +40,6 @@ The HOPR Session Data Protocol fills that gap by providing reliable and unreliab
 
 - **Terminating Frame**: A special frame that signals the end of a session.
 
-
 ## 4. Specification
 
 ### 4.1 Protocol Overview
@@ -56,7 +55,7 @@ The protocol supports two operational modes:
 - **Unreliable Mode**: Fast, stateless operation similar to UDP [03]
 - **Reliable Mode**: Stateful operation with acknowledgements and retransmissions
 
-Session establishment and lifecycle management is handled by the Session Start Protocol (RFC-0012) [04].
+Session establishment and lifecycle management is handled by the HOPR Session Start Protocol.
 
 ### 4.2 Session Data Protocol Message Format
 
@@ -254,7 +253,6 @@ Sender → Receiver:
   Segment(frame_id=5, seq_idx=0, seq_flags=0x81, data[])  // Terminating flag set
 ```
 
-
 ## 5. Design Considerations
 
 ### 5.1 Maximum Segments Limitation
@@ -288,7 +286,6 @@ Limiting retransmission requests to the first 8 segments per frame:
 - For C = 1024: ~99% efficiency
 - For C = 256: ~96% efficiency
 
-
 ## 6. Compatibility
 
 ### 6.1 Version Compatibility
@@ -311,7 +308,6 @@ Limiting retransmission requests to the first 8 segments per frame:
 - Security MUST be provided by the underlying transport
 - Frame IDs are predictable and MUST NOT be used for security
 
-
 ## 8. Future Work
 
 - Enhanced acknowledgement schemes for better efficiency
@@ -333,5 +329,3 @@ Limiting retransmission requests to the first 8 segments per frame:
 [02] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.
 
 [03] Postel, J. (1980). [User Datagram Protocol](https://datatracker.ietf.org/doc/html/rfc768). _IETF RFC 768_.
-
-[04] Breddin, T. (2025). [Session Start Protocol](../RFC-0012-session-start-protocol/0012-session-start-protocol.md). _HOPR RFC 0012_.
