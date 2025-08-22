@@ -48,23 +48,29 @@ The Application layer protocol acts as a wrapper to arbitrary upper layer `data`
 ```
 ApplicationData {
 	tag: Tag,
-	data: [u8; <any length>]
+	data: [u8; <length>]
 	flags: u8
 }
 ```
 
-The `Tag` itself MUST be represented by 64 bits and the 3 upper MOST significant bits MUST be always set to 0 in the current version.
+The `Tag` itself MUST be represented by 64 bits and the 3 upper most significant bits MUST be always set to 0 in the current version.
 The remaining 61 bits represent a unique identifier of the upper layer protocol.
 
-There are certain identifiers, that SHOULD be reserved for known protocols:
+The `Tag` range SHOULD be split as follows:
 
 - `0x0000000000000000` identifies the Probing protocol (see `RFC-0006`).
 - `0x0000000000000001` identifies the Start protocol (see `RFC-0012`).
+- `0x0000000000000002` - `0x000000000000000d` identifies range for user protocols
 - `0x000000000000000e` identifies a catch-all for unknown protocols
 - `0x000000000000000f` - `0x1fffffffffffffff` identifes a space reserved for the Session protocol (see `RFC-0007`).
 
+### 2.1 Wire format encoding
 
-The `flags` field MUST NOT be serialized nor deserialized into the wire format, only the `tag` and `data` fields MUST be serialized and deserialized.
+The individual fields of `ApplicationData` MUST be encoded in the following order:
+
+1. `tag`: unsigned 8 bytes, big-endian order, the 3 most significant bits MUST be cleared
+2. `data`: opaque bytes, the length MUST be most the size of the HOPR protocol packet, the upper layer protocol SHALL be responsible for the framing
+3. `field`: MUST NOT be serialized, it is a transient, implementation-local, per-packet field
 
 The upper layer protocol MAY use the 4 most significant bits in `flags` to pass arbitrary signaling to the HOPR Packet protocol.
 Conversely, the HOPR packet protocol MAY use the 4 least significant bits in `flags` to pass arbibrary signalling to the upper-layer protocol.
