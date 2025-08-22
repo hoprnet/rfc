@@ -8,7 +8,7 @@
 - **Updated:** 2025-08-22
 - **Version:** v1.0.0 (Draft)
 - **Supersedes:** N/A
-- **References:** [RFC-0002](0002-mixnet-keywords.md), [RFC-0004](0004-proof-of-relay.md), [RFC-0005](0005-hopr-mixer.md)
+- **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-proof-of-relay/0004-proof-of-relay.md), [RFC-0005](../RFC-0005-hopr-mixer/0005-hopr-mixer.md)
 
 ## Abstract
 
@@ -208,9 +208,9 @@ HeaderPrefix_3 = 0 0 1 0 1 0 1 1
 The `HeaderPrefix_i` MUST not be computed for `i > 7`.
 
 Let `ID_i` be a public key identifier of `P_i` (by using the mapper), and `|T|` denote the output's size of a chosen one-time authenticator.
-Since `ID_i` MUST be all of equal lengths for each `i`, denote this length `|ID|`. Similarly, `|PorString_i|` MUST have also all equal lengths of `|PoRString|`.
+Since `ID_i` MUST be all of equal lengths for each `i`, denote this length `|ID|`. Similarly, `|PoRString_i|` MUST have also all equal lengths of `|PoRString|`.
 
-Let `RoutingInfoLen` be equal to `1 + |ID| + |T| + |PoRString|`, this is the same for each `i`, because 
+Let `RoutingInfoLen` be equal to `1 + |ID| + |T| + |PoRString|`.
 
 Allocate a zeroized `HdrExt` buffer of `1 + |Pseudonym| + 4 * RoutingInfoLen` bytes and another zeroed buffer `OATag` of `|T|` bytes.
 
@@ -232,13 +232,13 @@ For each i = 1 up to N+1 do:
    - Copy the Filler bytes to `HdrExt` at offset `1 + |Pseudonym| + (5 - N) * RoutingInfoLen`
 3. If i is greater than 1:
    - Copy bytes of `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen` to offset `RoutingInfoLen` in `HdrExt`
-   - Set `HdrExt[i]` to `HeaderPrefix_{i-1}`
+   - Set `HdrExt[0]` to `HeaderPrefix_{i-1}`
    - Copy `ID_{N-i+2}` to `HdrExt` starting at offset 1
    - Copy `OATag` to `HdrExt` starting at offset `1 + |ID|`
-   - Copy bytes of `PoRString_i` to `HdrExt` starting at offset `1 + |ID| + |T|`
+   - Copy bytes of `PoRString_{N-i+2}` to `HdrExt` starting at offset `1 + |ID| + |T|`
    - XOR PRG bytes to `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen`
-4. Compute `K_tag` = KDF("HASH_KEY_HMAC", `SharedSecret*{N-i+2}`)
-5. Compute `OA(K_tag, HdrExt[ from offset 0 up to 1 + |Pseudonym| + 3 * RoutingInfoLen)` and copy its output of `|T|` bytes to `OATag`
+4. Compute `K_tag` = KDF("HASH_KEY_HMAC", `SharedSecret_{N-i+2}`)
+5. Compute `OA(K_tag, HdrExt[0 .. 1 + |Pseudonym| + 3 * RoutingInfoLen)` and copy its output of `|T|` bytes to `OATag`
 
 The output is the contents of `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen` and the `OATag`:
 
@@ -460,7 +460,8 @@ For this operation, the mapper MAY be used to get the actual public key to route
 This section describes the behavior of processing a `HOPR_Packet` instance, when received by a peer (hop).
 Let `Phop_priv` be the private key corresponding to the public key `Phop` of the peer processing the packet.
 
-Upon reception of a byte-sequence that is at least `|HOPR_Packet|` bytes-long, the `|Ticket|` is separated from the sequence. As the order of the fields in `HOPR_Packet` is implementation dependent, the way how this split is done is also implementation specific.
+Upon reception of a byte-sequence that is at least `|HOPR_Packet|` bytes-long, the `|Ticket|` is separated from the sequence. As per section 2.4, the order of the fields in `HOPR_Packet` is canonical,
+thefore the `Ticket` starts exactly at |HOPR_Packet| byte-offset.
 
 The resulting Meta packet is processed first, and if this processing is successful, the `Ticket` is validated as well, as defined in RFC-0004.
 
