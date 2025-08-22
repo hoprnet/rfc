@@ -1,0 +1,82 @@
+# RFC-0014 Application Layer protocol
+
+- **RFC Number:** 0014
+- **Title:** Application Layer protocol
+- **Status:** Draft
+- **Author(s):** Lukas Pohanka (@NumberFour8)
+- **Created:** 2025-08-22
+- **Updated:** 2025-08-22
+- **Version:** v0.1.0 (Draft)
+- **Supersedes:** N/A
+- **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),[RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md), [RFC-0006](../RFC-0006-automatic-path-discovery/0006-automatic-path-discovery.md), [RFC-0007](../RFC-0007-session-protocol/0007-session-protocol.md), [RFC-0012](../RFC-0012-start-session-protocol/0012-start-session-protocol.md)
+
+## Abstract
+
+This RFC describes the Application layer protocol used in the HOPR project. Typically, this protocol is used in between
+the HOPR Packet protocol `RFC-0003` and some higher-level protocol, such as the Session protocol `RFC-0007`
+or Start protocol `RFC-0012`.
+The goal of this protocol is for a HOPR node to make distinction between different protocol running on top of the HOPR packet protocol.
+
+It can be seen similar to how standard TCP or UDP protocols distinguishes between applications using port numbers.
+
+
+
+## 1. Introduction
+
+The HOPR network can host multitude of upper layer protocols, that serve different purposes. Some of those are described in other RFCs, such as `RFC-0006`, `RFC-0007` or `RFC-0012`. The Application layer protocol described in this RFC creates a thin layer between the HOPR Packet protocol from `RFC-0003` and these upper layer protocols.
+
+The Application layer protocol primarily serves two purposes:
+
+1. node should be able to distinguish between upper protocols and dispatch their packets the respective protocol interpreters
+2. create an inter-protocol communication link for signals between the HOPR Packet protocol and the upper layer protocol
+
+
+### 1.1 Conventions and terminology
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",
+"MAY", and "OPTIONAL" in this document are to be interpreted as described
+in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119) when, and only when, they appear in all
+capitals, as shown here.
+
+Terms defined in `RFC-0002` might be also used.
+
+
+## 2. Specification
+
+The Application layer protocol acts as a wrapper to arbitrary upper layer `data` and adds a `Tag` that determineds the type of the upper-layer protocol:
+
+```
+ApplicationData {
+	tag: Tag,
+	data: [u8; <any length>]
+	flags: u8
+}
+```
+
+The `Tag` itself MUST be represented by 64 bits and the 3 upper MOST significant bits MUST be always set to 0 in the current version.
+The remaining 61 bits represent a unique identifier of the upper layer protocol.
+
+There are certain identifiers, that SHOULD be reserved for known protocols:
+
+- `0x0000000000000000` identifies the Probing protocol (see `RFC-0006`).
+- `0x0000000000000001` identifies the Start protocol (see `RFC-0012`).
+- `0x000000000000000e` identifies a catch-all for unknown protocols
+- `0x000000000000000f` - `0x1fffffffffffffff` identifes a space reserved for the Session protocol (see `RFC-0007`).
+
+
+The `flags` field MUST NOT be serialized nor deserialized into the wire format, only the `tag` and `data` fields MUST be serialized and deserialized.
+
+The upper layer protocol MAY use the 4 most significant bits in `flags` to pass arbitrary signaling to the HOPR Packet protocol.
+Conversely, the HOPR packet protocol MAY use the 4 least significant bits in `flags` to pass arbibrary signalling to the upper-layer protocol.
+
+The interpretation of `flags` is entirely implementation specific and MAY be ignored by either sides.
+
+## Appendix 1
+
+### HOPR packet protocol signals in the current implementation
+The version 1 of the HOPR packet protocol (as in `RFC-0003`) MAY currently pass the following signals to the upper-layer protocol:
+
+1. `0x01`: SURB distress signal. Indicates that the level of SURBs at the counterparty has gone below a certain pre-defined threshold.
+2. `0x03`: Out of SURBs signal. Indicates that the received packet has used the last SURB available to the Sender.
+
+It is OPTIONAL for any upper-layer protocol to react to these signals if they are passed to them.
