@@ -150,7 +150,7 @@ The first step uses the List of shared secrets for the extended path as input. A
 - Ticket challenge for the hop i+1 on the extended path
 - Hint value for the i-th hop
 
-Both values in each list entry are elliptic curve points. The Ticket challenge value MAY be transformed via a one-way cryptographic hash function, whose output MAY be truncated. See Appendix 1 on how such representation can be instantiated.
+Both values in each list entry are elliptic curve points. The Ticket challenge value MAY be transformed via a one-way cryptographic hash function, whose output MAY be truncated. See RFC-0004 on how such representation is instantiated.
 
 This list consists of `PoRStrings_i` entries.
 
@@ -173,7 +173,7 @@ The Meta Packet consists of the following components:
 - `Header` (an instantiation of the Sphinx mix header)
 - padded and encrypted payload `EncPayload`
 
-The order of these components MAY differ when a packet is serialized to its binary form. The definitions of the above components follow in the next sections.
+The above order of these components is canonical MUST be followed when a packet is serialized to its binary form. The definitions of the above components follow in the next sections.
 
 The `Alpha` value is obtained from the Shared secrets generation phase.
 
@@ -259,7 +259,7 @@ The packet MAY contain additional packet signals for the recipient, typically th
 
 For the above reasons, the forward payload MUST consist of:
 
-- the number of SURBs (represented as single byte)
+- the number of SURBs
 - all SURBs (if the number was non-zero)
 - User's payload
 
@@ -381,9 +381,9 @@ The final structure of the HOPR packet format MUST consist of the logical Meta p
 ```
 HOPR_Packet {
   alpha: Alpha,
-   header: Header,
-   encrypted_payload: EncPayload,
-   ticket: Ticket
+  header: Header,
+  encrypted_payload: EncPayload,
+  ticket: Ticket
 }
 ```
 
@@ -429,7 +429,7 @@ The reply payload is constructed as `PacketPayload` in section 2.4.2. However, t
 ```
 PacketPayload {
  signals: u4,
- num_surbs: u8,   // = zero
+ num_surbs: u4,   // = zero
  surbs: [Surb; 0] // empty
  user_payload: [u8; <variable length>]
 }
