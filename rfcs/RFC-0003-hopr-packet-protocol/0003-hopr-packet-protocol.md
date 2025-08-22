@@ -8,7 +8,7 @@
 - **Updated:** 2025-08-22
 - **Version:** v1.0.0 (Draft)
 - **Supersedes:** N/A
-- **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-proof-of-relay/0004-proof-of-relay.md), [RFC-0005](../RFC-0005-hopr-mixer/0005-hopr-mixer.md)
+- **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-proof-of-relay/0004-proof-of-relay.md), [RFC-0005](../RFC-0005-hopr-mixer/0005-hopr-mixer.md), [RFC-0014](../RFC-0014-application-protocol/0014-application-protocol.md)
 
 ## Abstract
 
@@ -19,8 +19,8 @@ The Proof of Relay (PoR) is described in the separate RFC-0004.
 ## 1. Introduction
 
 The HOPR packet format is the fundamental building block of the HOPR protocol, allowing to build the HOPR mixnet. The format is designed to create indistinguishable packets sent between source and destination node using a set of relays (called the _path_, the individual relays on the path are sometimes called _hops_). Thus achieving anonymity and unlinkability of messages between sender and destination.
-In HOPR protocol, the relays SHOULD also perform packet mixing, as described in [RFC-0005].
-The format is built using the Sphinx packet format [01] but adds additional information for each hop to allow incentivization of the hops (except the last one) for the relaying duties. The incentivization of the last hop is exempt from the HOPR packet format itself and is subject to a separate [RFC-0008].
+In HOPR protocol, the relays SHOULD also perform packet mixing, as described in RFC-0005.
+The format is built using the Sphinx packet format [01] but adds additional information for each hop to allow incentivization of the hops (except the last one) for the relaying duties. The incentivization of the last hop is exempt from the HOPR packet format itself and is subject to a separate RFC-0008.
 
 The HOPR packet format does not require a reliable underlying transport or in-order delivery. The packet payloads are encrypted, however, payload authenticity and integrity is not assured and MAY be ensured by the overlay protocol. In addition, the packet format is aimed to minimize overhead and maximize payload capacity.
 
@@ -28,7 +28,7 @@ The HOPR packet consists of two primary parts:
 
 - _Meta packet_ (also called the _Sphinx packet_) that carries the necessary routing information for the selected path and the encrypted payload. This will be described in the following sections.
 
-- _Ticket_, which contains payout (incentivization) information for the next hop on the path. The structure of Tickets is described in the separate [RFC-0004].
+- _Ticket_, which contains payout (incentivization) information for the next hop on the path. The structure of Tickets is described in the separate RFC-0004.
 
 **This document describes version 1.0.0 of the HOPR Packet format and protocol.**
 
@@ -39,7 +39,7 @@ The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SH
 in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119) when, and only when, they appear in all
 capitals, as shown here.
 
-Terms defined in [RFC-0002] are used, as well as some following additional terms:
+Terms defined in RFC-0002 are used, as well as some following additional terms:
 
 _peer public/private key_ (also _pubkey_ or _privkey_): part of a cryptographic key-pair owned by a peer.
 
@@ -276,7 +276,7 @@ PacketPayload {
 The `signals` and `num_surbs` fields MAY be encoded as a single byte, where the most-significant 4 bits represent the `signals` and the least-significant 4 bits represent the `num_surbs`.
 When no signals are passed, the `signals` field MUST be zero.
 
-The user payload usually consists of the Application layer protocol as described in [RFC-0014](0014-application-protocol.md), but it can be arbitrary.
+The user payload usually consists of the Application layer protocol as described in [RFC-0014](../RFC-0014-application-protocol/0014-application-protocol.md), but it can be arbitrary.
 
 #### 2.4.3 Generating SURBs
 
