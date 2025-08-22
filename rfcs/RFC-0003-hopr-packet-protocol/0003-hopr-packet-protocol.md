@@ -237,7 +237,7 @@ For each i = 1 up to N+1 do:
    - Copy `OATag` to `HdrExt` starting at offset `1 + |ID|`
    - Copy bytes of `PoRString_{N-i+2}` to `HdrExt` starting at offset `1 + |ID| + |T|`
    - XOR PRG bytes to `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen`
-4. Compute `K_tag` = KDF("HASH_KEY_HMAC", `SharedSecret_{N-i+2}`)
+4. Compute `K_tag` = KDF("HASH_KEY_TAG", `SharedSecret_{N-i+2}`)
 5. Compute `OA(K_tag, HdrExt[0 .. 1 + |Pseudonym| + 3 * RoutingInfoLen)` and copy its output of `|T|` bytes to `OATag`
 
 The output is the contents of `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen` and the `OATag`:
@@ -461,7 +461,7 @@ This section describes the behavior of processing a `HOPR_Packet` instance, when
 Let `Phop_priv` be the private key corresponding to the public key `Phop` of the peer processing the packet.
 
 Upon reception of a byte-sequence that is at least `|HOPR_Packet|` bytes-long, the `|Ticket|` is separated from the sequence. As per section 2.4, the order of the fields in `HOPR_Packet` is canonical,
-thefore the `Ticket` starts exactly at |HOPR_Packet| byte-offset.
+thefore the `Ticket` starts exactly at |HOPR_Packet| - |Ticket| byte-offset.
 
 The resulting Meta packet is processed first, and if this processing is successful, the `Ticket` is validated as well, as defined in RFC-0004.
 
@@ -487,6 +487,8 @@ Verify that `ReplayTag` has not yet been seen by this node, and if yes, the pack
 In the next steps, the `Header` (field `header`) processed using the derived `SharedSecret_i` .
 
 As per section 2.4.1, the `Header` consists of two byte sequences of fixed length: the `header` and `oa_tag`.
+Let |T| be the fixed byte-length of `oa_tag` and |Header| be the fixed byte-length of `header`.
+Also denote |PoRString_i|, which have equal for all `i`, as |PoRString|. Likewise, |ID_i| for all `i` as |ID|.
 
 1. Generate `K_tag` = KDF("HASH_KEY_TAG", 0, `SharedSecret_i`)
 2. Compute `oa_tag_c` = OA(`K_tag`, `header`)
@@ -496,14 +498,14 @@ As per section 2.4.1, the `Header` consists of two byte sequences of fixed lengt
    - Verify that the first 3 most significant bits represent the supported version (`001`), otherwise the entire packet MUST be rejected.
    - If 3 least significant bits are not all zeros (meaning this node not the recipient):
      - Let `i` be the 3 least significant bits of `HeaderPrefix`
-     - Set `ID_i` = `header[|HeaderPrefix|..|HeaderPrefix| + |ID|`] where `|ID|` is the fixed length of the public key identifiers
-   - `Tag_i` = `header[|HeaderPrefix| + |ID|..|HeaderPrefix|+|ID|+|Tag|]`
-   - `PoRString_i` = `header[|HeaderPrefix|+|ID|+|Tag|..|HeaderPrefix|+|ID|+|PoRString|]` where `|PorString|` is the length of entries in the `PorStrings_i` list
-   - Shift `header` by `|HeaderPrefix|+|ID|+|Tag|..|HeaderPrefix|+|ID|+|PoRString|` bytes left (discarding those bytes)
+     - Set `ID_i` = `header[|HeaderPrefix|..|HeaderPrefix| + |ID|`]
+   - `Tag_i` = `header[|HeaderPrefix| + |ID| .. |HeaderPrefix| + |ID| + |T|]`
+   - `PoRString_i` = `header[|HeaderPrefix|+ |ID| + |T|..|HeaderPrefix| + |ID| + |PoRString|]`
+   - Shift `header` by `|HeaderPrefix| + |ID| + |T| .. |HeaderPrefix| + |ID| + |PoRString|` bytes left (discarding those bytes)
    - Seek the PRG to the position `|Header|`
    - Apply the PRG keystream to `header`
    - Otherwise, if all 3 least significant bits are all zeroes, it means this node is the recipient:
-     - Recover `pseudonym` as `header[|HeaderPrefix|..|HeaderPrefix| + |Pseudonym|]`
+     - Recover `pseudonym` as `header[|HeaderPrefix| .. |HeaderPrefix| + |Pseudonym|]`
      - Recover the 5th and 4th most significant bit (`NoAckFlag` and `ReplyFlag`)
 
 ### 4.3 Packet processing
