@@ -6,7 +6,7 @@
 - **Author(s):** Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-03-19
 - **Updated:** 2025-08-22
-- **Version:** v0.2.0 (Draft)
+- **Version:** v1.0.0 (Draft)
 - **Supersedes:** N/A
 - **References:** [RFC-0002](0002-mixnet-keywords.md), [RFC-0004](0004-proof-of-relay.md), [RFC-0005](0005-hopr-mixer.md)
 
@@ -208,8 +208,9 @@ HeaderPrefix_3 = 0 0 1 0 1 0 1 1
 The `HeaderPrefix_i` MUST not be computed for `i > 7`.
 
 Let `ID_i` be a public key identifier of `P_i` (by using the mapper), and `|T|` denote the output's size of a chosen one-time authenticator.
+Since `ID_i` MUST be all of equal lengths for each `i`, denote this length `|ID|`. Similarly, `|PorString_i|` MUST have also all equal lengths of `|PoRString|`.
 
-Let RoutingInfoLen be equal to `1 + |ID_i| + |T| + |PoRString_i|`.
+Let `RoutingInfoLen` be equal to `1 + |ID| + |T| + |PoRString|`, this is the same for each `i`, because 
 
 Allocate a zeroized `HdrExt` buffer of `1 + |Pseudonym| + 4 * RoutingInfoLen` bytes and another zeroed buffer `OATag` of `|T|` bytes.
 
@@ -233,18 +234,18 @@ For each i = 1 up to N+1 do:
    - Copy bytes of `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen` to offset `RoutingInfoLen` in `HdrExt`
    - Set `HdrExt[i]` to `HeaderPrefix_{i-1}`
    - Copy `ID_{N-i+2}` to `HdrExt` starting at offset 1
-   - Copy `OATag` to `HdrExt` starting at offset `1 + |ID_{N-i+2}|`
-   - Copy bytes of `PoRString_i` to `HdrExt` starting at offset `1 + |ID_{N-i+2}| + |T|`
+   - Copy `OATag` to `HdrExt` starting at offset `1 + |ID|`
+   - Copy bytes of `PoRString_i` to `HdrExt` starting at offset `1 + |ID| + |T|`
    - XOR PRG bytes to `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen`
-4. Compute `K_tag` = KDF("HASH*KEY_HMAC", `SharedSecret*{N-i+2}`)
+4. Compute `K_tag` = KDF("HASH_KEY_HMAC", `SharedSecret*{N-i+2}`)
 5. Compute `OA(K_tag, HdrExt[ from offset 0 up to 1 + |Pseudonym| + 3 * RoutingInfoLen)` and copy its output of `|T|` bytes to `OATag`
 
 The output is the contents of `HdrExt` from offset 0 up to `1 + |Pseudonym| + 3 * RoutingInfoLen` and the `OATag`:
 
 ```
 Header {
- header: [u8; 1 + |Pseudonym| + 3 * RoutingInfoLen]
- oa_tag: [u8; |T|]
+  header: [u8; 1 + |Pseudonym| + 3 * RoutingInfoLen]
+  oa_tag: [u8; |T|]
 }
 ```
 
@@ -265,10 +266,10 @@ For the above reasons, the forward payload MUST consist of:
 
 ```
 PacketPayload {
- signals: u4,
- num_surbs: u4, 
- surbs: [Surb; num_surbs]
- user_payload: [u8; <variable length>]
+  signals: u4,
+  num_surbs: u4, 
+  surbs: [Surb; num_surbs]
+  user_payload: [u8; <variable length>]
 }
 ```
 
@@ -319,11 +320,11 @@ For N = 0, the Extended return path consists of just `Psrc`.
 
 ```
 SURB {
- alpha: Alpha,
- header: Header,
- sender_key: [u8; <variable length>]
- first_hop_ident: [u8; <variable length>]
- por_values: PoRValues
+  alpha: Alpha,
+  header: Header,
+  sender_key: [u8; <variable length>]
+  first_hop_ident: [u8; <variable length>]
+  por_values: PoRValues
 }
 ```
 
@@ -428,10 +429,10 @@ The reply payload is constructed as `PacketPayload` in section 2.4.2. However, t
 
 ```
 PacketPayload {
- signals: u4,
- num_surbs: u4,   // = zero
- surbs: [Surb; 0] // empty
- user_payload: [u8; <variable length>]
+  signals: u4,
+  num_surbs: u4,   // = zero
+  surbs: [Surb; 0] // empty
+  user_payload: [u8; <variable length>]
 }
 ```
 
@@ -494,11 +495,11 @@ As per section 2.4.1, the `Header` consists of two byte sequences of fixed lengt
    - Verify that the first 3 most significant bits represent the supported version (`001`), otherwise the entire packet MUST be rejected.
    - If 3 least significant bits are not all zeros (meaning this node not the recipient):
      - Let `i` be the 3 least significant bits of `HeaderPrefix`
-     - Set `ID_i` = `header[|HeaderPrefix|..|HeaderPrefix| + |ID|`] where `|ID|` is the fixed length of the public key identifiers (each `|ID_i|` = `|ID|`)
+     - Set `ID_i` = `header[|HeaderPrefix|..|HeaderPrefix| + |ID|`] where `|ID|` is the fixed length of the public key identifiers
    - `Tag_i` = `header[|HeaderPrefix| + |ID|..|HeaderPrefix|+|ID|+|Tag|]`
    - `PoRString_i` = `header[|HeaderPrefix|+|ID|+|Tag|..|HeaderPrefix|+|ID|+|PoRString|]` where `|PorString|` is the length of entries in the `PorStrings_i` list
    - Shift `header` by `|HeaderPrefix|+|ID|+|Tag|..|HeaderPrefix|+|ID|+|PoRString|` bytes left (discarding those bytes)
-   - Seek the PRG to the position`|HeaderLen|`
+   - Seek the PRG to the position `|Header|`
    - Apply the PRG keystream to `header`
    - Otherwise, if all 3 least significant bits are all zeroes, it means this node is the recipient:
      - Recover `pseudonym` as `header[|HeaderPrefix|..|HeaderPrefix| + |Pseudonym|]`
@@ -524,9 +525,9 @@ The forwarded packet MUST have the identical structure :
 ```
 HOPR_Packet {
   alpha: Alpha,
-   header: Header,
-   encrypted_payload: EncPayload,
-   ticket: Ticket
+  header: Header,
+  encrypted_payload: EncPayload,
+  ticket: Ticket
 }
 ```
 
