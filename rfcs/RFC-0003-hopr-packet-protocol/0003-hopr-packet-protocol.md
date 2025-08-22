@@ -141,7 +141,7 @@ The returned `Alpha` value MAY be encoded to an equivalent representation (such 
 
 ### 2.3 Generating the Proof of Relay
 
-The packet generation continues with per-hop proof generation of relay values, Ticket challenge, and Acknowledgement challenge for the first downstream node. This generation is done for the
+The packet generation continues with per-hop proof generation of relay values, Ticket challenge, and Acknowledgement challenge for the first downstream node. This generation is done for the each hop on the path.
 
 This is described in RFC-0004 and is a two-step process.
 
@@ -463,7 +463,7 @@ Upon reception of a byte-sequence that is at least `|HOPR_Packet|` bytes-long, t
 
 The resulting Meta packet is processed first, and if this processing is successful, the `Ticket` is validated as well, as defined in RFC-0004.
 
-If any of the operations fail, the packet MUST be rejected, and subsequently, it MUST be acknowledged. See Section 4.5
+If any of the operations fail, the packet MUST be rejected, and subsequently, it MUST be acknowledged. See Section 4.4.
 
 ### 4.1 Advancing the Alpha value
 
