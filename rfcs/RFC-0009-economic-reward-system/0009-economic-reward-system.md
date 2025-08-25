@@ -3,12 +3,12 @@
 - **RFC Number:** 0009 
 - **Title:** Economic Reward System
 - **Status:** Raw
-- **Author(s):** Jean Demeusy
-- **Created:** 2025-06-10
-- **Updated:** 2025-06-10
-- **Version:** v0.0.1
+- **Author(s):** Jean Demeusy (@jeandemeusy)
+- **Created:** 2025-08-25
+- **Updated:** 2025-08-25
+- **Version:** v0.1.0
 - **Supersedes:** N/A
-- **References:** [Related RFCs or Documentation Links]
+- **References:** none
  
 ## Abstract
 
