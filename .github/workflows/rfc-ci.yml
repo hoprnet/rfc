@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Validate Markdown Files
-      uses: DavidAnson/markdownlint-cli2-action@v19
+      uses: DavidAnson/markdownlint-cli2-action@v20
       with:
         files: "**/*.md"
         config: ".markdownlint.json"
