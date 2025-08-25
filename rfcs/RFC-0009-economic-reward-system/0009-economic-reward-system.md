@@ -102,7 +102,9 @@ The following flowchart details the filtering logic:
 flowchart TD
     A[Peer Data] --> B{Allowance >= Min?}
     B -- No --> X[Ineligible]
-    B -- Yes --> C{Is CT Node?}
+    B -- Yes --> B2{Has Open Channel?}
+    B2 -- No --> X
+    B2 -- Yes --> C{Is CT Node?}
     C -- Yes --> X
     C -- No --> D{NFT Holder?}
     D -- Yes --> F{Stake >= Min Stake?}
@@ -138,18 +140,18 @@ The `aggregated_packets` parameter specifies how many messages are grouped toget
  
 ## 8. Message Sending Architecture
 
-When it is time to send messages, the system first establishes a UDP session for each eligible peer, selecting a destination CT node at random (excluding the local node) to simulate real network conditions. Each session is managed by a `SessionToSocket` object, which handles both the session metadata and the underlying UDP socket. The socket is configured with appropriate buffer sizes and is closed when the session ends to prevent resource leaks.
+When it is time to send messages, the system first establishes a UDP session for each eligible peer, selecting a destination CT node at random (excluding the local node). Each session is managed by a `SessionToSocket` object, which handles both the session metadata and the underlying UDP socket. The socket is configured with appropriate buffer sizes and is closed when the session ends to prevent resource leaks.
 
 Messages themselves are constructed using the `MessageFormat` class, which encodes all necessary metadata—such as sender, relayer, packet size, and indices—into a raw byte string. The message is padded to the required packet size and sent through the UDP socket to the destination node's address and port. The system can optionally wait for a response to measure round-trip time, which is useful for monitoring and diagnostics.
 
-Batching and aggregation are handled according to the session parameters described earlier. Multiple messages can be sent in a batch, and after each batch, the system waits for the calculated delay before sending the next batch. This approach ensures that message delivery is both efficient and aligned with the reward allocation determined by the economic model.
+Batching multiple message sendings are handled according to the session parameters described earlier. Multiple messages can be sent in a batch, and after each batch, the system waits for the calculated delay before sending the next batch. This approach ensures that message delivery is both efficient and aligned with the reward allocation determined by the economic model.
 
 The following flowchart summarizes the message sending process:
 
 ```mermaid
 flowchart TD
     S[Session Opened] --> M[Message Formatted]
-    M --> T[Message Sent]
+    M --> T[Batch Message Sent]
     T --> R[Optional Response]
     R --> C[Session Closed]
 ```
