@@ -38,7 +38,7 @@ This structure allows for storing associated assets such as images, diagrams, an
 │       ├── assets/
 │       ├── 0004-return-path.md
 │       ├── templates/                    # Common RFC templates and guidelines
-│       └── rfc-template.md 
+│       └── rfc-template.md
 └── ui                                    # UI for displaying the awesome RFCs
 ```
 
