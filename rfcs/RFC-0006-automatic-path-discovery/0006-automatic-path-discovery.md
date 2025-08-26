@@ -1,13 +1,13 @@
 # RFC-0006: Automatic path discovery
 
-- **RFC Number:** 0006  
-- **Title:** Automatic path discovery  
-- **Status:** Raw | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded  
-- **Author(s):** \<Name (GitHub Handle)\>  
-- **Created:** \<YYYY-MM-DD\>  
-- **Updated:** \<YYYY-MM-DD\>  
-- **Version:** v0.x.x (Raw), v1.x.x (Finalized)  
-- **Supersedes:** RFC-YYYY (if applicable)  
+- **RFC Number:** 0006
+- **Title:** Automatic path discovery
+- **Status:** Raw | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded
+- **Author(s):** \<Name (GitHub Handle)\>
+- **Created:** \<YYYY-MM-DD\>
+- **Updated:** \<YYYY-MM-DD\>
+- **Version:** v0.x.x (Raw), v1.x.x (Finalized)
+- **Supersedes:** RFC-YYYY (if applicable)
 - **References:** [Related RFCs or Documentation Links]
 
 ## Abstract
