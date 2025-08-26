@@ -188,7 +188,7 @@ A Ticket:
 3. the solution of the cryptographic challenge MAY unlock a reward for ticket's recipient `B` at expense of `A`
 4. MUST NOT contain information about packet's destination (`C`)
 
-## 4.1 Ticket structure encoding
+### 4.1 Ticket structure encoding
 
 The Ticket has the following structure:
 
@@ -216,9 +216,9 @@ ECDSASignature {
 ```
 
 
-## 4.2 Construction of Proof-of-Relay (PoR) secrets
+### 4.2 Construction of Proof-of-Relay (PoR) secrets
 
-### 4.2.1 Secret Sharing
+#### 4.2.1 Secret Sharing
 
 In the PoR mechanism, a cryptographic secret is established between relay nodes and their adjacent nodes on the route.
 The construction algorithm utilizes two key derivations:
@@ -231,7 +231,7 @@ This secret acknowledgment key (`s_ack_{i+1}`) is held by the next downstream no
 
 Both keys together form a 2-out-of-2 secret sharing scheme, wherein the relay node MUST possess both `s_own_i` and `s_ack_{i+1}` to reconstruct `s_response_i` and claim rewards.
 
-### 4.2.2 Generation of Hint and Challenges
+#### 4.2.2 Generation of Hint and Challenges
 
 Hints and challenges are generated through elliptic curve operations:
 
@@ -269,6 +269,102 @@ where `G` is the base point on the elliptic curve used in the key exchange.
 Relay node B MUST solve this challenge (`response_i`) by combining both its own secret (`s_own_i`) and the secret acknowledgment key (`s_ack_{i+1}`) received from node C upon successful packet delivery.
 
 
+### 4.4 Ticket lifecycle
+
+#### 4.4.1 Ticket states
+
+* **Ticket** (unsigned or signed, but not yet verified)
+
+  * Contains all ticket fields (channel\_id, amount, index, index\_offset, winProb, channel\_epoch, challenge, signature).
+  * A Ticket without a signature MUST NOT be accepted by peers and MUST NOT be transmitted except for internal construction.
+
+* **VerifiedTicket** (signed and verified)
+
+  * The signature MUST verify against `get_hash(domainSeparator)` and recover the ticket issuer’s address.
+  * `verified_hash` MUST equal `Ticket::get_hash(domainSeparator)`; `verified_issuer` MUST equal the recovered signer.
+
+* **UnacknowledgedTicket** (VerifiedTicket + own half-key)
+
+  * Produced when the recipient binds its own PoR half-key to the VerifiedTicket while waiting for the downstream acknowledgement.
+
+* **AcknowledgedTicket** (VerifiedTicket + PoR response)
+
+  * Produced once the recipient learns the downstream half-key and reconstructs `Response`.
+  * Carries a **status** that indicates off-chain processing intent:
+
+    * `Untouched` (default): neither aggregated nor sent for redemption.
+    * `BeingRedeemed`: currently submitted for on-chain redemption.
+    * `BeingAggregated`: currently included in an off-chain aggregation flow.
+
+* **RedeemableTicket** (winning, issuer-verified, VRF-bound)
+
+  * Produced from an AcknowledgedTicket by attaching VRF parameters derived with the redeemer’s chain key and the `domainSeparator`.
+  * A RedeemableTicket MUST be suitable for on-chain submission.
+
+* **TransferableWinningTicket** (wire format for aggregation/transfer)
+
+  * A compact, verifiable representation of a **winning** ticket intended for off-chain aggregation.
+
+#### 4.4.2 Allowed transitions
+
+```mermaid
+flowchart TB
+  A[Ticket] -->|verify| B(VerifiedTicket)
+  B --> |leak| A
+  A --> |sign| B
+  B --> |into_unacknowledged| C(UnacknowledgedTicket)
+  B --> |into_acknowledged| D(AcknowledgedTicket)
+  C --> |acknowledge| D
+  D --> |into_redeemable| E(RedeemableTicket)
+  D --> |into_transferable| F(TransferableWinningTicket)
+  E --> |into_transferable| F
+  F --> |into_redeemable| E
+```
+
+1. `Ticket --sign--> VerifiedTicket`
+
+   * Pre-conditions:
+
+     * Ticket MUST include all mandatory fields and satisfy bounds (amount ≤ 10^25; index ≤ 2^48; index\_offset ≥ 1; channel\_epoch ≤ 2^24).
+   * Post-conditions:
+
+     * A valid ECDSA signature over `get_hash(domainSeparator)` is attached.
+
+2. `Ticket --verify(issuer, domainSeparator)--> VerifiedTicket`
+
+   * MUST recover `issuer` from `signature` over `get_hash(domainSeparator)`.
+   * On failure, verification MUST be rejected.
+
+3. `VerifiedTicket --into_unacknowledged(own_key)--> UnacknowledgedTicket`
+
+   * Binds the recipient’s PoR half-key. No additional checks REQUIRED.
+
+4. `UnacknowledgedTicket --acknowledge(ack_key)--> AcknowledgedTicket`
+
+   * Compute `Response = combine(own_key, ack_key)`.
+   * The derived challenge `Response.to_challenge()` MUST equal `ticket.challenge`.
+   * On mismatch, the transition MUST fail with `InvalidChallenge` and the ticket MUST remain unacknowledged.
+
+5. `AcknowledgedTicket(Untouched) --into_redeemable(chain_keypair, domainSeparator)--> RedeemableTicket`
+
+   * The caller (redeemer) MUST NOT be the ticket issuer (Loopback prevention).
+   * Derive VRF parameters over `(verified_hash, redeemer, domainSeparator)`.
+   * The resulting RedeemableTicket MAY be submitted on-chain if winning (see §3).
+
+6. `AcknowledgedTicket(Untouched) --into_transferable(chain_keypair, domainSeparator)--> TransferableWinningTicket`
+
+   * Equivalent to `into_redeemable` followed by conversion to transferable form; retains VRF and response.
+
+7. `TransferableWinningTicket --into_redeemable(expected_issuer, domainSeparator)--> RedeemableTicket`
+
+   * MUST verify: `signer == expected_issuer` and the embedded signature over `get_hash(domainSeparator)`.
+   * MUST recompute “win” locally (see §3). On failure, MUST reject.
+
+8. `VerifiedTicket --leak()--> Ticket`
+
+   * Debug/escape hatch only. Implementations SHOULD avoid downgrading state in production flows.
+
+
 ## 5 Ticket and Channel interactions
 
 ### 5.1 Probablistic winning tickets
@@ -291,7 +387,11 @@ where
 - The `porSecret` is known by the ticket issuer and can be reconstructed by the ticket recipient as part of the PoR scheme upon receiving the acknowledgment for the forwarded ticket, as detailed in the next section. 
 - The `vrfParams` refers to the deterministic pseudo-random value that is chosen by the ticket recipient, and is verifiable by using its public key. This value is unique for each ticket and adds entropy that can only be known by the ticket redeemer.
 
-### 3.3 Verify winning tickets with VRF
+If the ticket is not a win, it MUST NOT be submitted on-chain.
+If the ticket is a win, the ticket MAY be submitted using `RedeemableTicket` with matching VRF parameters.
+
+
+### 5.2 Verify winning tickets with VRF
 
 The VRF verification algorithm for ticket validation is:
 
@@ -323,14 +423,14 @@ Compute verification scalar (`hCheck`):
 ```
 hCheck = hashToScalar(signer || vx || vy || Rx || Ry || ticketHash, domainSeparator)
 ```
-<<<<<<< HEAD
-Validate VRF proof by ensuring: `hCheck == h
-
-## 4. Construction of Proof-of-Relay (PoR) secrets
-=======
 Validate VRF proof by ensuring: `hCheck == h`
->>>>>>> a91f2eed2fb65935cd4943ed016f7d6cefd983b7
 
+Upon successful on-chain redemption of a **RedeemableTicket**:
+
+* The spending channel’s `ticketIndex` MUST advance by `index_offset`.
+* The spending channel’s `balance` MUST decrease by `amount`.
+* If the counter-channel (earning channel) exists and is open, its `balance` MUST increase by `amount`; otherwise, the contract MUST transfer tokens to the redeemer.
+* The redemption MUST fail if the channel is not `OPEN` or `PENDING_TO_CLOSE`, epoch mismatches, the aggregated interval is invalid, the balance is insufficient, the ticket is not a win, the VRF proof is invalid, or the signature does not match the channel.
 
 ## References
 
