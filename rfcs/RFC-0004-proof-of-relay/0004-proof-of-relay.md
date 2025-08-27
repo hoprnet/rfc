@@ -63,7 +63,7 @@ The speficic instantiation of the current version of this protocol is given in A
 The security parameter `L` SHALL NOT be less than 2^128 - meaning the chosen cryptographic primitives
 instantiations below SHALL NOT have less than 128-bits of security.
 
-- **EC group** refers to a specific elliptic curve group over a finite field, where computational Diffie-Hellman problem is AT LEAST as
+- **EC group** refers to a specific elliptic curve `E` group over a finite field, where computational Diffie-Hellman problem is AT LEAST as
 difficult as the chosen security parameter `L`. The elements of the field are denoted using lower-case letter, whereas the elements (also referred to as elliptic curve points, or EC points) of the EC group are denoted using upper-case letters.
 - **MUL(a,B) (or simply a.B)** represents a multiplication of an EC point `B` by a scalar `a` from the corresponding finite field.
 - **ADD(A,B)** represents an addition of two EC points `A` and `B` from the corresponding finite field.
@@ -73,32 +73,16 @@ difficult as the chosen security parameter `L`. The elements of the field are de
 against cryptographic attacks SHALL NOT be less than `L`.
 - **Verifiable Random Function (VRF)** produces a pseudo-random value that is publicly verifiable but cannot be forged or precomputed.
 
-### 2.2 Channel Errors
-The following errors MAY BE thrown by the channels and MUST be handled accordingly
-
-- **InvalidBalance**: Thrown if the balance provided is below the acceptable minimum value (`MIN_USED_BALANCE`). This check MUST be done before funding (including opening) a channel and before claiming rewards. 
-- **BalanceExceedsGlobalPerChannelAllowance**: Raised if a balance exceeds the per-channel max (`MAX_USED_BALANCE`). MUST limit channel funding and ticket redemption to protocol-defined maximums.
-- **SourceEqualsDestination**: Triggered if source equals destination during channel creation. MUST ensure distinct addresses.
-- **ZeroAddress**: Thrown if an address (Node identifier) is empty. MUST validate all provided addresses.
-- **TokenTransferFailed**: Raised when HOPR token transfer fails. MUST check for successful token transfers.
-- **InvalidNoticePeriod**: Thrown when initializing a contract with zero notice period (`T_closure`). MUST configure valid timeouts.
-- **NoticePeriodNotDue**: Raised if attempting to finalize closure before timeout (`T_closure`). MUST validate block time against closure timestamp.
-- **WrongChannelState**: Thrown if the channel is in an invalid state for the operation. MUST verify current state before action.
-- **InvalidTicketSignature**: Raised when a ticket signature is invalid. MUST verify off-chain before submitting.
-- **InvalidVRFProof**: Raised if VRF fails verification. MUST ensure integrity of VRF proofs.
-- **InsufficientChannelBalance**: Raised when redeeming a ticket without enough funds. MUST track ticket values against balance.
-- **TicketIsNotAWin**: Thrown if the ticket fails the win probability check. MUST handle rejection gracefully.
-- **InvalidAggregatedTicketInterval**: Raised for malformed aggregation indexes. MUST ensure valid index and offset combinations.
-- **WrongToken**: Raised when non-HOPR token is received. MUST restrict token types.
-- **InvalidTokenRecipient**: Raised when tokens are sent to wrong recipient. MUST use the contract address.
-- **InvalidTokensReceivedUsage**: Raised if token usage is malformed. MUST follow defined payload structures.
-
 Nodes and clients MUST implement handling for each of the above to ensure compliance and fault tolerance within the HOPR PoR protocol.
+
+The concrete choices of the above cryptographic primitives for the implementation of version 1.0 are given in Appendix 1.
 
 ## 3 Payment channels
 
 Let A, B and C be peers participating in the mixnet. Each node is in possesion of its own private key (`Kpriv_A`, `Kpriv_B`, `Kpriv_C`)
 and the corresponding public key (`P_A`, `P_B`, `P_C`). The public keys of participating nodes are publicly exposed.
+
+The public keys MUST be from an elliptic curve cryptosystem represented by an elliptic curve `E`.
 
 Assume that node A wishes to communicate with node C, using node B as a relay.
 Node A then opens a logical payment channel with node B (denoted A -> B), staking some funds into this channel. 
@@ -148,6 +132,9 @@ Channel {
 
 Such structure is sufficient to describe the payment channel A -> B.
 
+Channels are uniquely identified by a `H(source || destination`.
+Byte-string of a fixed length representing the output of this hash function is called `ChannelId` in this context.
+
 ### 3.1 Payment channel life-cycle
 
 A payment channel between nodes A -> B MUST always be initiated by node A. It MUST be initialized with a non-zero `balance`,
@@ -195,19 +182,27 @@ The Ticket has the following structure:
 
 ```
 Ticket {
-	channel_id: [u8; 20],
+	channel_id: ChannelId,
 	amount: u96,
 	index: u48,
 	index_offset: u32,
 	encoded_win_prob: [u8; 7],
 	channel_epoch: u24,
+	challenge: ECPoint,
 	signature: ECDSASignature
 }
 ```
 
 All multi-byte unsigned integers MUST use the big-endian encoding when serialized.
-The `ECDSASignature` uses the [ERC-2098 encoding](https://eips.ethereum.org/EIPS/eip-2098), the public key recovery bit is stored
-in the most significant bit of the `r` value (which is guaranteed to be unused). Both `r` and `s` use big-endian encoding when serialized.
+
+The `ECPoint` is an encoding of an Elliptic curve point on the chosen curve `E` that corresponds to a cryptographic challenge.
+Such challenge is later solved by the ticket recipient once it forwards the attached packet to the next downstream node.
+
+The encoding (for serialization) of the `ECPoint` MUST be unique and MAY be irreversible, in a sense, 
+that the original elliptic point on the curve `E` is not recoverable, but the encoding uniquely identifies the said point.
+
+The `ECDSASignature` MUST use the [ERC-2098 encoding](https://eips.ethereum.org/EIPS/eip-2098), the public key recovery bit is stored
+in the most significant bit of the `s` value (which is guaranteed to be unused). Both `r` and `s` use big-endian encoding when serialized.
 
 ```
 ECDSASignature {
@@ -216,163 +211,130 @@ ECDSASignature {
 }
 ```
 
-The ECDSA signature on the ticket is computed over the Keccak256 hash `H`, which is computed from the `Ticket` fields and
+The ECDSA signature of the ticket MUST be computed over the hash `H_ticket`, which is computed from the `Ticket` fields and
 a domain separator `dst` as follows:
 
 ```
-H_1 = Keccak256(channel_id || amount || index || index_offset || encoded_win_prob || channel_epoch)
-H_2 = Keccak256(0xfcb7796f00000000000000000000000000000000000000000000000000000000 || H_1)`
-H = Keccak256(0x1901 || dst || H_2)
+H_1 = H(channel_id || amount || index || index_offset || channel_epoch || encoded_win_prob || challenge)
+H_2 = H(0xfcb7796f00000000000000000000000000000000000000000000000000000000 || H_1)`
+H_ticket = H(0x1901 || dst || H_2)
 ```
+
+The `Ticket` signature MUST be done over the same elliptic curve `E` using the private key of the ticket creator (issuer).
 
 
 ### 4.2 Construction of Proof-of-Relay (PoR) secrets
 
-#### 4.2.1 Secret Sharing
+This section uses terms defined in Section 2.2 in RFC-0003, namely the `SharedSecret_i` generated for `i`-th node
+on the path (`i` ranges from 0 (sender node) up to `n`  (destination node), i.e. `n` is equal to the path length).
+Note, that for 0-hop path (a direct packet from sender to destination), `n` = 1.
+
 
 In the PoR mechanism, a cryptographic secret is established between relay nodes and their adjacent nodes on the route.
-The construction algorithm utilizes two key derivations:
 
-* **HASH\_KEY\_ACK\_KEY**: Each node `n_i` derives `s_ack_i` from the shared secret (`s_i`) provided by the SPHINX packet. 
-This secret acknowledgment key (`s_ack_{i+1}`) is held by the next downstream node (n_{i+1}) and sent as an acknowledgement upon successful packet delivery.
-`s_ack_i = KDF("HASH_KEY_ACK_KEY", s_i)`
+Upon packet creation, the Sender node creates two structures:
+1. the list of `ProofOfRelayString_i` for each `i`-th node on the path for i > 0 up to `n-1`. For `n=1`, the list will be empty
+2. the `ProofOfRelayValues` structure
 
-* **HASH\_KEY\_OWN\_KEY**: Each node ni also derives its own secret key (`s_own_i`) directly from the shared secret (`s_i`) provided by the SPHINX packet: `s_own_i = KDF("HASH_KEY_OWN_KEY", s_i)`
 
-Both keys together form a 2-out-of-2 secret sharing scheme, wherein the relay node MUST possess both `s_own_i` and `s_ack_{i+1}` to reconstruct `s_response_i` and claim rewards.
+Each `ProofOfRelayString_i` contains the `challenge` for the ticket for node the `i+1`-th and the `hint` value fort the same node.
+The `hint` value is later used by the `i+1`-th node to validate that the `challenge` is not bogus, before it delivers the packet
+to the next hop. 
 
-#### 4.2.2 Generation of Hint and Challenges
-
-Hints and challenges are generated through elliptic curve operations:
-
-* **Generation of Challenges**: Each challenge `C_i` is generated by combining the secrets derived from the node’s own key (`s_own_i`) and the next downstream node's acknowledgment key (`s_ack_{i+1}`):
-
-  ```
-  C_i = MUL(s_own_i + s_ack_{i+1}, G)
-  ```
-
-* **Generation of Hint**: To prove to the relay node that the challenge is valid and solvable, the sender generates a hint derived solely from the acknowledgment key (`s_ack_i+1`):
-
-  ```
-  hint_i = MUL(s_ack_{i+1}, G)
-  ```
-
-The relay node receiving the challenge and hint MUST verify the following condition immediately upon receipt:
+Due to this later verification, the `hint` MUST use an encoding useful for EC group computations on `E` (here denoted as `RawECPoint`).
 
 ```
-ADD(MUL(s_own_i, G), hint_i) = C_i
+ProofOfRelayString_i {
+	challenge: ECPoint,
+	hint: RawECPoint
+}
 ```
 
-This ensures the relay node is assured of the challenge’s solvability, thus validating the sender's possession of the necessary secrets.
-This verification step confirms the challenge’s solvability without revealing `s_ack_{i+1}`, leveraging the infeasibility of inverting scalar multiplication on the chosen elliptic curve. 
-The sender MUST embed `hint_i` within the SPHINX packet’s readable section for node `n_i`, enabling immediate validation of the embedded challenge.
+The `ProofOfRelayValues` structure contains the `challenge` and `hint` to the first relayer on the path, plus
+it MUST contain information about the path length. This information is later used to set the correct price
+of the first ticket. 
 
-### 4.3 Challenge Response
-
-Each packet sent through the network includes a cryptographic challenge (`C_i`), derived from:
+Path length MUST be always less than 4 (i.e. maximum 3 hops).
 
 ```
-C_i = MUL(s_own_i + s_ack_{i+1}, G} = MUL(response_i, G)
+ProofOfRelayValues {
+	challenge: ECPoint,
+	hint: RawECPoint,
+	path_len: u8
+}
 ```
 
-where `G` is the base point on the elliptic curve used in the key exchange. 
-Relay node B MUST solve this challenge (`response_i`) by combining both its own secret (`s_own_i`) and the secret acknowledgment key (`s_ack_{i+1}`) received from node C upon successful packet delivery.
+#### 4.2.1 Creation of Proof of Relay strings and values
+
+Let `HS` be the Hash to Field operation defined in RFC-0003 over the field of the chosen `E`.
+
+The generation process of `ProofOfRelayString_i` proceeds as follows for each `i` from 0 to `n-1` :
 
 
-### 4.4 Ticket lifecycle
+1. The `SharedKey_i+1_ack` is derived from the shared secret (`SharedSecret_i`) provided during the HOPR packet construction. 
+`SharedKey_i+1_ack` denotes the secret acknowledgement key for the next downstream node (`i+1`).
 
-#### 4.4.1 Ticket states
 
-* **Ticket** (unsigned or signed, but not yet verified)
+  - if `i` < `n` : `SharedKey_i+1_ack = HS(SharedKey_i, "HASH_KEY_ACK_KEY")`
+  - if `i` = `n` : the `SharedKey_i+1_ack` MUST be generated as a uniformly random byte-string with the byte-length
+of `E`'s field elements.
 
-  * Contains all ticket fields (channel\_id, amount, index, index\_offset, winProb, channel\_epoch, challenge, signature).
-  * A Ticket without a signature MUST NOT be accepted by peers and MUST NOT be transmitted except for internal construction.
 
-* **VerifiedTicket** (signed and verified)
+2. The own shared secret `SharedKey_i_own` from `SharedSecret_i` is generated as:
 
-  * The signature MUST verify against `get_hash(domainSeparator)` and recover the ticket issuer’s address.
-  * `verified_hash` MUST equal `Ticket::get_hash(domainSeparator)`; `verified_issuer` MUST equal the recovered signer.
+`SharedKey_i_own = HS(SharedKey_i, "HASH_KEY_OWN_KEY")`
 
-* **UnacknowledgedTicket** (VerifiedTicket + own half-key)
+3. The `hint` value is computed:
+	- if `i` = 0: `hint = HS(SharedKey_0, "HASH_KEY_ACK_KEY`)
+	- if `i` > 0: `hint = SharedKey_i+1_ack` (from step 1) 
 
-  * Produced when the recipient binds its own PoR half-key to the VerifiedTicket while waiting for the downstream acknowledgement.
+4. For `i` > 0, the `ProofOfRelayString_i` is composed and added to the list:
 
-* **AcknowledgedTicket** (VerifiedTicket + PoR response)
+  - `challenge` is computed as: `challenge = MUL(SharedKey_i_own + SharedKey_i+1_ack, G)` and encoded as `ECPoint`
+  - `hint` is used from step 3.
 
-  * Produced once the recipient learns the downstream half-key and reconstructs `Response`.
-  * Carries a **status** that indicates off-chain processing intent:
+5. For `i` = 0, the `ProofOfRelayValues` is created:
+	- `challenge` is computed as: `challenge = MUL(SharedKey_i_own + SharedKey_i+1_ack, G)` and encoded as `ECPoint`
+  - `hint` is used from step 3.
+  - `path_length` is set to `n`
 
-    * `Untouched` (default): neither aggregated nor sent for redemption.
-    * `BeingRedeemed`: currently submitted for on-chain redemption.
-    * `BeingAggregated`: currently included in an off-chain aggregation flow.
 
-* **RedeemableTicket** (winning, issuer-verified, VRF-bound)
+## 4.3 Creation of the ticket for the first relayer
 
-  * Produced from an AcknowledgedTicket by attaching VRF parameters derived with the redeemer’s chain key and the `domainSeparator`.
-  * A RedeemableTicket MUST be suitable for on-chain submission.
+The first ticket MUST be created by the packet Sender and MUST contain the `challenge` field equal
+to the `challenge` in the `ProofOfRelayValues` from the previous step.
 
-* **TransferableWinningTicket** (wire format for aggregation/transfer)
+The `Ticket` structure is then complete and MUST be signed by the Sender, who MUST be always the first ticket's issuer.
 
-  * A compact, verifiable representation of a **winning** ticket intended for off-chain aggregation.
 
-#### 4.4.2 Allowed transitions
+As described in Section 2.5 in RFC-0003, the encoded `Ticket` structure becomes part of the `HOPR_Packet`.
 
-```mermaid
-flowchart TB
-  A[Ticket] -->|verify| B(VerifiedTicket)
-  B --> |leak| A
-  A --> |sign| B
-  B --> |into_unacknowledged| C(UnacknowledgedTicket)
-  B --> |into_acknowledged| D(AcknowledgedTicket)
-  C --> |acknowledge| D
-  D --> |into_redeemable| E(RedeemableTicket)
-  D --> |into_transferable| F(TransferableWinningTicket)
-  E --> |into_transferable| F
-  F --> |into_redeemable| E
-```
+## 4.4 Ticket processing at a node
 
-1. `Ticket --sign--> VerifiedTicket`
+This is inherently part of the packet processing process from the RFC-0003.
+Once a node receives a `HOPR_Packet` structure, the `Ticket` is separated and its processing is a two step process:
 
-   * Pre-conditions:
+1. The ticket is pre-verified (this is already mentioned in section 4.4 of RFC 0003).
+2. If the packet is to be forwarded to a next node, the ticket MUST be verified and replaced with a new ticket
+for the next node.
 
-     * Ticket MUST include all mandatory fields and satisfy bounds (amount ≤ 10^25; index ≤ 2^48; index\_offset ≥ 1; channel\_epoch ≤ 2^24).
-   * Post-conditions:
+### 4.4.1 Ticket pre-verification
 
-     * A valid ECDSA signature over `get_hash(domainSeparator)` is attached.
+If the extracted `Ticket` structure cannot be deserialized, the corresponding packet MUST be discarded.
 
-2. `Ticket --verify(issuer, domainSeparator)--> VerifiedTicket`
+At this point, the node knows its `SharedSecret_i` with which it is able to decrypt the `HOPR_Packet` and
+the `ProofOfRelayString_i` has already been extracted from the packet header (see section 4.2 in RFC-0003).
 
-   * MUST recover `issuer` from `signature` over `get_hash(domainSeparator)`.
-   * On failure, verification MUST be rejected.
+1. `SharedSecret_i` is used to compute `SharedSecret_i+1_ack` as defined in Section 4.2.1.
+2. 
+3. 
 
-3. `VerifiedTicket --into_unacknowledged(own_key)--> UnacknowledgedTicket`
 
-   * Binds the recipient’s PoR half-key. No additional checks REQUIRED.
+The `challenge` from the `Ticket` structure is extracted along with 
 
-4. `UnacknowledgedTicket --acknowledge(ack_key)--> AcknowledgedTicket`
+### 4.4.2 Ticket validation and replacement 
 
-   * Compute `Response = combine(own_key, ack_key)`.
-   * The derived challenge `Response.to_challenge()` MUST equal `ticket.challenge`.
-   * On mismatch, the transition MUST fail with `InvalidChallenge` and the ticket MUST remain unacknowledged.
-
-5. `AcknowledgedTicket(Untouched) --into_redeemable(chain_keypair, domainSeparator)--> RedeemableTicket`
-
-   * The caller (redeemer) MUST NOT be the ticket issuer (Loopback prevention).
-   * Derive VRF parameters over `(verified_hash, redeemer, domainSeparator)`.
-   * The resulting RedeemableTicket MAY be submitted on-chain if winning (see §3).
-
-6. `AcknowledgedTicket(Untouched) --into_transferable(chain_keypair, domainSeparator)--> TransferableWinningTicket`
-
-   * Equivalent to `into_redeemable` followed by conversion to transferable form; retains VRF and response.
-
-7. `TransferableWinningTicket --into_redeemable(expected_issuer, domainSeparator)--> RedeemableTicket`
-
-   * MUST verify: `signer == expected_issuer` and the embedded signature over `get_hash(domainSeparator)`.
-   * MUST recompute “win” locally (see §3). On failure, MUST reject.
-
-8. `VerifiedTicket --leak()--> Ticket`
-
-   * Debug/escape hatch only. Implementations SHOULD avoid downgrading state in production flows.
+### 4.2.3 Ticket acknowledgement
 
 
 ## 5 Ticket and Channel interactions
@@ -441,6 +403,112 @@ Upon successful on-chain redemption of a **RedeemableTicket**:
 * The spending channel’s `balance` MUST decrease by `amount`.
 * If the counter-channel (earning channel) exists and is open, its `balance` MUST increase by `amount`; otherwise, the contract MUST transfer tokens to the redeemer.
 * The redemption MUST fail if the channel is not `OPEN` or `PENDING_TO_CLOSE`, epoch mismatches, the aggregated interval is invalid, the balance is insufficient, the ticket is not a win, the VRF proof is invalid, or the signature does not match the channel.
+
+
+## Appendix 1
+
+The current implementation of the Proof of Relay protocol (which is in correspondence with the HOPR Packet protocol from RFC-0003):
+- Hash function `H` is Keccak256
+- Elliptic curve `E` is chosen as secp256k1
+- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC-9380](https://www.rfc-editor.org/info/rfc9380)
+- The one-way encoding `ECPoint` is done as `Keccak256(P)` where `P` denotes secp256k1 point in compressed form. The output of the hash is truncated to 20 bytes.
+
+## Appendix 2
+
+This appendix describes the ticket states which are implementation specific for the current Proof Of Relay implementation
+as part of the HOPR protocol.
+
+
+* **Ticket** (unsigned or signed, but not yet verified)
+
+  * Contains all ticket fields (channel\_id, amount, index, index\_offset, winProb, channel\_epoch, challenge, signature).
+  * A Ticket without a signature MUST NOT be accepted by peers and MUST NOT be transmitted except for internal construction.
+
+* **VerifiedTicket** (signed and verified)
+
+  * The signature MUST verify against `get_hash(domainSeparator)` and recover the ticket issuer’s address.
+  * `verified_hash` MUST equal `Ticket::get_hash(domainSeparator)`; `verified_issuer` MUST equal the recovered signer.
+
+* **UnacknowledgedTicket** (VerifiedTicket + own half-key)
+
+  * Produced when the recipient binds its own PoR half-key to the VerifiedTicket while waiting for the downstream acknowledgement.
+
+* **AcknowledgedTicket** (VerifiedTicket + PoR response)
+
+  * Produced once the recipient learns the downstream half-key and reconstructs `Response`.
+  * Carries a **status** that indicates off-chain processing intent:
+
+    * `Untouched` (default): neither aggregated nor sent for redemption.
+    * `BeingRedeemed`: currently submitted for on-chain redemption.
+    * `BeingAggregated`: currently included in an off-chain aggregation flow.
+
+* **RedeemableTicket** (winning, issuer-verified, VRF-bound)
+
+  * Produced from an AcknowledgedTicket by attaching VRF parameters derived with the redeemer’s chain key and the `domainSeparator`.
+  * A RedeemableTicket MUST be suitable for on-chain submission.
+
+* **TransferableWinningTicket** (wire format for aggregation/transfer)
+
+  * A compact, verifiable representation of a **winning** ticket intended for off-chain aggregation.
+
+### Allowed transitions
+
+```mermaid
+flowchart TB
+  A[Ticket] -->|verify| B(VerifiedTicket)
+  B --> |leak| A
+  A --> |sign| B
+  B --> |into_unacknowledged| C(UnacknowledgedTicket)
+  B --> |into_acknowledged| D(AcknowledgedTicket)
+  C --> |acknowledge| D
+  D --> |into_redeemable| E(RedeemableTicket)
+  D --> |into_transferable| F(TransferableWinningTicket)
+  E --> |into_transferable| F
+  F --> |into_redeemable| E
+```
+
+1. `Ticket --sign--> VerifiedTicket`
+
+   * Pre-conditions:
+
+     * Ticket MUST include all mandatory fields and satisfy bounds (amount ≤ 10^25; index ≤ 2^48; index\_offset ≥ 1; channel\_epoch ≤ 2^24).
+   * Post-conditions:
+
+     * A valid ECDSA signature over `get_hash(domainSeparator)` is attached.
+
+2. `Ticket --verify(issuer, domainSeparator)--> VerifiedTicket`
+
+   * MUST recover `issuer` from `signature` over `get_hash(domainSeparator)`.
+   * On failure, verification MUST be rejected.
+
+3. `VerifiedTicket --into_unacknowledged(own_key)--> UnacknowledgedTicket`
+
+   * Binds the recipient’s PoR half-key. No additional checks REQUIRED.
+
+4. `UnacknowledgedTicket --acknowledge(ack_key)--> AcknowledgedTicket`
+
+   * Compute `Response = combine(own_key, ack_key)`.
+   * The derived challenge `Response.to_challenge()` MUST equal `ticket.challenge`.
+   * On mismatch, the transition MUST fail with `InvalidChallenge` and the ticket MUST remain unacknowledged.
+
+5. `AcknowledgedTicket(Untouched) --into_redeemable(chain_keypair, domainSeparator)--> RedeemableTicket`
+
+   * The caller (redeemer) MUST NOT be the ticket issuer (Loopback prevention).
+   * Derive VRF parameters over `(verified_hash, redeemer, domainSeparator)`.
+   * The resulting RedeemableTicket MAY be submitted on-chain if winning (see §3).
+
+6. `AcknowledgedTicket(Untouched) --into_transferable(chain_keypair, domainSeparator)--> TransferableWinningTicket`
+
+   * Equivalent to `into_redeemable` followed by conversion to transferable form; retains VRF and response.
+
+7. `TransferableWinningTicket --into_redeemable(expected_issuer, domainSeparator)--> RedeemableTicket`
+
+   * MUST verify: `signer == expected_issuer` and the embedded signature over `get_hash(domainSeparator)`.
+   * MUST recompute “win” locally (see §3). On failure, MUST reject.
+
+8. `VerifiedTicket --leak()--> Ticket`
+
+   * Debug/escape hatch only. Implementations SHOULD avoid downgrading state in production flows.
 
 ## References
 

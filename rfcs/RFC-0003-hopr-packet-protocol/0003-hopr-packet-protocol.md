@@ -141,7 +141,7 @@ The returned `Alpha` value MAY be encoded to an equivalent representation (such 
 
 ### 2.3 Generating the Proof of Relay
 
-The packet generation continues with per-hop proof generation of relay values, Ticket challenge, and Acknowledgement challenge for the first downstream node. This generation is done for the each hop on the path.
+The packet generation continues with per-hop proof generation of relay values, Ticket challenge, and Acknowledgement challenge for the first downstream node. This generation is done for each hop on the path.
 
 This is described in RFC-0004 and is a two-step process.
 
@@ -521,7 +521,7 @@ new_payload = PRP(Kprp, encrypted_payload)
 
 #### 4.3.1 Forwarded packet
 
-If the processed header indicated that the packet is destined for another node, the `new_payload` is the `encrypted_payload: EncryptedPayload` . The updated `header` and `alpha` values from the previous steps are used to construct the forwarded packet. A new `ticket` structure is created for the recipient (as described in RFC-0004).
+If the processed header indicated that the packet is destined for another node, the `new_payload` is the `encrypted_payload: EncryptedPayload` . The updated `header` and `alpha` values from the previous steps are used to construct the forwarded packet. A new `ticket` structure is created for the recipient (as described in RFC-0004), while the current `ticket` structure MUST be verified (as also described in RFC-0004).
 
 The forwarded packet MUST have the identical structure :
 
@@ -585,7 +585,7 @@ The `user_payload` can then be used by the upper protocol layer.
 In the next step the `ticket` MUST be pre-verified using the `SharedSecret_i`, as defined in RFC-0004.
 If the packet was not destined for this node (not final) OR the packet is final and the `NoAckFlag` is 0, the packet MUST be acknowledged.
 
-The acknowledgement of the successfully processed packet is created as per RFC-0004 using `ack_key` = HS(`SharedSecret_i`, "HASH_ACK_KEY"). The `ack_key` is the scalar in the field of the elliptic curve chosen in RFC-0004. The acknowledgement is sent back to the previous hop.
+The acknowledgement of the successfully processed packet is created as per RFC-0004 using `SharedKey_i+1_ack` = HS(`SharedSecret_i`, "HASH_ACK_KEY"). The `SharedKey_i+1_ack` is the scalar in the field of the elliptic curve chosen in RFC-0004. The acknowledgement is sent back to the previous hop.
 
 If the packet processing was not successful, a random acknowledgement MUST be generated (as defined in RFC-0004) and sent to the previous hop.
 
@@ -597,7 +597,7 @@ The current version is instantiated using the following cryptographic primitives
 - Both PRP and PRG are instantiated using Chacha20 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
 - OA is instantiated with Poly1305 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
 - KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`: `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
-- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC9380](https://www.rfc-editor.org/info/rfc9380). `S` is used a the secret input, and `T` as an additional domain separator.
+- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC-9380](https://www.rfc-editor.org/info/rfc9380). `S` is used a the secret input, and `T` as an additional domain separator.
 
 ## References
 
