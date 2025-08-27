@@ -74,7 +74,8 @@ against cryptographic attacks SHALL NOT be less than `L`.
 - **Verifiable Random Function (VRF)** produces a pseudo-random value that is publicly verifiable but cannot be forged or precomputed.
 
 ### 2.2 Channel Errors
-The following errors MAYB be thrown by the channels and MUST be handled accordinglyL
+The following errors MAY BE thrown by the channels and MUST be handled accordingly
+
 - **InvalidBalance**: Thrown if the balance provided is below the acceptable minimum value (`MIN_USED_BALANCE`). This check MUST be done before funding (including opening) a channel and before claiming rewards. 
 - **BalanceExceedsGlobalPerChannelAllowance**: Raised if a balance exceeds the per-channel max (`MAX_USED_BALANCE`). MUST limit channel funding and ticket redemption to protocol-defined maximums.
 - **SourceEqualsDestination**: Triggered if source equals destination during channel creation. MUST ensure distinct addresses.
@@ -213,6 +214,15 @@ ECDSASignature {
 	r: u256
 	s: u256
 }
+```
+
+The ECDSA signature on the ticket is computed over the Keccak256 hash `H`, which is computed from the `Ticket` fields and
+a domain separator `dst` as follows:
+
+```
+H_1 = Keccak256(channel_id || amount || index || index_offset || encoded_win_prob || channel_epoch)
+H_2 = Keccak256(0xfcb7796f00000000000000000000000000000000000000000000000000000000 || H_1)`
+H = Keccak256(0x1901 || dst || H_2)
 ```
 
 
