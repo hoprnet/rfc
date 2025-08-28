@@ -585,9 +585,13 @@ The `user_payload` can then be used by the upper protocol layer.
 In the next step the `ticket` MUST be pre-verified using the `SharedSecret_i`, as defined in RFC-0004.
 If the packet was not destined for this node (not final) OR the packet is final and the `NoAckFlag` is 0, the packet MUST be acknowledged.
 
-The acknowledgement of the successfully processed packet is created as per RFC-0004 using `SharedKey_i+1_ack` = HS(`SharedSecret_i`, "HASH_ACK_KEY"). The `SharedKey_i+1_ack` is the scalar in the field of the elliptic curve chosen in RFC-0004. The acknowledgement is sent back to the previous hop.
+The acknowledgement of the successfully processed packet is created as per RFC-0004 using `SharedKey_i+1_ack` = `HS(SharedSecret_i, "HASH_ACK_KEY")`. The `SharedKey_i+1_ack` is the scalar in the field of the elliptic curve chosen in RFC-0004. The acknowledgement is sent back to the previous hop.
 
-If the packet processing was not successful, a random acknowledgement MUST be generated (as defined in RFC-0004) and sent to the previous hop.
+This is done creating and sending a standard forward packet directly to the node the original packet was received from.
+The `NoAckFlag` on this packet MUST be set. The `user_payload` of the packet contains the encoded `Acknowledgement` structure
+as defined in RFC-0004. The `num_surbs` of this packet MUST be set to 0.
+
+If the packet processing was not successful at any point, a random acknowledgement MUST be generated (as defined in RFC-0004) and sent to the previous hop.
 
 ## Appendix 1
 

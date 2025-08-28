@@ -123,9 +123,9 @@ There is a structure called `Channel` that MUST contain at least the following f
 Channel {
 	source: [u8; |P_A|],
 	destination: [u8; |P_B|],
-	balance: [u8; 12]
-	ticket_index: [u8; 6]
-	channel_epoch: [u8; 3]
+	balance: u96,
+	ticket_index: u48,
+	channel_epoch: u24,
 	status: ChannelStatus
 }
 ````
@@ -186,7 +186,7 @@ Ticket {
 	amount: u96,
 	index: u48,
 	index_offset: u32,
-	encoded_win_prob: [u8; 7],
+	encoded_win_prob: u56,
 	channel_epoch: u24,
 	challenge: ECPoint,
 	signature: ECDSASignature
@@ -201,7 +201,7 @@ Such challenge is later solved by the ticket recipient once it forwards the atta
 The encoding (for serialization) of the `ECPoint` MUST be unique and MAY be irreversible, in a sense, 
 that the original elliptic point on the curve `E` is not recoverable, but the encoding uniquely identifies the said point.
 
-The `ECDSASignature` MUST use the [ERC-2098 encoding](https://eips.ethereum.org/EIPS/eip-2098), the public key recovery bit is stored
+The `ECDSASignature` SHOULD use the [ERC-2098 encoding](https://eips.ethereum.org/EIPS/eip-2098), the public key recovery bit is stored
 in the most significant bit of the `s` value (which is guaranteed to be unused). Both `r` and `s` use big-endian encoding when serialized.
 
 ```
@@ -304,105 +304,248 @@ of `E`'s field elements.
 The first ticket MUST be created by the packet Sender and MUST contain the `challenge` field equal
 to the `challenge` in the `ProofOfRelayValues` from the previous step.
 
-The `Ticket` structure is then complete and MUST be signed by the Sender, who MUST be always the first ticket's issuer.
+### Multi-hop ticket: for `n` > 1
+
+In this situation, the `Channel` between the Sender and the next hop MUST exist and be in the `OPEN` state.
+
+1. The field `channel_id` MUST be set according to the `Channel` leading from the Sender to the
+first packet relayer.
+
+2. The `amount` field SHOULD be set according to an expected packet price times the number of hops on the path (that is `n` - 1).
+
+3. The `index` field MUST be set to the `ticket_index` + 1 from the corresponding `Channel`.
+
+4. The `index_offset` MUST be set to 1 in the current implementation.
+ 
+5. The `encoded_win_prob` SHOULD be set according to expected ticket winning probability in the network.
+
+6. The `channel_epoch` MUST be set to the `channel_epoch` from the corresponding `Channel`.
 
 
-As described in Section 2.5 in RFC-0003, the encoded `Ticket` structure becomes part of the `HOPR_Packet`.
+### Zero-hop ticket: `n` = 1
+
+This is a specific case when the packet is 0-hop (`n` = 1, it is sent directly from the Sender to the Recipient).
+If the `Channel` between the Sender and Recipient does exist, it MUST be ignored. 
+
+The `Ticket` is still created:
+
+1. The `channel_id` MUST be set to `H(P_S || P_R)` where `P_S` and `P_R` are public keys (or their encoding) of Sender and Recipient respectively.
+
+2. The `amount` , `index` and `channel_epoch` MUST be 0
+
+3. The `index_offset` MUST be 1
+
+4. The `encoded_win_prob` MUST be set to a value equivalent to the 0 winning probability
+
+
+In any case, once the `Ticket` structure is complete, it MUST be signed by the Sender, who MUST be always the first ticket's issuer.
+
+As described in Section 2.5 in RFC-0003, the complete encoded `Ticket` structure becomes part of the outgoing `HOPR_Packet`.
 
 ## 4.4 Ticket processing at a node
 
-This is inherently part of the packet processing process from the RFC-0003.
+This is inherently part of the packet processing from the RFC-0003.
 Once a node receives a `HOPR_Packet` structure, the `Ticket` is separated and its processing is a two step process:
 
 1. The ticket is pre-verified (this is already mentioned in section 4.4 of RFC 0003).
-2. If the packet is to be forwarded to a next node, the ticket MUST be verified and replaced with a new ticket
-for the next node.
+2. If the packet is to be forwarded to a next node, the ticket MUST be fully-verified
+	- If successful, the ticket is replaced with a new ticket in the `HOPR_Packet` for the next hop
 
 ### 4.4.1 Ticket pre-verification
 
-If the extracted `Ticket` structure cannot be deserialized, the corresponding packet MUST be discarded.
+Failure to validate in any of the verification steps MUST result in discarding the ticket and the corresponding `HOPR_Packet`,
+and interrupting the processing further.
+
+If the extracted `Ticket` structure cannot be deserialized, the corresponding `HOPR_Packet` MUST be discarded.
+It the `Ticket` has been issued for an unknown channel, or it does not correspond to the channel between
+the packet sender and the node where it is being processed, or the channel is in the `CLOSED` state, 
+the corresponding `HOPR_Packet` MUST be discarded.
+
 
 At this point, the node knows its `SharedSecret_i` with which it is able to decrypt the `HOPR_Packet` and
 the `ProofOfRelayString_i` has already been extracted from the packet header (see section 4.2 in RFC-0003).
 
 1. `SharedSecret_i` is used to compute `SharedSecret_i+1_ack` as defined in Section 4.2.1.
-2. 
-3. 
 
 
-The `challenge` from the `Ticket` structure is extracted along with 
+### ^^ TODO ^^
 
-### 4.4.2 Ticket validation and replacement 
+
+### 4.4.2 Ticket validation and replacement
+
+Let `corr_channel` be the `Channel` that corresponds to the `channel_id` on the `Ticket`. This channel MUST exist and
+not be in the `CLOSED` state per previous section, otherwise the entire `HOPR_Packet` has been discarded.
+
+If the packet is to be forwarded (as per section 4.3.1 in RFC-0003), the `Ticket` MUST be verified as follows:
+
+1. the `signature` of the `Ticket` is verified - if the signature uses ERC-2098 encoding, the ticket issuer from the
+signature is recovered and compared to the public key of the packet sender (or its representation)
+2. the `amount` MUST be checked, so that it is greater than some given minimum ticket amount (this SHOULD be done
+with respect to the path position)
+3. the `channel_epoch` on the `Ticket` MUST be the current epoch of the `corr_channel`.
+4. if MUST be checked that the packet sender has enough funds to cover the `amount` of the ticket
+
+Once the above verifications have passed, verified ticket is stored as *unaknowledged* by the node. The stored unaknowledged tickets 
+are dealt with later (see 4.2.3).
+
+A new `Ticket` for the packet forwarded to the next hop MUST be created. 
+
+The `HeaderPrefix` from the packet header contains the current path position, this information
+is further used to determine which type of ticket to create.
+
+The path position is used to derive the number of remaining hops. 
+
+If the number of remaining hops is > 1, it MUST be checked if a `Channel` for the next hop exists from the current node, 
+and if it is in the `OPEN` state. If not, the corresponding `HOPR_Packet` is discarded and the process is interrupted. 
+
+The process of `Ticket` creation from section 4.3 then applies, either with the `Channel` as the next hop channel
+in a multi-hop ticket (if the number of remaining hops > 1), or creates a zero-hop ticket if the number of remaining hops is 1.
+
+The following applies in addition to 4.3:
+
+- the `amount` on the ticket in the multi-hop case MAY be adjusted (typically `amount` from previous ticket is diminished by the packet price)
+- the `challenge` MUST be set to `challenge` from the `ProofOfRelayString_i` extracted from the `HOPR_Packet`
 
 ### 4.2.3 Ticket acknowledgement
 
+The following sections first describe how acknowledgements are created when sent back to the original packet's Sender,
+and secondly how a received acknowledgement should be processed.
+
+
+#### 4.2.3.1 Sending acknowledgement 
+
+Per section 4.3.3 in RFC-0003, each packet without `NoAckFlag` set MUST be acknowledged. Such an acknowledgement becomes
+a payload of a 0-hop packet sent from the original packet's recipient to the original packet's sender.
+
+```
+Acknowledgement {
+	ack_secret: ECScalar,
+	signature: ECDSASignature
+}
+```
+
+There are two possibilities how the `ack_secret` field is calculated:
+
+1. if the `HOPR_Packet` being acknowledged has been successfully processed (along with successfully validated ticket), the `ack_secret`
+MUST be calculated as:
+
+`ack_secret = HS(SharedSecret_i, "HASH_KEY_ACK_KEY")`
+
+This EC field element MUST be encoded as a big-endian integer (denoted as `ECScalar`).
+
+2. if the processing of the `HOPR_Packet` failed for any reason (either failure of the packet processing in RFC-0003 or during packet pre-verification or validation from Section 4.4): `ack_secret` is set to a randomly EC point on `E`.
+
+This `signature` field contains the signature of the encoded `ack_secret` bytes. The signature done over `H(ack_secret)` using the private key of the acknowledging party. For this purpose the same EC cryptosystem for signing and verification as with `Ticket` SHOULD be used. The same encoding of the `signature` field is used as with the `Ticket`.
+
+#### 4.2.3.2 Receiving an acknowledgement
+
+After the `Ticket` has been extracted and validated by the relay node, it awaits until the packet acknowledgement is received back from the
+next hop. The node SHOULD discard tickets that haven't been acknowledged for a certain given period of time.
+
+Once an `Acknowledgement` is received the node MUST:
+
+1. validate the `signature` of `ack_secret`. If invalid, the acknowledgement MUST be discarded.
+2. decode `ack_secret` calculate `challenge = MUL(ack_secret, G)`
+
+The node then searches for a previously stored *unacknowledged* `Ticket` with the corresponding `challenge`.
+If a `Ticket` with corresponding `challenge` is found, it MUST be marked as *acknowledged* and the `ack_secret` is then the solution
+to the cryptographic challenge on that `Ticket`.
+
+#### 4.2.3.3 Derivation of VRF parameters for an Acknowledged ticket
+
+Once the ticket becomes acknowledged, the node now calculates the `vrf_V` value, that will be useful to determine
+if the ticket is suitable for value extraction.
+
+Let `HC(msg, ctx)` be a suitable Hash to Curve function for `E`, where `msg` is an arbitrary binary message, `ctx` is a domain separator and
+whose output is a point on `E`. 
+
+Let `P` be the ticket recipient's public key in the EC cryptosystem on `E`. 
+
+Let `a` be the corresponding private key as field element of `E`. 
+
+The field element MUST be representable as an unsigned big-endian integer so it could be used e.g. as an input to a hash function `H`. Similarly, 
+`P` MUST be representable in an "uncompressed" form when given to a hash function as input.
+
+Let `H_P` be an irreversible byte-representation of `P`.
+
+Let `H_ticket` be the hash of a previously acknowledged ticket as per section 4.1.
+
+Let `R` be a sequence of 64 uniformly randomly generated bytes using a CSPRNG.
+
+```
+B = HC(H_P || H_ticket, dst)
+V = MUL(a, B)
+r = HS(a || v || R, dst)
+R_v = MUL(r, B)
+h = HS(P || V || R_v || H_ticket)
+s = r + h * a
+```
+
+The `vrf_V` is the uncompressed representation of the EC point `V` as `X || Y`, where `X` and `Y` are big-endian unsigned integer representation
+of the EC point's coordinates.
 
 ## 5 Ticket and Channel interactions
 
-### 5.1 Probablistic winning tickets
+### 5.1 Discovering acknowledged winning tickets
 
-Probabilistic Payment Channels leverage probabilistic micropayments, reducing the number of on-chain transactions.
-Payments are structured so that only a fraction (probability) results in an actual on-chain transfer, whereas most payments remain off-chain, 
-significantly reducing transaction fees and maintaining privacy.
+The aknowledged tickets are *probabilistic* in the sense that the monetary value represented by the `amount` MUST be claimable
+only if the aknowledged ticket is *winning*. This is determined using the `encoded_win_prob` field on the `Ticket`.
 
-Probabilistic tickets issued between nodes have a consistent payout and do not require sequential processing or frequent on-chain operations.
-The ticket winning probability is determined based on the anticipated throughput of the channel, allowing nodes with higher traffic 
-to use lower winning probabilities and those with lower traffic to select probabilities closer to 1.
-Both ticket issuer and receiver MUST NOT know the outcome (winning or losing) of the ticket before redemption to maintain fairness.
+Let `luck` be an unsigned 56-bit integer in the big endian encoding created by truncating the output of the following hash output:
 
-A ticket is a winner if:
+`H(H_ticket || ack_secret || vrf_V)`
+
+The `H_ticket` is the hash of the `Ticket` as defined in section 4.1. The `ack_secret` is from the `Acknowledgement` that corresponded to the `challenge` when the `Ticket` has been acknowledged.
+
+The `vrf_V` is a value computed by the ticket recipient during acknowledgement.
+
+The `amount` on the `Ticket` MUST be claimable only if `luck` < `encoded_win_prob` on the `Ticket`. Such an acknowledged ticket is called *winning* ticket.
+
+
+### 5.2 Claiming a winning ticket
+
+The monetary value represented by the `amount` on a *winning* ticket can be claimable at some 3rd party which provides such service.
+Such a 3rd party MUST have the ability to modify global state of all the involved `Channels`.
+
+Such `amount` SHOULD be claimable only if the `Channel` corresponding the winning ticket has enough `balance` >= `amount`.
+
+Any holder of a *winning* ticket can claim the `amount` on the ticket by submitting the following:
+
+- the entire encoded `Ticket` structure of the winning ticket
+- the public key `P` of the recipient of the ticket
+- values `V`, `h` and `s` computed in Section 4.2.3.3
+
+If the 3rd party wishes to verify the claim, it proceeds as follows. 
+If any of the below check fails, the `amount` MUST not be claimable.
+
+1. Compute `H_ticket` as per 4.1 and verify the ticket's signature
+
+2. The `Channel` matching `channel_id` MUST exist, MUST NOT be `CLOSED`, its `channel_epoch` MUST match with the one on the ticket 
+and SHOULD have `balance` >= `amount`.
+
+3. The `index` on the ticket MUST be greater or equal to `ticket_index` on the `Channel`
+
+3. The 3rd party applies appropriate encoding to obtain `H_P` from `P`. The performs the following computations:
+
 ```
-keccak256(ticketHash || porSecret || vrfParams) < ticket.winProb
-```
-where
-- `ticketHash` is the hash of the received ticket, known by both ticket issuer and recipient. 
-- The `porSecret` is known by the ticket issuer and can be reconstructed by the ticket recipient as part of the PoR scheme upon receiving the acknowledgment for the forwarded ticket, as detailed in the next section. 
-- The `vrfParams` refers to the deterministic pseudo-random value that is chosen by the ticket recipient, and is verifiable by using its public key. This value is unique for each ticket and adds entropy that can only be known by the ticket redeemer.
-
-If the ticket is not a win, it MUST NOT be submitted on-chain.
-If the ticket is a win, the ticket MAY be submitted using `RedeemableTicket` with matching VRF parameters.
-
-
-### 5.2 Verify winning tickets with VRF
-
-The VRF verification algorithm for ticket validation is:
-
-1. Compute `ticketHash` from the received ticket.
-2. Generate pseudo-random curve point (`bX`, `bY`):
-```
-(bX, bY) = hashToCurve(signer || ticketHash, domainSeparator)
-```
-where the `domainSeparator` is calculated as:
-```
-domainSeparator = keccak256(
-  abi.encode(
-    keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
-    keccak256(bytes("HoprChannels")),
-    keccak256(bytes(VERSION)),
-    chainId,
-    address(this)
-  )
-)
-```
-
-3. Execute elliptic curve operations:
-```
-sB = scalarMult(s, bX, bY)
-hV = scalarMult(h, vx, vy)
+B = HC(H_P || H_ticket, dst)
+sB = MUL(s, B)
+hV = MUL(h, V)
 R = sB - hV
+h_check = HS(P || V || R || H_ticket, dst)
 ```
-Compute verification scalar (`hCheck`):
-```
-hCheck = hashToScalar(signer || vx || vy || Rx || Ry || ticketHash, domainSeparator)
-```
-Validate VRF proof by ensuring: `hCheck == h`
 
-Upon successful on-chain redemption of a **RedeemableTicket**:
+Finally, the `h_check` MUST be equal to `h`.
 
-* The spending channel’s `ticketIndex` MUST advance by `index_offset`.
-* The spending channel’s `balance` MUST decrease by `amount`.
-* If the counter-channel (earning channel) exists and is open, its `balance` MUST increase by `amount`; otherwise, the contract MUST transfer tokens to the redeemer.
-* The redemption MUST fail if the channel is not `OPEN` or `PENDING_TO_CLOSE`, epoch mismatches, the aggregated interval is invalid, the balance is insufficient, the ticket is not a win, the VRF proof is invalid, or the signature does not match the channel.
+4. The `luck` value computed using the given `V` MUST be less than the `encoded_win_prob` from the ticket
+
+
+To satisfy the claim, the 3rd party MAY also adjust the balance on a `Channel` that is in the opposite direction of the claim (ticket receiver -> ticket issuer), if such channel exist and is in an `OPEN` state.
+
+Upon successful redemption, the 3rd party MUST make sure that:
+
+1. The `balance` on `Channel` from which the claim has been made MUST be decreased by `amount`
+2. The `ticket_index` on `Channel` is set to `index` + `index_offset` (where `index`  and `index_offset` are from the claimed ticket)
 
 
 ## Appendix 1
@@ -411,7 +554,8 @@ The current implementation of the Proof of Relay protocol (which is in correspon
 - Hash function `H` is Keccak256
 - Elliptic curve `E` is chosen as secp256k1
 - HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC-9380](https://www.rfc-editor.org/info/rfc9380)
-- The one-way encoding `ECPoint` is done as `Keccak256(P)` where `P` denotes secp256k1 point in compressed form. The output of the hash is truncated to 20 bytes.
+- HC is instantiated via `hash_to_curve` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC-9380](https://www.rfc-editor.org/info/rfc9380)
+- The one-way encoding `ECPoint` is done as `Keccak256(P)` where `P` denotes secp256k1 point in uncompressed form. The output of the hash has the first 12 bytes removed, which leaves the length at 20 bytes.
 
 ## Appendix 2
 
@@ -436,11 +580,6 @@ as part of the HOPR protocol.
 * **AcknowledgedTicket** (VerifiedTicket + PoR response)
 
   * Produced once the recipient learns the downstream half-key and reconstructs `Response`.
-  * Carries a **status** that indicates off-chain processing intent:
-
-    * `Untouched` (default): neither aggregated nor sent for redemption.
-    * `BeingRedeemed`: currently submitted for on-chain redemption.
-    * `BeingAggregated`: currently included in an off-chain aggregation flow.
 
 * **RedeemableTicket** (winning, issuer-verified, VRF-bound)
 
@@ -510,9 +649,22 @@ flowchart TB
 
    * Debug/escape hatch only. Implementations SHOULD avoid downgrading state in production flows.
 
+## Appendix 3
+
+Domain separator (`dst`) for the current implementation (in Solidity) is derived as:
+
+```
+
+domainSeparator = keccak256(
+  abi.encode(
+    keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+    keccak256(bytes("HoprChannels")),
+    keccak256(bytes(VERSION)),
+    chainId,
+    address(this)
+  )
+)
+```
+
 ## References
 
-Include all relevant references, such as:
-
-- Other RFCs: RFC-0003 HOPR Packet Protocol
-- External documentation: Coefficients used for simplified SWU mapping used by the hash to curve function: https://www.ietf.org/archive/id/draft-irtf-cfrg-hash-to-curve-16.html#name-suites-for-secp256k1
