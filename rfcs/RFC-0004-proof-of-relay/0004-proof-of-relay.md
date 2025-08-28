@@ -5,8 +5,8 @@
 - **Status:** Implementation
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
 - **Created:** 2025/04/02  
-- **Updated:** 2025/08/22  
-- **Version:** v1.0.0 (Finalized)  
+- **Updated:** 2025/08/28  
+- **Version:** v0.9.0 (Draft)  
 - **Supersedes:** N/A
 - **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)
 
@@ -163,7 +163,7 @@ the state transit, resulting a lost for node B.
 To prevent spamming, the reward amount MUST be larger than `MIN_USED_BALANCE` and smaller than `MAX_USED_BALANCE`.
 
 
-## 4 Ticket
+## 4 Tickets
 
 Tickets are always created by a node that is the source (`A`) of an existing channel. It is created whenever `A` wishes to send a HOPR packet to a certain destination (`C`), while having the
 existing channel's destination (`B`) act as a relay.
@@ -273,10 +273,8 @@ The generation process of `ProofOfRelayString_i` proceeds as follows for each `i
 
 1. The `SharedKey_i+1_ack` is derived from the shared secret (`SharedSecret_i`) provided during the HOPR packet construction. 
 `SharedKey_i+1_ack` denotes the secret acknowledgement key for the next downstream node (`i+1`).
-
-
-  - if `i` < `n` : `SharedKey_i+1_ack = HS(SharedKey_i, "HASH_KEY_ACK_KEY")`
-  - if `i` = `n` : the `SharedKey_i+1_ack` MUST be generated as a uniformly random byte-string with the byte-length
+	- if `i` < `n` : `SharedKey_i+1_ack = HS(SharedKey_i, "HASH_KEY_ACK_KEY")`
+	- if `i` = `n` : the `SharedKey_i+1_ack` MUST be generated as a uniformly random byte-string with the byte-length
 of `E`'s field elements.
 
 
@@ -289,14 +287,13 @@ of `E`'s field elements.
 	- if `i` > 0: `hint = SharedKey_i+1_ack` (from step 1) 
 
 4. For `i` > 0, the `ProofOfRelayString_i` is composed and added to the list:
-
-  - `challenge` is computed as: `challenge = MUL(SharedKey_i_own + SharedKey_i+1_ack, G)` and encoded as `ECPoint`
-  - `hint` is used from step 3.
+	- `challenge` is computed as: `challenge = MUL(SharedKey_i_own + SharedKey_i+1_ack, G)` and encoded as `ECPoint`
+	- `hint` is used from step 3.
 
 5. For `i` = 0, the `ProofOfRelayValues` is created:
 	- `challenge` is computed as: `challenge = MUL(SharedKey_i_own + SharedKey_i+1_ack, G)` and encoded as `ECPoint`
-  - `hint` is used from step 3.
-  - `path_length` is set to `n`
+	- `hint` is used from step 3.
+	- `path_length` is set to `n`
 
 
 ## 4.3 Creation of the ticket for the first relayer
