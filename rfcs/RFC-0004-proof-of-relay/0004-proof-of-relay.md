@@ -38,15 +38,9 @@ This document builds upon standard terminology established in RFC-0002. Mentions
 In addition, this document also uses the following terms:
 
 - **Channel (or Payment channel)**: a unidirectional directed relation of two parties (source node and destination node) that holds a monetary balance, that can be paid out by source to the destination, if certain conditions are met.
-
 - **Ticket**: a structure that holds cryptographic material allowing probabilistic fund transfer within the Payment channel.
-
-- **MIN_USED_BALANCE**: Minimum HOPR token values used in funding (including opening) channels and in redeeming tickets. Its default value is `1e-18` HOPR.
-- **MAX_USED_BALANCE**: Maximum HOPR token values used in funding (including opening) channels and in redeeming tickets. Its default value is `1e7` HOPR.
-- **VERSION**: Current version of the ledger that stores channel states. For hoprd v3.0, the version is "2.0.0".
 - **domainSeparator**: To prevent replay attacks across different domains (e.g., contracts, chains) where the ledger that stores channel states MAY be deployed, all cryptographic signatures in the HOPR protocol are bound to a specific execution context using a domain separator.
-- **chainId**: The chainId is a unique identifier for the ledger that stores channel states MAY be deployed.
-- **Notice period (T_closure)**: Minimum elaspe required for an outgoing channel to transit from `PENDING_TO_CLOSE` to `CLOSED`
+- **Notice period (T_closure)**: Minimum elapsed time required for an outgoing channel to transit from `PENDING_TO_CLOSE` to `CLOSED`
 
 The above terms are formally defined in the following sections.
 
@@ -65,7 +59,7 @@ instantiations below SHALL NOT have less than 128-bits of security.
 
 - **EC group** refers to a specific elliptic curve `E` group over a finite field, where computational Diffie-Hellman problem is AT LEAST as
 difficult as the chosen security parameter `L`. The elements of the field are denoted using lower-case letter, whereas the elements (also referred to as elliptic curve points, or EC points) of the EC group are denoted using upper-case letters.
-- **MUL(a,B) (or simply a.B)** represents a multiplication of an EC point `B` by a scalar `a` from the corresponding finite field.
+- **MUL(a,B)** represents a multiplication of an EC point `B` by a scalar `a` from the corresponding finite field.
 - **ADD(A,B)** represents an addition of two EC points `A` and `B` from the corresponding finite field.
 - **Public key** refers to a non-identity EC group element (or its equivalent) of a large order.
 - **Private key** refers to a scalar from a finite field of the chosen EC group. It represents a private key for a certain public key.
@@ -362,11 +356,12 @@ the corresponding `HOPR_Packet` MUST be discarded.
 At this point, the node knows its `SharedSecret_i` with which it is able to decrypt the `HOPR_Packet` and
 the `ProofOfRelayString_i` has already been extracted from the packet header (see section 4.2 in RFC-0003).
 
-1. `SharedSecret_i` is used to compute `SharedSecret_i+1_ack` as defined in Section 4.2.1.
+1. `SharedSecret_i` is used to derive `SharedSecret_i_own` as per Section 4.2.1
+2. The `hint` is extracted from the `ProofOfRelayString_i`
+3. Compute `challenge_check = ADD(SharedSecret_i_own, hint)`
+4. The `HOPR_Packet` MUST be rejected if encoding of `challenge_check` does not match `challenge` from the `Ticket`
 
-
-### ^^ TODO ^^
-
+If the pre-verification fails at any point, it still applies that the discarded `HOPR_Packet` MUST be acknowledged (as per section 4.2.3.1).
 
 ### 4.4.2 Ticket validation and replacement
 
@@ -382,8 +377,8 @@ with respect to the path position)
 3. the `channel_epoch` on the `Ticket` MUST be the current epoch of the `corr_channel`.
 4. if MUST be checked that the packet sender has enough funds to cover the `amount` of the ticket
 
-Once the above verifications have passed, verified ticket is stored as *unaknowledged* by the node. The stored unaknowledged tickets 
-are dealt with later (see 4.2.3).
+Once the above verifications have passed, verified ticket is stored as *unaknowledged* by the node and SHOULD be indexed by `hint`. 
+The stored unaknowledged tickets are dealt with later (see 4.2.3).
 
 A new `Ticket` for the packet forwarded to the next hop MUST be created. 
 
@@ -402,6 +397,9 @@ The following applies in addition to 4.3:
 
 - the `amount` on the ticket in the multi-hop case MAY be adjusted (typically `amount` from previous ticket is diminished by the packet price)
 - the `challenge` MUST be set to `challenge` from the `ProofOfRelayString_i` extracted from the `HOPR_Packet`
+
+
+If the ticket validation fails at any point, it still applies that the discarded `HOPR_Packet` MUST be acknowledged (as per section 4.2.3.1).
 
 ### 4.2.3 Ticket acknowledgement
 
@@ -441,20 +439,29 @@ next hop. The node SHOULD discard tickets that haven't been acknowledged for a c
 
 Once an `Acknowledgement` is received the node MUST:
 
-1. validate the `signature` of `ack_secret`. If invalid, the acknowledgement MUST be discarded.
-2. decode `ack_secret` calculate `challenge = MUL(ack_secret, G)`
+1. validate the `signature` of `ack_secret`. If invalid, the `Acknowledgement` MUST be discarded.
+2. decode `ack_secret` calculate `hint = MUL(ack_secret, G)`
 
-The node then searches for a previously stored *unacknowledged* `Ticket` with the corresponding `challenge`.
-If a `Ticket` with corresponding `challenge` is found, it MUST be marked as *acknowledged* and the `ack_secret` is then the solution
-to the cryptographic challenge on that `Ticket`.
+The node then searches for a previously stored *unacknowledged* `Ticket` with the corresponding `hint` as index.
+
+- If a `Ticket` with corresponding `hint` is found, it MUST be marked as *acknowledged* and the `ack_secret` is then the missing part in the solution
+of the cryptographic challenge on that `Ticket` (which is corresponding to the packet that just has been acknowledged).
+
+Let `SharedSecret_i_own` be the value from 1) in Section 4.4.1. The `response` to the `Ticket` challenge corresponding to the acknowledged packet is: 
+
+`response = ack_secret + SharedSecret_i_own`
+
+The response is a field element of `E`.
+
+- If no matching `Ticket` was found, the received `Acknowledgement` SHOULD be discarded.
 
 #### 4.2.3.3 Derivation of VRF parameters for an Acknowledged ticket
 
-Once the ticket becomes acknowledged, the node now calculates the `vrf_V` value, that will be useful to determine
+Once the ticket becomes acknowledged, the node then calculates the `vrf_V` value, that will be useful to determine
 if the ticket is suitable for value extraction.
 
 Let `HC(msg, ctx)` be a suitable Hash to Curve function for `E`, where `msg` is an arbitrary binary message, `ctx` is a domain separator and
-whose output is a point on `E`. 
+whose output is a point on `E`. See Appendix 1 for a concrete choice of `HC`.
 
 Let `P` be the ticket recipient's public key in the EC cryptosystem on `E`. 
 
@@ -490,9 +497,11 @@ only if the aknowledged ticket is *winning*. This is determined using the `encod
 
 Let `luck` be an unsigned 56-bit integer in the big endian encoding created by truncating the output of the following hash output:
 
-`H(H_ticket || ack_secret || vrf_V)`
+`H(H_ticket || response || vrf_V)`
 
-The `H_ticket` is the hash of the `Ticket` as defined in section 4.1. The `ack_secret` is from the `Acknowledgement` that corresponded to the `challenge` when the `Ticket` has been acknowledged.
+The `H_ticket` is the hash of the `Ticket` as defined in section 4.1.
+
+The `response` is a field element of `E` and MUST be encoded as big-endian unsigned integer (i.e. has the same encoding as `ECScalar`).
 
 The `vrf_V` is a value computed by the ticket recipient during acknowledgement.
 
@@ -509,6 +518,7 @@ Such `amount` SHOULD be claimable only if the `Channel` corresponding the winnin
 Any holder of a *winning* ticket can claim the `amount` on the ticket by submitting the following:
 
 - the entire encoded `Ticket` structure of the winning ticket
+- `response` encoded as field element of `E`
 - the public key `P` of the recipient of the ticket
 - values `V`, `h` and `s` computed in Section 4.2.3.3
 
@@ -522,7 +532,7 @@ and SHOULD have `balance` >= `amount`.
 
 3. The `index` on the ticket MUST be greater or equal to `ticket_index` on the `Channel`
 
-3. The 3rd party applies appropriate encoding to obtain `H_P` from `P`. The performs the following computations:
+4. The 3rd party applies appropriate encoding to obtain `H_P` from `P`. The performs the following computations:
 
 ```
 B = HC(H_P || H_ticket, dst)
@@ -534,8 +544,9 @@ h_check = HS(P || V || R || H_ticket, dst)
 
 Finally, the `h_check` MUST be equal to `h`.
 
-4. The `luck` value computed using the given `V` MUST be less than the `encoded_win_prob` from the ticket
+5. The result of `MUL(response, G)` MUST be equal to the `challenge` from the `Ticket`. If unique encoding of `ECPoint` was used, their encoding MAY be compared instead.
 
+6. The `luck` value computed using the given `V` MUST be less than the `encoded_win_prob` from the `Ticket`
 
 To satisfy the claim, the 3rd party MAY also adjust the balance on a `Channel` that is in the opposite direction of the claim (ticket receiver -> ticket issuer), if such channel exist and is in an `OPEN` state.
 
@@ -553,6 +564,9 @@ The current implementation of the Proof of Relay protocol (which is in correspon
 - HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC-9380](https://www.rfc-editor.org/info/rfc9380)
 - HC is instantiated via `hash_to_curve` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC-9380](https://www.rfc-editor.org/info/rfc9380)
 - The one-way encoding `ECPoint` is done as `Keccak256(P)` where `P` denotes secp256k1 point in uncompressed form. The output of the hash has the first 12 bytes removed, which leaves the length at 20 bytes.
+
+- **MIN_USED_BALANCE** = `1e-18` HOPR.
+- **MAX_USED_BALANCE** = `1e7` HOPR.
 
 ## Appendix 2
 
