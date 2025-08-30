@@ -107,7 +107,7 @@ There is a structure called `Channel` that MUST contain at least the following f
 
 1. `source`: public key of the source node (A in this case)
 2. `destination`: public key of the destination node (beneficiary, B in this case)
-3. `balance` : an unsigned 96-bit non-zero integer
+3. `balance` : an unsigned 96-bit integer
 4. `ticket_index`: an unsigned 48-bit integer
 5. `channel_epoch`: an unsigned 24-bit non-zero integer
 6. `status`: one of the `ChannelStatus` values
