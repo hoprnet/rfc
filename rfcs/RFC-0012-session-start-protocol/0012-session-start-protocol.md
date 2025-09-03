@@ -154,7 +154,7 @@ Maintains session liveness.
 ```
 
 - **Flags** (1 byte): Reserved for future use (MUST be 0x00)
-- **Additional Data** (4 bytes): Flag-dependent options (0x00000000 to ignore)
+- **Additional Data** (8 bytes): Flag-dependent options (0x0000000000000000 to ignore)
 - **Session ID** (variable): CBOR-encoded session identifier
 
 ### 4.7 Protocol Flow
@@ -310,6 +310,18 @@ The protocol provides structured error reporting:
 - Verify challenge uniqueness and correlation
 - Test capability negotiation edge cases
 - Validate CBOR encoding/decoding correctness
+
+## Appendix 1
+Within HOPR protocol a Session is identified uniquely via HOPR Session ID,
+this consists of a 10-byte pseudorandom bytes as prefix and 64-bit unsigned integer as suffix.
+
+In human readable format, a HOPR Session ID has the following syntax:
+
+`0xabcdefabcdefabcdefab:123456`
+
+The prefix represents a fixed pseudonym prefix of in the HOPR Packet protocol (as in RFC-0003).
+The suffix represents an application tag that identifies Sessions within the reserved range in the Application protocol (as in RFC-0014).
+
 
 ## 10. References
 

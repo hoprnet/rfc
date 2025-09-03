@@ -17,8 +17,9 @@ This RFC specifies the HOPR Session Data Protocol, which provides reliable and u
 ## 2. Motivation
 
 The HOPR mixnet uses HOPR packets (see RFC-0003) to send data between nodes. This fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to implement TCP [01] or UDP all over again.
+Since HOPR protocol is not IP-based, such implementation would require IP protocol emulation.
 
-The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the HOPR Session Start Protocol, while this protocol focuses exclusively on data transmission.
+The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the HOPR Session Start Protocol (see RFC-0012), while this protocol focuses exclusively on data transmission.
 
 ## 3. Terminology
 
@@ -34,7 +35,7 @@ The HOPR Session Data Protocol fills that gap by providing reliable and unreliab
 
 - **Session Socket**: The endpoint abstraction that implements the Session Protocol, available in both reliable and unreliable variants.
 
-- **MTU (Maximum Transmission Unit)**: The maximum size of a single protocol message, denoted as `C` throughout this specification.
+- **MTU (Maximum Transmission Unit)**: The maximum size of a single HOPR protocol message, denoted as `C` throughout this specification.
 
 - **Terminating Segment**: A special segment that signals the end of a frame.
 
@@ -56,6 +57,7 @@ The protocol supports two operational modes:
 - **Reliable Mode**: Stateful operation with acknowledgements and retransmissions
 
 Session establishment and lifecycle management is handled by the HOPR Session Start Protocol.
+
 
 ### 4.2 Session Data Protocol Message Format
 
@@ -105,8 +107,8 @@ All Session Data Protocol messages follow a common structure:
 1. Frames MUST be segmented when larger than `(C - 10)` bytes, where 10 is the segment overhead
 2. Maximum segments per frame is 64 (limited by 6-bit sequence length field)
 3. Each segment except the last SHOULD be of equal size
-4. Empty segments are valid (used for terminating segments)
-5. Frame IDs MUST be monotonically increasing within a session
+4. Empty segments MUST be valid (this is used e.g. for terminating segments)
+5. Frame IDs MUST be monotonically increasing within a Session
 
 ### 4.4 Retransmission Request Message
 
@@ -131,6 +133,10 @@ The message contains a sequence of 5-byte entries:
 - **Frame ID** (4 bytes): Big-endian frame identifier
 - **Missing Bitmap** (1 byte): Bitmap of missing segments
   - Bit N set = segment N is missing (N: 0-7)
+
+The above message MUST be used only for Frames with up to 7 Segments (due to the bitmap size limitation).
+Since this message is used only with *reliable* Sessions, the number of Segments per Frame MUST be limited to 7.
+The *unreliable* Sessions SHOULD not have this limitation.
 
 #### 4.4.2 Request Rules
 
@@ -271,6 +277,8 @@ The 32-bit Frame ID space allows for over 4 billion frames per session. Frame ID
 - Out-of-order delivery handling
 - Simple state management
 
+The Session MUST terminate when Frame ID of 0 is encountered by the receiving side, indicating an overflow.
+
 ### 5.3 Retransmission Request Design
 
 Limiting retransmission requests to the first 8 segments per frame:
@@ -321,6 +329,7 @@ Limiting retransmission requests to the first 8 segments per frame:
 - Simulate packet loss, reordering, and duplication
 - Verify termination handling under all conditions
 - Stress test with maximum frame sizes and counts
+
 
 ## 10. References
 
