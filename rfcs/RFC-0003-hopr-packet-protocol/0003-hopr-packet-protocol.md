@@ -5,8 +5,8 @@
 - **Status:** Draft
 - **Author(s):** Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-03-19
-- **Updated:** 2025-08-22
-- **Version:** v1.0.0 (Draft)
+- **Updated:** 2025-08-27
+- **Version:** v0.9.0 (Draft)
 - **Supersedes:** N/A
 - **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-proof-of-relay/0004-proof-of-relay.md), [RFC-0005](../RFC-0005-hopr-mixer/0005-hopr-mixer.md), [RFC-0014](../RFC-0014-application-protocol/0014-application-protocol.md)
 
@@ -42,10 +42,6 @@ capitals, as shown here.
 Terms defined in RFC-0002 are used, as well as some following additional terms:
 
 _peer public/private key_ (also _pubkey_ or _privkey_): part of a cryptographic key-pair owned by a peer.
-
-_sender_: peer that initiates communication by sending out a packet
-
-_receiver_: peer that is the destination of a packet
 
 _path_: a set of hops between sender and receiver of a packet
 
@@ -88,7 +84,7 @@ The REQUIRED inputs for the packet creation are as follows:
 
 - User's Packet payload (as a sequence of bytes)
 - Sender pseudonym (as a sequence of bytes)
-- forward path and an OPTIONAL list of multiple return paths
+- forward path and an OPTIONAL list of one or more return paths
 
 The input MAY also contain:
 
@@ -98,7 +94,7 @@ Note that the mapper MAY only contain public key identifiers mappings of pubkeys
 
 The packet payload MUST be between 0 to `PacketMax` bytes-long.
 
-The Sender pseudonym MUST be randomly generated for each packet but MAY contain a static prefix.
+The Sender pseudonym MUST be randomly generated for each packet header but MAY contain a static prefix.
 
 The forward and return paths MAY be represented by public keys of individual hops. Alternatively, the paths MAY be represented by public key identifiers and mapped using the mapper as needed.
 
@@ -395,7 +391,7 @@ It can be also referred to the size of the logical Meta packet plus `|Ticket|`.
 
 ## 3. Reply packet creation
 
-Upon receiving a forward packet, instead of sending the response back using an "inverse" forward path, the forward packet recipient SHOULD create a reply packet using one of a SURB. This is possible only if the Recipient received a SURB (with this or any previous forward packets) from an equal pseudonym.
+Upon receiving a forward packet, the forward packet recipient SHOULD create a reply packet using one of a SURB. This is possible only if the Recipient received a SURB (with this or any previous forward packets) from an equal pseudonym.
 
 The Recipient MAY use any SURB with the same pseudonym; however, in such a case the SURBs MUST be used in the reverse order in which they were received.
 
@@ -598,7 +594,8 @@ If the packet processing was not successful at any point, a random acknowledgeme
 The current version is instantiated using the following cryptographic primitives:
 
 - Curve25519 elliptic curve with the corresponding scalar field
-- Both PRP and PRG are instantiated using Chacha20 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
+- PRP is instantiated using Lioness wide-block cipher [02] over Chacha20 and Blake3
+- PRG is instantiated using Chacha20 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
 - OA is instantiated with Poly1305 [RFC-7539](https://www.rfc-editor.org/rfc/rfc7539)
 - KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`: `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
 - HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC-9380](https://www.rfc-editor.org/info/rfc9380). `S` is used a the secret input, and `T` as an additional domain separator.
@@ -606,3 +603,4 @@ The current version is instantiated using the following cryptographic primitives
 ## References
 
 [01] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
+[02] Anderson, R., & Biham, E. (1996). Two practical and provably secure block ciphers: BEAR and LION. _In International Workshop on Fast Software Encryption (pp. 113-120). Berlin, Heidelberg: Springer Berlin Heidelberg._
