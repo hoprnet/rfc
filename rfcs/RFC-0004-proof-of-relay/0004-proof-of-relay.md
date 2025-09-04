@@ -283,12 +283,12 @@ The generation process of `ProofOfRelayString_i` proceeds as follows for each `i
    - `hint` is used from step 3.
    - `path_length` is set to `n`
 
-## 5.3 Creation of the ticket for the first relayer
+### 5.3 Creation of the ticket for the first relayer
 
 The first ticket MUST be created by the packet Sender and MUST contain the `challenge` field equal
 to the `challenge` in the `ProofOfRelayValues` from the previous step.
 
-### Multi-hop ticket: for `n` > 1
+#### Multi-hop ticket: for `n` > 1
 
 In this situation, the `Channel` between the Sender and the next hop MUST exist and be in the `OPEN` state.
 
@@ -305,7 +305,7 @@ In this situation, the `Channel` between the Sender and the next hop MUST exist 
 
 6. The `channel_epoch` MUST be set to the `channel_epoch` from the corresponding `Channel`.
 
-### Zero-hop ticket: `n` = 1
+#### Zero-hop ticket: `n` = 1
 
 This is a specific case when the packet is 0-hop (`n` = 1, it is sent directly from the Sender to the Recipient).
 If the `Channel` between the Sender and Recipient does exist, it MUST be ignored.
@@ -324,7 +324,7 @@ In any case, once the `Ticket` structure is complete, it MUST be signed by the S
 
 As described in Section 2.5 in RFC-0003, the complete encoded `Ticket` structure becomes part of the outgoing `HOPR_Packet`.
 
-## 5.4. Ticket processing at a node
+### 5.4. Ticket processing at a node
 
 This is inherently part of the packet processing from the RFC-0003.
 Once a node receives a `HOPR_Packet` structure, the `Ticket` is separated and its processing is a two step process:
@@ -333,7 +333,7 @@ Once a node receives a `HOPR_Packet` structure, the `Ticket` is separated and it
 2. If the packet is to be forwarded to a next node, the ticket MUST be fully-verified
    - If successful, the ticket is replaced with a new ticket in the `HOPR_Packet` for the next hop
 
-### 5.4.1. Ticket pre-verification
+#### 5.4.1. Ticket pre-verification
 
 Failure to validate in any of the verification steps MUST result in discarding the ticket and the corresponding `HOPR_Packet`,
 and interrupting the processing further.
@@ -353,7 +353,7 @@ the `ProofOfRelayString_i` has already been extracted from the packet header (se
 
 If the pre-verification fails at any point, it still applies that the discarded `HOPR_Packet` MUST be acknowledged (as per section 4.2.3.1).
 
-### 5.4.2. Ticket validation and replacement
+#### 5.4.2. Ticket validation and replacement
 
 Let `corr_channel` be the `Channel` that corresponds to the `channel_id` on the `Ticket`. This channel MUST exist and
 not be in the `CLOSED` state per previous section, otherwise the entire `HOPR_Packet` has been discarded.
@@ -390,12 +390,12 @@ The following applies in addition to 4.3:
 
 If the ticket validation fails at any point, it still applies that the discarded `HOPR_Packet` MUST be acknowledged (as per section 4.2.3.1).
 
-### 5.2.3. Ticket acknowledgement
+#### 5.2.3. Ticket acknowledgement
 
 The following sections first describe how acknowledgements are created when sent back to the original packet's Sender,
 and secondly how a received acknowledgement should be processed.
 
-#### 5.2.3.1. Sending acknowledgement
+##### 5.2.3.1. Sending acknowledgement
 
 Per section 4.3.3 in RFC-0003, each packet without `NoAckFlag` set MUST be acknowledged. Such an acknowledgement becomes
 a payload of a 0-hop packet sent from the original packet's recipient to the original packet's sender.
@@ -420,7 +420,7 @@ This EC field element MUST be encoded as a big-endian integer (denoted as `ECSca
 
 This `signature` field contains the signature of the encoded `ack_secret` bytes. The signature done over `H(ack_secret)` using the private key of the acknowledging party. For this purpose the same EC cryptosystem for signing and verification as with `Ticket` SHOULD be used. The same encoding of the `signature` field is used as with the `Ticket`.
 
-#### 5.2.3.2. Receiving an acknowledgement
+##### 5.2.3.2. Receiving an acknowledgement
 
 After the `Ticket` has been extracted and validated by the relay node, it awaits until the packet acknowledgement is received back from the
 next hop. The node SHOULD discard tickets that haven't been acknowledged for a certain given period of time.
@@ -443,7 +443,7 @@ The response is a field element of `E`.
 
 - If no matching `Ticket` was found, the received `Acknowledgement` SHOULD be discarded.
 
-#### 5.2.3.3. Derivation of VRF parameters for an Acknowledged ticket
+##### 5.2.3.3. Derivation of VRF parameters for an Acknowledged ticket
 
 Once the ticket becomes acknowledged, the node then calculates the `vrf_V` value, that will be useful to determine
 if the ticket is suitable for value extraction.
