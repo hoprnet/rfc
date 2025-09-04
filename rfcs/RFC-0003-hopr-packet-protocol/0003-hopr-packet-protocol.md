@@ -43,21 +43,9 @@ Terms defined in [RFC-0002] are used, as well as some following additional terms
 
 _peer public/private key_ (also _pubkey_ or _privkey_): part of a cryptographic key-pair owned by a peer.
 
-_receiver_: peer that is the destination of a packet (equivalent to "destination" in [RFC-0002])
-
-_extended path_: a forward or return path which in addition contains the receiver or sender respectively.
-
-_forward message_ (also _forward packet_): packet that is sent along the forward path.
-
-_reply message_ (also _reply packet_): packet that is sent along the return path.
+_extended path_: a forward or return path which in addition contains the destination or sender respectively.
 
 # _pseudonym_: a randomly generated identifier of the sender. The pseudonym MAY be prefixed with a static prefix. The length such static prefix MUST NOT exceed half of the entire pseudonym's size. The pseudonym used in the forward message MUST be the same as the pseudonym used in the reply message.
-
-_forward message_ (also _forward packet_): packet that is sent along the forward path.
-
-_reply message_ (also _reply packet_): packet that is sent along the return path.
-
-_pseudonym_: a randomly generated identifier of the sender. The pseudonym MAY be prefixed with a static prefix. The length of such a static prefix MUST NOT exceed half of the entire pseudonym's size. The pseudonym used in the forward message MUST be the same as the pseudonym used in the reply message.
 
 _public key identifier_: a reasonably short identifier of each peer's public key. The size of such an identifier SHOULD be strictly smaller than the size of the corresponding public key.
 

@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0002
 - **Title:** Common mixnet terms and keywords
-- **Status:** Raw
+- **Status:** Draft
 - **Author(s):** Tino Breddin (@tolbrino)
 - **Created:** 2025-08-01
-- **Updated:** 2025-08-01
-- **Version:** v0.0.1 (Raw)
+- **Updated:** 2025-09-04
+- **Version:** v0.1.0 (Draft)
 - **Supersedes:** none
 - **Related Links:** none
 
@@ -46,12 +46,12 @@ truth for the terminology used in the HOPR ecosystem.
   and dummy traffic [01, 03].
 
 - **Path:** The route a message takes through the mixnet, defined as a sequence of
-  hops between sender and receiver. A path can be direct from sender to destination,
+  hops between sender and destination. A path can be direct from sender to destination,
   or it can go through multiple relay nodes before reaching the destination.
   Also referred to as "message path" [01, 02].
 
 - **Forward Path:** A path that is used to deliver a packet only in the direction
-  from the sender to the receiver.
+  from the sender to the destination.
 
 - **Return Path:** A path that is used to deliver a packet in the opposite direction
   than the forward path. The return path MAY be disjoint with the forward path.
@@ -76,7 +76,7 @@ truth for the terminology used in the HOPR ecosystem.
   corresponding layer, revealing the next destination in the path [01, 04].
 
 - **Metadata:** Data that provides information about other data. In the context
-  of mixnets, this includes things like the sender's and receiver's IP
+  of mixnets, this includes things like the sender's and destination's IP
   addresses, the size of the message, and the time it was sent or received.
   Mixnets work to shuffle this metadata to protect user privacy [01, 06].
 
