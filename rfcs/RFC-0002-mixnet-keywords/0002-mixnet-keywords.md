@@ -54,7 +54,7 @@ truth for the terminology used in the HOPR ecosystem.
   from the sender to the receiver.
 
 - **Return Path:** A path that is used to deliver a packet in the opposite direction
-  than the forward path. The return path COULD be different from the forward path.
+  than the forward path. The return path MAY be disjoint with the forward path.
 
 - **Relay Node:** A node that forwards messages from one node to another
   in the mixnet. Relay nodes help to obscure the sender's identity by routing
