@@ -85,25 +85,6 @@ The mixer maintains packets in a data structure where:
 
 This ensures efficient processing even under high load conditions.
 
-#### 4.3.3. Channel Interface
-
-FIXME: maybe too implementation specific and can be removed?
-
-The mixer provides a channel-like interface with:
-
-**Sender capabilities:**
-
-- Send individual packets
-- Support for both synchronous and asynchronous sending
-- Automatic wake-up of the receiver when new packets arrive
-- Error handling for closed channels
-
-**Receiver capabilities:**
-
-- Receive packets in release-time order
-- Automatic sleeping when no packets are ready
-- Stream-based interface for continuous processing
-
 ### 4.4. Operational Behavior
 
 #### 4.4.1. Packet Processing Flow
@@ -129,6 +110,8 @@ The mixer requires a timer that is able to:
 - Use a monotonic clock source (not wall-clock) for computing `release_time`
 - Handle system sleep/clock adjustments by releasing all overdue packets immediately upon wake
 
+NOTE: The need for a dedicated timer MAY be satisfied automatically when using a RTOS and its native waking mechanisms.
+
 ### 4.5. Special Cases
 
 #### 4.5.1. Zero Delay Configuration
@@ -148,9 +131,9 @@ An implementation should prioritize:
 - **Minimal allocations**: Pre-allocated buffer reduces memory pressure
 - **Efficient data structures**: Binary heap provides O(log n) operations
 - **Lock minimization**: Fine-grained locking for concurrent access
-- **Timer efficiency**: Single shared timer reduces system overhead
+- **Timer efficiency**: Single shared timer reduces system overhead, including minimizing runtime system overhead by using a single thread
 
-### 5.2. Security Considerations
+### 5.2. Abuse Resistance and Resource Limits
 
 - **Timing attacks**: Random delays must use cryptographically secure randomness
 - **Statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies
@@ -176,8 +159,8 @@ These metrics aid in:
 
 The mixer defends against:
 
-- **Timing correlation attacks**: Observers cannot link input/output packets by timing
-- **Statistical traffic analysis**: Random delays prevent pattern detection
+- **Timing correlation attacks**: Randomized delays make linking input/output packets by timing significantly harder
+- **Statistical traffic analysis**: Random delays reduce pattern predictability but do not eliminate all analysis
 - **Queue manipulation**: Authenticated packet handling prevents injection attacks
 
 ### 6.2. Limitations
@@ -204,9 +187,9 @@ Alternative mixing strategies considered:
 - **Batch mixing**: Release packets in fixed-size batches (higher latency)
 - **Threshold mixing**: Release when buffer reaches certain size (variable latency)
 - **Stop-and-go mixing**: Fixed delays at each hop (predictable patterns)
-- **Poisson mixing**: As implemented in Loopix [01], uses Poisson distributed delays that make real traffic indistinguishable from cover traffic. This provides stronger anonymity guarantees but requires careful parameter tuning and integration with the cover traffic system.
+- **Poisson mixing**: As implemented in Loopix [01], uses Poisson-distributed delays that make real traffic harder to distinguish from cover traffic. This can provide stronger anonymity properties but requires careful parameter tuning and integration with cover traffic.
 
-The current continuous mixing approach with uniform distribution balances latency and anonymity effectively while being simpler to implement and analyze.
+The current continuous mixing approach with uniform distribution is a simple baseline that balances latency and anonymity while being easier to implement and analyze.
 
 ## 9. Unresolved Questions
 
@@ -217,7 +200,7 @@ The current continuous mixing approach with uniform distribution balances latenc
 
 ## 10. Future Work
 
-- **Poisson Mixing Implementation**: Implement exponentially distributed delays as described in Loopix [01] to provide stronger anonymity properties when combined with cover traffic
+- **Poisson Mixing Implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as described in Loopix [01] to provide stronger anonymity properties when combined with cover traffic
 - Performance optimizations for hardware acceleration
 
 ## 11. References
