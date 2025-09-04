@@ -64,8 +64,7 @@ When a packet arrives, the mixer:
 1. Generates a random delay using a cryptographically secure random number generator
 2. Calculates the release timestamp as `current_time + random_delay`
 3. Wraps the packet with its release timestamp
-4. Puts the wrapped packet into a buffer ordered by the release timestamp 
-
+4. Puts the wrapped packet into a buffer ordered by the release timestamp
 
 Random delay generation:
 
@@ -153,10 +152,10 @@ An implementation should prioritize:
 
 ### 5.2. Security Considerations
 
-   - **Timing attacks**: Random delays must use cryptographically secure randomness
-   - **Statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies
-     (e.g., exponential/Poisson as in Loopix [01]) provide better resistance to pattern inference
-   - **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behavior when full (e.g., drop-tail oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
+- **Timing attacks**: Random delays must use cryptographically secure randomness
+- **Statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies
+  (e.g., exponential/Poisson as in Loopix [01]) provide better resistance to pattern inference
+- **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behavior when full (e.g., drop-tail oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
 
 ### 5.3. Monitoring and Metrics
 
@@ -184,7 +183,8 @@ The mixer defends against:
 ### 6.2. Limitations
 
 The mixer does not protect against:
-  - low volume spread traffic that does not produce sufficient amount of messages to be mixed within the delay window
+
+- low volume spread traffic that does not produce sufficient amount of messages to be mixed within the delay window
 
 - **Global passive adversaries**: With unlimited observation capability
 - **Active attacks**: Packet dropping or delaying by malicious nodes

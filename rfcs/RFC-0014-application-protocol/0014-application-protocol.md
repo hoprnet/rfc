@@ -19,8 +19,6 @@ The goal of this protocol is for a HOPR node to make distinction between differe
 
 It can be seen similar to how standard TCP or UDP protocols distinguishes between applications using port numbers.
 
-
-
 ## 1. Introduction
 
 The HOPR network can host multitude of upper layer protocols, that serve different purposes. Some of those are described in other RFCs, such as `RFC-0006`, `RFC-0007` or `RFC-0012`. The Application layer protocol described in this RFC creates a thin layer between the HOPR Packet protocol from `RFC-0003` and these upper layer protocols.
@@ -30,7 +28,6 @@ The Application layer protocol primarily serves two purposes:
 1. node should be able to distinguish between upper protocols and dispatch their packets the respective protocol interpreters
 2. create an inter-protocol communication link for signals between the HOPR Packet protocol and the upper layer protocol
 
-
 ### 1.1 Conventions and terminology
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",
@@ -39,7 +36,6 @@ in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119) when, and only
 capitals, as shown here.
 
 Terms defined in `RFC-0002` might be also used.
-
 
 ## 2. Specification
 
@@ -80,6 +76,7 @@ The interpretation of `flags` is entirely implementation specific and MAY be ign
 ## Appendix 1
 
 ### HOPR packet protocol signals in the current implementation
+
 The version 1 of the HOPR packet protocol (as in `RFC-0003`) MAY currently pass the following signals to the upper-layer protocol:
 
 1. `0x01`: SURB distress signal. Indicates that the level of SURBs at the counterparty has gone below a certain pre-defined threshold.
