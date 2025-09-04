@@ -1,9 +1,9 @@
 # RFC-0008: Return path incentivization
 
-- **RFC Number:** 0008  
+- **RFC Number:** 0008
 - **Title:** Return path incentivization
 - **Status:** Discussion
-- **Author(s):** Qianchen Yu(QYuQianchen), Lukas Pohanka (NumberFour8)
+- **Author(s):** Qianchen Yu (QYuQianchen), Lukas Pohanka (NumberFour8)
 - **Created:** 2025-03-28 
 - **Updated:** 2025-04-07
 - **Version:** v0.2.0 (Raw)  
