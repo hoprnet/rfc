@@ -50,10 +50,10 @@ The HOPR Mixer follows a flow-based design which is split into these steps:
 
 The mixer accepts the following configuration parameters:
 
-_min_delay_: Minimum delay applied to packets (default: 0ms)
-_delay_range_: Range from minimum to maximum delay (default: 200ms)
+1. _min_delay_: Minimum delay applied to packets (default: 0ms)
+2. _delay_range_: Range from minimum to maximum delay (default: 200ms)
 
-The actual delay for each packet is randomly selected from the interval `[min_delay, min_delay + delay_range]`.
+The actual delay for each packet is randomly selected from a chosen distribution over the interval `[min_delay, min_delay + delay_range]`.
 
 ### 4.3. Core Components
 
@@ -64,6 +64,8 @@ When a packet arrives, the mixer:
 1. Generates a random delay using a cryptographically secure random number generator
 2. Calculates the release timestamp as `current_time + random_delay`
 3. Wraps the packet with its release timestamp
+4. Puts the wrapped packet into a buffer ordered by the release timestamp 
+
 
 Random delay generation:
 
@@ -151,9 +153,10 @@ An implementation should prioritize:
 
 ### 5.2. Security Considerations
 
-- **Timing attacks**: Random delays must use cryptographically secure randomness
-- **Statistical analysis**: Uniform distribution prevents delay prediction
-- **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behavior when full (e.g., drop-tail oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
+   - **Timing attacks**: Random delays must use cryptographically secure randomness
+   - **Statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies
+     (e.g., exponential/Poisson as in Loopix [01]) provide better resistance to pattern inference
+   - **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behavior when full (e.g., drop-tail oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
 
 ### 5.3. Monitoring and Metrics
 
@@ -181,6 +184,7 @@ The mixer defends against:
 ### 6.2. Limitations
 
 The mixer does not protect against:
+  - low volume spread traffic that does not produce sufficient amount of messages to be mixed within the delay window
 
 - **Global passive adversaries**: With unlimited observation capability
 - **Active attacks**: Packet dropping or delaying by malicious nodes
@@ -191,6 +195,7 @@ The mixer does not protect against:
 - **Increased latency**: Every packet experiences additional delay
 - **Memory usage**: Buffering packets requires memory proportional to traffic volume and queue size
 - **Complexity**: Adds another component to the protocol stack which even makes node-local debugging harder
+- **Simplistic nature**: The mixing does not account for the total count of elements in the buffer, with increasing amounts of messages in the mixer the generated delay can decrease without sacrificing the mixing properties.
 
 ## 8. Alternatives
 
@@ -199,7 +204,7 @@ Alternative mixing strategies considered:
 - **Batch mixing**: Release packets in fixed-size batches (higher latency)
 - **Threshold mixing**: Release when buffer reaches certain size (variable latency)
 - **Stop-and-go mixing**: Fixed delays at each hop (predictable patterns)
-- **Poisson mixing**: As implemented in Loopix [01], uses exponentially distributed delays that make real traffic indistinguishable from cover traffic. This provides stronger anonymity guarantees but requires careful parameter tuning and integration with the cover traffic system.
+- **Poisson mixing**: As implemented in Loopix [01], uses Poisson distributed delays that make real traffic indistinguishable from cover traffic. This provides stronger anonymity guarantees but requires careful parameter tuning and integration with the cover traffic system.
 
 The current continuous mixing approach with uniform distribution balances latency and anonymity effectively while being simpler to implement and analyze.
 
