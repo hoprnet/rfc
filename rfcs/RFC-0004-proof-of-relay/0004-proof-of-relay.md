@@ -19,12 +19,12 @@ relaying the packets to the destination.
 ## 1 Motivation
 
 This RFC aims to solve the assurance of packet delivery between two peers inside a mixnet.
-In particular, when data are sent from a sender (peer A), using
-node B as a relay node, to deliver packet to the destination node C, the assurance is established
+In particular, when data are sent from a sender (peer A) using
+node B as a relay node to deliver the packet to the destination node C, the assurance is established
 that:
 
 1. node A has guarantees that node B delivered A's packets to node C
-2. after successful relaying to C, node B posseses a cryptographic proof of the delivery
+2. after successful relaying to C, node B possesses a cryptographic proof of the delivery
 3. node B can use such proof to claim a reward from node A
 4. the identity of node A is not revealed to node C
 
@@ -50,9 +50,9 @@ in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
 ### 2.1 Cryptographic and security parameters
 
-The documents make use of certain cryptographic and mathematical terms. A security parameter `L` is chosen
-and corresponding cryptographic primitives are used in a concrete instantiations of this RFC.
-The speficic instantiation of the current version of this protocol is given in Appendix 1.
+This document makes use of certain cryptographic and mathematical terms. A security parameter `L` is chosen,
+and corresponding cryptographic primitives are used in a concrete instantiation of this RFC.
+The specific instantiation of the current version of this protocol is given in Appendix 1.
 
 The security parameter `L` SHALL NOT be less than 2^128 - meaning the chosen cryptographic primitives
 instantiations below SHALL NOT have less than 128-bits of security.
@@ -87,8 +87,10 @@ For the purpose of this RFC, the amount of funds MUST be strictly greater than 0
 There MUST NOT be more than a single payment channel between any two nodes A and B in this direction. Since
 channel is uni-directional, there MAY BE channel A -> B and also B -> A at the same time.
 
-Each channel has a unique channel ID, typically deterministic. 
-The channel ID of the channel A -> B MAY be computed as a truncated version of `H(f(P_A)||f(P_B))` for efficient representation, where `||` stands for byte-wise concatenation.
+Each channel has a unique, deterministic identifier, which is channel ID.
+The channel ID for A → B MUST be computed as:
+  `channel_id = H(f(P_A)||f(P_B))`
+where `||` stands for byte-wise concatenation. This construction is directional (A first, then B).
 
 The channel MUST always be in one of the 3 logical states:
 
@@ -126,8 +128,7 @@ Channel {
 
 Such structure is sufficient to describe the payment channel A -> B.
 
-Channels are uniquely identified by a `H(source || destination`.
-Byte-string of a fixed length representing the output of this hash function is called `ChannelId` in this context.
+Channels are uniquely identified by the `channel_id` above. The fixed‑length byte string returned by the function is called `ChannelId`.
 
 ### 3.1 Payment channel life-cycle
 
@@ -139,7 +140,9 @@ In such state, the node A is allowed communicate with node C via B and the node 
 
 At any point in time, the channel initiator A can initiate a closure of the channel A -> B. Such transition MUST change
 the `status` field to `PENDING_TO_CLOSE` and this change MUST be communicated to B.
-In such state, the node A MUST NOT be allowed to communicate with C via B, but B MUST be allowed to still claim any unclaimed rewards from the channel. However, B MUST NOT be allowed to claim any rewards after a certain period `T_closure` has elapsed since the state transition.
+In such state, the node A MUST NOT be allowed to communicate with C via B, but B MUST be allowed to still claim any unclaimed rewards from the channel.
+However, B MUST NOT be allowed to claim any rewards after `T_closure` has elapsed since the transition to PENDING_TO_CLOSE.
+`T_closure` MUST be measured in block timestamps, and both parties MUST derive it from the same source.
 
 After each claim is done by B, the `ticket_index` field MUST be incremented by 1, and such change MUST be communicated to both A and B.
 The increment MAY be done by an independent trusted third party supervising the reward claims.
@@ -205,8 +208,7 @@ ECDSASignature {
 }
 ```
 
-The ECDSA signature of the ticket MUST be computed over the hash `H_ticket`, which is computed from the `Ticket` fields and
-a domain separator `dst` as follows:
+The ECDSA signature of the ticket MUST be computed over the [EIP‑712](https://eips.ethereum.org/EIPS/eip-712) hash `H_ticket` of the `Ticket` typed‑data using `domainSeparator` (`dst`):
 
 ```
 H_1 = H(channel_id || amount || index || index_offset || channel_epoch || encoded_win_prob || challenge)
@@ -322,7 +324,7 @@ The `Ticket` is still created:
 
 1. The `channel_id` MUST be set to `H(P_S || P_R)` where `P_S` and `P_R` are public keys (or their encoding) of Sender and Recipient respectively.
 
-2. The `amount` , `index` and `channel_epoch` MUST be 0
+2. The `amount`, `index` and `channel_epoch` MUST be 0
 
 3. The `index_offset` MUST be 1
 
