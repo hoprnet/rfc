@@ -110,7 +110,7 @@ The Ticket is created almost completely, apart from the Challenge field, which c
 
 ### 3.2. Generating the Shared secrets
 
-In the next step, shared secrets for individual hops on the forward path are generated, as described in Section 3.2 in [01]:
+In the next step, shared secrets for individual hops on the forward path are generated, as described in Section 2.2 in [01]:
 
 Assume the length of the path is N (between 0 and 3) and each hop's public key is `Phop_i`.
 The public key of the destination is `Pdst`.
@@ -597,9 +597,9 @@ If the packet processing was not successful at any point, a random acknowledgeme
 The current version is instantiated using the following cryptographic primitives:
 
 - Curve25519 elliptic curve with the corresponding scalar field
-- OA is instantiated with Poly1305 [02]
 - PRP is instantiated using Lioness wide-block cipher [04] over Chacha20 and Blake3
 - PRG is instantiated using Chacha20 [02]
+- OA is instantiated with Poly1305 [02]
 - KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`: `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
 - HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [02]. `S` is used a the secret input, and `T` as an additional domain separator.
 
