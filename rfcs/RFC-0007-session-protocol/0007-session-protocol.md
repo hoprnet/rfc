@@ -16,10 +16,10 @@ This RFC specifies the HOPR Session Data Protocol, which provides reliable and u
 
 ## 2. Motivation
 
-The HOPR mixnet uses HOPR packets (see RFC-0003) to send data between nodes. This fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to implement TCP [01] or UDP all over again.
+The HOPR mixnet uses HOPR packets [RFC-0003] to send data between nodes. This fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to implement TCP [01] or UDP all over again.
 Since HOPR protocol is not IP-based, such implementation would require IP protocol emulation.
 
-The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the HOPR Session Start Protocol (see RFC-0012), while this protocol focuses exclusively on data transmission.
+The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the HOPR Session Start Protocol [RFC-0012], while this protocol focuses exclusively on data transmission.
 
 ## 3. Terminology
 
@@ -76,7 +76,7 @@ title "Common Structure"
 | ----------- | -------- | ------------------------------------ | ------------------------------ |
 | **Version** | 1 byte   | Protocol version                     | MUST be `0x01` for version 1   |
 | **Type**    | 1 byte   | Message type discriminant            | See Message Types table below  |
-| **Length**  | 2 bytes  | Payload length in bytes (big-endian) | Maximum 2047                   |
+| **Length**  | 2 bytes  | Payload length in bytes (big-endian) | Maximum is `C - 4`             |
 | **Payload** | Variable | Message-specific data                | Format depends on message type |
 
 #### Message Types
@@ -106,7 +106,7 @@ title "Segment"
 | **Frame ID**       | 4 bytes  | Frame identifier (big-endian)           | 1 to 4,294,967,295             |
 | **Sequence Index** | 1 byte   | Segment position within frame (0-based) | 0-63                           |
 | **Sequence Flags** | 1 byte   | Segment metadata flags                  | See Sequence Flags table below |
-| **Segment Data**   | Variable | Payload data                            | 0 to (MTU - 10) bytes          |
+| **Segment Data**   | Variable | Payload data                            | 0 to (`C - 10`) bytes          |
 
 #### Sequence Flags Bitmap
 
