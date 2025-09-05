@@ -220,9 +220,9 @@ sequenceDiagram
 | **Error Handling**        | MUST              | Implementations MUST handle all defined error conditions gracefully  |
 | **Timeout Configuration** | SHOULD            | Session establishment timeouts SHOULD be configurable (default: 30s) |
 
-### 4.9 Example Message Exchanges
+### 4.10 Example Message Exchanges
 
-#### 4.9.1 Successful Session Establishment
+#### 4.10.1 Successful Session Establishment
 
 Complete session establishment with immediate keep-alive:
 
@@ -236,7 +236,7 @@ sequenceDiagram
     E->>X: KeepAlive(session_id=42)
 ```
 
-#### 4.9.2 Session Establishment with Error
+#### 4.10.2 Session Establishment with Error
 
 Session establishment failing due to resource exhaustion:
 
@@ -249,7 +249,7 @@ sequenceDiagram
     X->>E: SessionError(challenge=0xFEDCBA0987654321, reason=0x01)
 ```
 
-#### 4.9.3 Session Establishment Timeout
+#### 4.10.3 Session Establishment Timeout
 
 Session establishment with no response from Exit Node:
 
@@ -265,7 +265,7 @@ sequenceDiagram
     end
 ```
 
-#### 4.9.4 Long-Running Session with Periodic Keep-Alives
+#### 4.10.4 Long-Running Session with Periodic Keep-Alives
 
 Maintaining an established session over time:
 
