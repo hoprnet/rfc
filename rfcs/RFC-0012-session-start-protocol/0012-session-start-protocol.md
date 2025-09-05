@@ -8,7 +8,7 @@
 - **Updated:** 2025-08-20
 - **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md), [RFC-0007](../RFC-0007-session-protocol/0007-session-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md), [RFC-0007](../RFC-0007-session-protocol/0007-session-protocol.md), [RFC-0014](../RFC-0014-application-protocol/0014-application-protocol.md)
 
 ## 1. Abstract
 
@@ -405,7 +405,9 @@ The protocol provides structured error reporting:
 
 [01] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.
 
-## 11. Appendix 1
+## 11. Related Links
+
+## 12. Appendix 1
 
 Within HOPR protocol a Session is identified uniquely via HOPR Session ID,
 this consists of a 10-byte pseudorandom bytes as prefix and 64-bit unsigned integer as suffix. The 64-bit suffix is encoded and interpreted as a big-endian unsigned integer.
@@ -415,4 +417,4 @@ In human readable format, a HOPR Session ID has the following syntax:
 `0xabcdefabcdefabcdefab:123456`
 
 The prefix represents a fixed pseudonym prefix of in the HOPR Packet protocol (as in RFC-0003).
-The suffix represents an application tag that identifies Sessions within the reserved range in the Application protocol (as in RFC-0014).
+The suffix represents an application tag that identifies Sessions within the reserved range in the Application protocol [RFC-0014].

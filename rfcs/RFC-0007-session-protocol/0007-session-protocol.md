@@ -37,9 +37,7 @@ The HOPR Session Data Protocol fills that gap by providing reliable and unreliab
 
 - **MTU (Maximum Transmission Unit)**: The maximum size of a single HOPR protocol message, denoted as `C` throughout this specification.
 
-- **Terminating Segment**: A special segment that signals the end of a frame.
-
-- **Terminating Frame**: A special frame that signals the end of a session.
+- **Terminating Segment**: A special segment that signals the end of a session.
 
 ## 4. Specification
 
