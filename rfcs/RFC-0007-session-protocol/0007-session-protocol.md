@@ -31,7 +31,7 @@ The HOPR Session Data Protocol fills that gap by providing reliable and unreliab
 
 - **Sequence Number (SeqNum)**: An 8-bit unsigned integer indicating a segment's position within its frame (0-indexed).
 
-- **Sequence Indicator (SeqIndicator)**: An 8-bit value. FIXME: add spec
+- **Sequence Flags (SeqFlags)**: An 8-bit value encoding additional segment sequence metadata.
 
 - **Session Socket**: The endpoint abstraction that implements the Session Protocol, available in both reliable and unreliable variants.
 
@@ -105,18 +105,18 @@ This requirement ensures consistent interpretation across different architecture
 packet
 title "Segment"
 +32: "Frame ID"
-+8: "Sequence Index"
++8: "Sequence Number"
 +8: "Sequence Flags"
 +48: "Segment Data (variable-length)"
 +32: "..."
 ```
 
-| Field              | Size     | Description                             | Valid Range                    |
-| ------------------ | -------- | --------------------------------------- | ------------------------------ |
-| **Frame ID**       | 4 bytes  | Frame identifier                        | 1 to 4,294,967,295             |
-| **Sequence Index** | 1 byte   | Segment position within frame (0-based) | 0-63                           |
-| **Sequence Flags** | 1 byte   | Segment metadata flags                  | See Sequence Flags table below |
-| **Segment Data**   | Variable | Payload data                            | 0 to (`C - 10`) bytes          |
+| Field               | Size     | Description                             | Valid Range                    |
+| ------------------- | -------- | --------------------------------------- | ------------------------------ |
+| **Frame ID**        | 4 bytes  | Frame identifier                        | 1 to 4,294,967,295             |
+| **Sequence Number** | 1 byte   | Segment position within frame (0-based) | 0-63                           |
+| **Sequence Flags**  | 1 byte   | Segment metadata flags                  | See Sequence Flags table below |
+| **Segment Data**    | Variable | Payload data                            | 0 to (`C - 10`) bytes          |
 
 #### 4.3.2 Sequence Flags Bitmap
 
@@ -171,16 +171,16 @@ The message contains a sequence of 5-byte entries:
 
 #### 4.4.2 Missing Bitmap Format
 
-| Bit | Segment Index | Description                   |
-| --- | ------------- | ----------------------------- |
-| 0   | Segment 0     | `1` = Missing, `0` = Received |
-| 1   | Segment 1     | `1` = Missing, `0` = Received |
-| 2   | Segment 2     | `1` = Missing, `0` = Received |
-| 3   | Segment 3     | `1` = Missing, `0` = Received |
-| 4   | Segment 4     | `1` = Missing, `0` = Received |
-| 5   | Segment 5     | `1` = Missing, `0` = Received |
-| 6   | Segment 6     | `1` = Missing, `0` = Received |
-| 7   | Segment 7     | `1` = Missing, `0` = Received |
+| Bit | Sequence Number | Description                   |
+| --- | --------------- | ----------------------------- |
+| 0   | Segment 0       | `1` = Missing, `0` = Received |
+| 1   | Segment 1       | `1` = Missing, `0` = Received |
+| 2   | Segment 2       | `1` = Missing, `0` = Received |
+| 3   | Segment 3       | `1` = Missing, `0` = Received |
+| 4   | Segment 4       | `1` = Missing, `0` = Received |
+| 5   | Segment 5       | `1` = Missing, `0` = Received |
+| 6   | Segment 6       | `1` = Missing, `0` = Received |
+| 7   | Segment 7       | `1` = Missing, `0` = Received |
 
 **Note:** This message MUST be used only for frames with up to 8 segments (due to bitmap size limitation). Reliable sessions are limited to 7 segments per frame. Unreliable sessions SHOULD not have this limitation.
 
@@ -290,8 +290,8 @@ sequenceDiagram
     participant S as Sender
     participant R as Receiver
 
-    S->>R: Segment(frame_id=1, seq_idx=0, seq_flags=0b00000001, data[246])
-    S->>R: Segment(frame_id=1, seq_idx=1, seq_flags=0b00000001, data[54])
+    S->>R: Segment(frame_id=1, seq_num=0, seq_flags=0b00000001, data[246])
+    S->>R: Segment(frame_id=1, seq_num=1, seq_flags=0b00000001, data[54])
 ```
 
 #### 4.9.2 Frame with Retransmission (Reliable Mode)
@@ -303,12 +303,12 @@ sequenceDiagram
     participant S as Sender
     participant R as Receiver
 
-    S->>R: Segment(frame_id=1, seq_idx=0, seq_flags=0b00000010, data[246])
-    S-xR: Segment(frame_id=1, seq_idx=1, seq_flags=0b00000010, data[246]) - LOST
-    S->>R: Segment(frame_id=1, seq_idx=2, seq_flags=0b00000010, data[100])
+    S->>R: Segment(frame_id=1, seq_num=0, seq_flags=0b00000010, data[246])
+    S-xR: Segment(frame_id=1, seq_num=1, seq_flags=0b00000010, data[246]) - LOST
+    S->>R: Segment(frame_id=1, seq_num=2, seq_flags=0b00000010, data[100])
 
     R->>S: RetransmissionRequest(frame_id=1, missing_bitmap=0b00000010)
-    S->>R: Segment(frame_id=1, seq_idx=1, seq_flags=0b00000010, data[246]) - RETRANSMITTED
+    S->>R: Segment(frame_id=1, seq_num=1, seq_flags=0b00000010, data[246]) - RETRANSMITTED
     R->>S: FrameAcknowledgement(frame_ids=[1])
 ```
 
@@ -321,9 +321,9 @@ sequenceDiagram
     participant S as Sender
     participant R as Receiver
 
-    S->>R: Segment(frame_id=10, seq_idx=0, seq_flags=0b00000000, data[200])
-    S->>R: Segment(frame_id=11, seq_idx=0, seq_flags=0b00000000, data[150])
-    S->>R: Segment(frame_id=12, seq_idx=0, seq_flags=0b00000000, data[100])
+    S->>R: Segment(frame_id=10, seq_num=0, seq_flags=0b00000000, data[200])
+    S->>R: Segment(frame_id=11, seq_num=0, seq_flags=0b00000000, data[150])
+    S->>R: Segment(frame_id=12, seq_num=0, seq_flags=0b00000000, data[100])
 
     R->>S: FrameAcknowledgement(frame_ids=[10, 11, 12])
 ```
@@ -337,8 +337,8 @@ sequenceDiagram
     participant S as Sender
     participant R as Receiver
 
-    S->>R: Segment(frame_id=5, seq_idx=0, seq_flags=0b00000000, data[100])
-    S->>R: Segment(frame_id=6, seq_idx=0, seq_flags=0b10000000, data[])
+    S->>R: Segment(frame_id=5, seq_num=0, seq_flags=0b00000000, data[100])
+    S->>R: Segment(frame_id=6, seq_num=0, seq_flags=0b10000000, data[])
     R->>S: FrameAcknowledgement(frame_ids=[5, 6])
 ```
 
@@ -351,7 +351,7 @@ sequenceDiagram
     participant S as Sender
     participant R as Receiver
 
-    S->>R: Segment(frame_id=7, seq_idx=0, seq_flags=0b10000000, data[])
+    S->>R: Segment(frame_id=7, seq_num=0, seq_flags=0b10000000, data[])
 ```
 
 ## 5. Design Considerations
