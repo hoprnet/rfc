@@ -27,7 +27,7 @@ The HOPR Session Data Protocol fills that gap by providing reliable and unreliab
 
 - **Segment**: A fixed-size fragment of a frame. Frames are split into segments for transmission, with each segment carrying metadata about its position within the frame.
 
-- **Frame ID**: A 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed).
+- **Frame ID**: A 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed). Frame ID values are interpreted as big-endian unsigned integers.
 
 - **Sequence Number (SeqNum)**: An 8-bit unsigned integer indicating a segment's position within its frame (0-indexed).
 
@@ -56,7 +56,7 @@ The protocol supports two operational modes:
 - **Unreliable Mode**: Fast, stateless operation similar to UDP [03]
 - **Reliable Mode**: Stateful operation with acknowledgements and retransmissions
 
-Session establishment and lifecycle management is handled by the HOPR Session Start Protocol.
+Session establishment and lifecycle management is handled by the HOPR Session Start Protocol. All multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures.
 
 ### 4.2 Session Data Protocol Message Format
 
@@ -72,12 +72,12 @@ title "Common Structure"
 +32: "..."
 ```
 
-| Field       | Size     | Description                          | Value                          |
-| ----------- | -------- | ------------------------------------ | ------------------------------ |
-| **Version** | 1 byte   | Protocol version                     | MUST be `0x01` for version 1   |
-| **Type**    | 1 byte   | Message type discriminant            | See Message Types table below  |
-| **Length**  | 2 bytes  | Payload length in bytes (big-endian) | Maximum is `C - 4`             |
-| **Payload** | Variable | Message-specific data                | Format depends on message type |
+| Field       | Size     | Description               | Value                          |
+| ----------- | -------- | ------------------------- | ------------------------------ |
+| **Version** | 1 byte   | Protocol version          | MUST be `0x01` for version 1   |
+| **Type**    | 1 byte   | Message type discriminant | See Message Types table below  |
+| **Length**  | 2 bytes  | Payload length in bytes   | Maximum is `C - 4`             |
+| **Payload** | Variable | Message-specific data     | Format depends on message type |
 
 #### Message Types
 
@@ -86,6 +86,18 @@ title "Common Structure"
 | `0x00`    | Segment                | Carries actual data fragments     |
 | `0x01`    | Retransmission Request | Requests missing segments         |
 | `0x02`    | Frame Acknowledgement  | Confirms successful frame receipt |
+
+#### Byte Order
+
+All multi-byte integer fields and values in the Session Data Protocol MUST be encoded and interpreted in network byte order (big-endian). This applies to:
+
+**Protocol Message Fields:**
+
+- **Length** field (2 bytes) in the common message format
+- **Frame ID** field (4 bytes) in Segment, Retransmission Request, and Frame Acknowledgement messages
+- Any future numeric fields added to the protocol
+
+This requirement ensures consistent interpretation across different architectures and prevents interoperability issues between implementations.
 
 ### 4.3 Segment Message
 
@@ -103,7 +115,7 @@ title "Segment"
 
 | Field              | Size     | Description                             | Valid Range                    |
 | ------------------ | -------- | --------------------------------------- | ------------------------------ |
-| **Frame ID**       | 4 bytes  | Frame identifier (big-endian)           | 1 to 4,294,967,295             |
+| **Frame ID**       | 4 bytes  | Frame identifier                        | 1 to 4,294,967,295             |
 | **Sequence Index** | 1 byte   | Segment position within frame (0-based) | 0-63                           |
 | **Sequence Flags** | 1 byte   | Segment metadata flags                  | See Sequence Flags table below |
 | **Segment Data**   | Variable | Payload data                            | 0 to (`C - 10`) bytes          |
@@ -134,7 +146,7 @@ title "Segment"
 | **Segment Overhead**       | 10 bytes      | Header overhead per segment (4 common + 6 segment) |
 | **Maximum Frame ID**       | 4,294,967,295 | Maximum 32-bit frame identifier                    |
 | **Maximum Segments**       | 64            | Maximum segments per frame                         |
-| **Maximum Payload Length** | 2047 bytes    | Maximum message payload size                       |
+| **Maximum Payload Length** | `C - 4` bytes | Maximum message payload size                       |
 
 ### 4.4 Retransmission Request Message
 
@@ -154,10 +166,10 @@ title "Retransmission Request Message"
 
 The message contains a sequence of 5-byte entries:
 
-| Field              | Size    | Description                   | Format                         |
-| ------------------ | ------- | ----------------------------- | ------------------------------ |
-| **Frame ID**       | 4 bytes | Frame identifier (big-endian) | 1 to 4,294,967,295             |
-| **Missing Bitmap** | 1 byte  | Bitmap of missing segments    | See Missing Bitmap table below |
+| Field              | Size    | Description                | Format                         |
+| ------------------ | ------- | -------------------------- | ------------------------------ |
+| **Frame ID**       | 4 bytes | Frame identifier           | 1 to 4,294,967,295             |
+| **Missing Bitmap** | 1 byte  | Bitmap of missing segments | See Missing Bitmap table below |
 
 #### Missing Bitmap Format
 
@@ -268,6 +280,8 @@ stateDiagram-v2
 3. No data frames MUST be sent after a terminating segment
 
 ### 4.9 Example Message Exchanges
+
+All numeric values in the examples below are shown in their logical representation. Frame IDs and other multi-byte integers are encoded in big-endian format on the wire.
 
 #### 4.9.1 Simple Frame Transmission (Unreliable Mode)
 

@@ -28,7 +28,7 @@ The Session Start Protocol fills this gap by providing a lightweight, transport-
 
 ## 3. Terminology
 
-- **Challenge**: A 64-bit random value used to correlate requests and responses in the handshake process.
+- **Challenge**: A 64-bit random value used to correlate requests and responses in the handshake process. Challenge values are interpreted as big-endian unsigned integers.
 
 - **Session Target**: The destination or purpose of a session, typically an address or service identifier, encoded in CBOR format.
 
@@ -53,7 +53,7 @@ The Session Start Protocol operates at version 2 and consists of four message ty
 3. **SessionError**: Reports session establishment failure
 4. **KeepAlive**: Maintains session liveness
 
-The protocol uses HOPR packets as the underlying transport mechanism and supports both successful and failed session establishment scenarios.
+The protocol uses HOPR packets as the underlying transport mechanism and supports both successful and failed session establishment scenarios. All multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures.
 
 ### 4.2 Message Format
 
@@ -69,12 +69,12 @@ title "Common Message Format"
 +32: "..."
 ```
 
-| Field       | Size     | Description                          | Value                         |
-| ----------- | -------- | ------------------------------------ | ----------------------------- |
-| **Version** | 1 byte   | Protocol version                     | MUST be `0x02` for version 2  |
-| **Type**    | 1 byte   | Message type discriminant            | See Message Types table below |
-| **Length**  | 2 bytes  | Payload length in bytes (big-endian) | 0-65535                       |
-| **Payload** | Variable | Message-specific data                | CBOR-encoded where applicable |
+| Field       | Size     | Description               | Value                         |
+| ----------- | -------- | ------------------------- | ----------------------------- |
+| **Version** | 1 byte   | Protocol version          | MUST be `0x02` for version 2  |
+| **Type**    | 1 byte   | Message type discriminant | See Message Types table below |
+| **Length**  | 2 bytes  | Payload length in bytes   | 0-65535                       |
+| **Payload** | Variable | Message-specific data     | CBOR-encoded where applicable |
 
 #### Message Types
 
@@ -84,6 +84,21 @@ title "Common Message Format"
 | `0x01`    | SessionEstablished | Confirms session establishment        |
 | `0x02`    | SessionError       | Reports session establishment failure |
 | `0x03`    | KeepAlive          | Maintains session liveness            |
+
+#### Byte Order
+
+All multi-byte integer fields and values in the Session Start Protocol MUST be encoded and interpreted in network byte order (big-endian). This applies to:
+
+**Protocol Message Fields:**
+
+- **Length** field (2 bytes) in the common message format
+- **Challenge** field (8 bytes) in StartSession, SessionEstablished, and SessionError messages
+- **Additional Data** field (4 bytes) in StartSession messages
+- **Additional Data** field (8 bytes) in KeepAlive messages
+- **Session ID suffix** (64-bit) in HOPR Session ID format
+- Any future numeric fields added to the protocol
+
+This requirement ensures consistent interpretation across different architectures and prevents interoperability issues between implementations.
 
 ### 4.3 StartSession Message
 
@@ -214,6 +229,7 @@ sequenceDiagram
 | ------------------------- | ----------------- | -------------------------------------------------------------------- |
 | **Challenge Generation**  | MUST              | Challenge values MUST be randomly generated using CSPRNG             |
 | **Session ID Uniqueness** | MUST              | Session IDs MUST be unique per responder                             |
+| **Byte Order**            | MUST              | All multi-byte integer fields MUST use network byte order            |
 | **CBOR Encoding**         | MUST              | Targets and Session IDs use CBOR encoding [01]                       |
 | **Payload Limits**        | MUST              | Messages MUST fit within HOPR packet payload limits                  |
 | **Keep-Alive Frequency**  | SHOULD            | KeepAlive messages SHOULD be sent periodically                       |
@@ -388,7 +404,7 @@ The protocol provides structured error reporting:
 ## Appendix 1
 
 Within HOPR protocol a Session is identified uniquely via HOPR Session ID,
-this consists of a 10-byte pseudorandom bytes as prefix and 64-bit unsigned integer as suffix.
+this consists of a 10-byte pseudorandom bytes as prefix and 64-bit unsigned integer as suffix. The 64-bit suffix is encoded and interpreted as a big-endian unsigned integer.
 
 In human readable format, a HOPR Session ID has the following syntax:
 
