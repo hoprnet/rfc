@@ -183,11 +183,9 @@ Maintains session liveness.
 packet
 title "KeepAlive Message"
 +8: "Flags"
-+64: "Additional Data"
-+32: "Session ID (CBOR, variable-length)"
-+#2: "..."
-```
-
+64: "Additional Data"
+32: "Session ID (CBOR, variable-length)"
+32: "..."
 | Field               | Size     | Description                     | Notes                                 |
 | ------------------- | -------- | ------------------------------- | ------------------------------------- |
 | **Flags**           | 1 byte   | Reserved for future use         | MUST be `0x00`                        |
