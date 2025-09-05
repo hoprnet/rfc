@@ -2,10 +2,10 @@
 
 - **RFC Number:** 0012
 - **Title:** Session Start Protocol
-- **Status:** Draft
-- **Author(s):** Tino Breddin (@tolbrino)
+- **Status:** Implementation
+- **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-20
-- **Updated:** 2025-08-20
+- **Updated:** 2025-09-05
 - **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md), [RFC-0007](../RFC-0007-session-protocol/0007-session-protocol.md), [RFC-0014](../RFC-0014-application-protocol/0014-application-protocol.md)
@@ -110,7 +110,7 @@ title "StartSession Message"
 +64: "Challenge"
 +8: "Capabilities"
 +32: "Additional Data"
-+32: "Target (CBOR, variable-length)"
++56: "Target (CBOR, variable-length)"
 +32: "..."
 ```
 
@@ -183,9 +183,11 @@ Maintains session liveness.
 packet
 title "KeepAlive Message"
 +8: "Flags"
-64: "Additional Data"
-32: "Session ID (CBOR, variable-length)"
-32: "..."
++64: "Additional Data"
++32: "Session ID (CBOR, variable-length)"
++32: "..."
+```
+
 | Field               | Size     | Description                     | Notes                                 |
 | ------------------- | -------- | ------------------------------- | ------------------------------------- |
 | **Flags**           | 1 byte   | Reserved for future use         | MUST be `0x00`                        |

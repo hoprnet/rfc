@@ -2,10 +2,10 @@
 
 - **RFC Number:** 0007
 - **Title:** Session Data Protocol
-- **Status:** Draft
-- **Author(s):** Tino Breddin (@tolbrino)
+- **Status:** Implementation
+- **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-15
-- **Updated:** 2025-08-20
+- **Updated:** 2025-09-05
 - **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md), [RFC-0012](../RFC-0012-session-start-protocol/0012-session-start-protocol.md)
@@ -159,7 +159,7 @@ title "Retransmission Request Message"
 +8: "Missing Bitmap 2"
 +32: "Frame ID 3"
 +8: "Missing Bitmap 3"
-+32: "..."
++40: "..."
 ```
 
 The message contains a sequence of 5-byte entries:
