@@ -72,13 +72,20 @@ title "Common Structure"
 +32: "..."
 ```
 
-- **Version** (1 byte): Protocol version, MUST be 0x01 for version 1
-- **Type** (1 byte): Message type discriminant
-  - 0x00: Segment
-  - 0x01: Retransmission Request
-  - 0x02: Frame Acknowledgement
-- **Length** (2 bytes): Big-endian payload length in bytes (max 2047)
-- **Payload** (variable): Message-specific data
+| Field       | Size     | Description                          | Value                          |
+| ----------- | -------- | ------------------------------------ | ------------------------------ |
+| **Version** | 1 byte   | Protocol version                     | MUST be `0x01` for version 1   |
+| **Type**    | 1 byte   | Message type discriminant            | See Message Types table below  |
+| **Length**  | 2 bytes  | Payload length in bytes (big-endian) | Maximum 2047                   |
+| **Payload** | Variable | Message-specific data                | Format depends on message type |
+
+#### Message Types
+
+| Type Code | Name                   | Description                       |
+| --------- | ---------------------- | --------------------------------- |
+| `0x00`    | Segment                | Carries actual data fragments     |
+| `0x01`    | Retransmission Request | Requests missing segments         |
+| `0x02`    | Frame Acknowledgement  | Confirms successful frame receipt |
 
 ### 4.3 Segment Message
 
@@ -94,21 +101,40 @@ title "Segment"
 +32: "..."
 ```
 
-- **Frame ID** (4 bytes): Big-endian frame identifier (MUST be > 0)
-- **Sequence Index** (1 byte): Segment position within frame (0-based)
-- **Sequence Flags** (1 byte):
-  - Bit 7: Termination flag (1 = terminating segment)
-  - Bit 6: Reserved (MUST be 0)
-  - Bits 0-5: Total segments in frame minus 1 (max value: 63)
-- **Segment Data** (variable): payload data
+| Field              | Size     | Description                             | Valid Range                    |
+| ------------------ | -------- | --------------------------------------- | ------------------------------ |
+| **Frame ID**       | 4 bytes  | Frame identifier (big-endian)           | 1 to 4,294,967,295             |
+| **Sequence Index** | 1 byte   | Segment position within frame (0-based) | 0-63                           |
+| **Sequence Flags** | 1 byte   | Segment metadata flags                  | See Sequence Flags table below |
+| **Segment Data**   | Variable | Payload data                            | 0 to (MTU - 10) bytes          |
+
+#### Sequence Flags Bitmap
+
+| Bit | Flag Name            | Description                     | Values                          |
+| --- | -------------------- | ------------------------------- | ------------------------------- |
+| 7   | **Termination Flag** | Indicates terminating segment   | `0` = Normal, `1` = Terminating |
+| 6   | **Reserved**         | Reserved for future use         | MUST be `0`                     |
+| 5-0 | **Segment Count**    | Total segments in frame minus 1 | `0`-`63` (1-64 segments)        |
 
 #### 4.3.2 Segmentation Rules
 
-1. Frames MUST be segmented when larger than `(C - 10)` bytes, where 10 is the segment overhead
-2. Maximum segments per frame is 64 (limited by 6-bit sequence length field)
-3. Each segment except the last SHOULD be of equal size
-4. Empty segments MUST be valid (this is used e.g. for terminating segments)
-5. Frame IDs MUST be monotonically increasing within a Session
+| Rule                       | Requirement | Description                                                       |
+| -------------------------- | ----------- | ----------------------------------------------------------------- |
+| **Segmentation Threshold** | MUST        | Frames MUST be segmented when larger than `(C - 10)` bytes        |
+| **Maximum Segments**       | MUST        | Maximum 64 segments per frame (6-bit sequence length field limit) |
+| **Segment Sizing**         | SHOULD      | Each segment except the last SHOULD be of equal size              |
+| **Empty Segments**         | MUST        | Empty segments MUST be valid (used for terminating segments)      |
+| **Frame ID Ordering**      | MUST        | Frame IDs MUST be monotonically increasing within a session       |
+
+#### Protocol Constants
+
+| Constant                   | Value         | Description                                        |
+| -------------------------- | ------------- | -------------------------------------------------- |
+| **Protocol Version**       | `0x01`        | Current protocol version                           |
+| **Segment Overhead**       | 10 bytes      | Header overhead per segment (4 common + 6 segment) |
+| **Maximum Frame ID**       | 4,294,967,295 | Maximum 32-bit frame identifier                    |
+| **Maximum Segments**       | 64            | Maximum segments per frame                         |
+| **Maximum Payload Length** | 2047 bytes    | Maximum message payload size                       |
 
 ### 4.4 Retransmission Request Message
 
@@ -128,20 +154,34 @@ title "Retransmission Request Message"
 
 The message contains a sequence of 5-byte entries:
 
-- **Frame ID** (4 bytes): Big-endian frame identifier
-- **Missing Bitmap** (1 byte): Bitmap of missing segments
-  - Bit N set = segment N is missing (N: 0-7)
+| Field              | Size    | Description                   | Format                         |
+| ------------------ | ------- | ----------------------------- | ------------------------------ |
+| **Frame ID**       | 4 bytes | Frame identifier (big-endian) | 1 to 4,294,967,295             |
+| **Missing Bitmap** | 1 byte  | Bitmap of missing segments    | See Missing Bitmap table below |
 
-The above message MUST be used only for Frames with up to 7 Segments (due to the bitmap size limitation).
-Since this message is used only with _reliable_ Sessions, the number of Segments per Frame MUST be limited to 7.
-The _unreliable_ Sessions SHOULD not have this limitation.
+#### Missing Bitmap Format
+
+| Bit | Segment Index | Description                   |
+| --- | ------------- | ----------------------------- |
+| 0   | Segment 0     | `1` = Missing, `0` = Received |
+| 1   | Segment 1     | `1` = Missing, `0` = Received |
+| 2   | Segment 2     | `1` = Missing, `0` = Received |
+| 3   | Segment 3     | `1` = Missing, `0` = Received |
+| 4   | Segment 4     | `1` = Missing, `0` = Received |
+| 5   | Segment 5     | `1` = Missing, `0` = Received |
+| 6   | Segment 6     | `1` = Missing, `0` = Received |
+| 7   | Segment 7     | `1` = Missing, `0` = Received |
+
+**Note:** This message MUST be used only for frames with up to 8 segments (due to bitmap size limitation). Reliable sessions are limited to 7 segments per frame. Unreliable sessions SHOULD not have this limitation.
 
 #### 4.4.2 Request Rules
 
-1. Entries MUST be ordered by Frame ID (ascending)
-2. Frame ID of 0 indicates padding (ignored)
-3. Maximum entries per message: `(C - 4) / 5`
-4. Only the first 8 segments per frame can be requested
+| Rule              | Requirement | Description                                          |
+| ----------------- | ----------- | ---------------------------------------------------- |
+| **Ordering**      | MUST        | Entries MUST be ordered by Frame ID (ascending)      |
+| **Padding**       | MAY         | Frame ID of `0` indicates padding (ignored)          |
+| **Entry Limit**   | MUST        | Maximum entries per message: `(C - 4) / 5`           |
+| **Segment Limit** | MUST        | Only the first 8 segments per frame can be requested |
 
 ### 4.5 Frame Acknowledgement Message
 
@@ -156,10 +196,18 @@ title "Frame Acknowledgement Message"
 +32: "..."
 ```
 
-- Contains a list of 4-byte Frame IDs that have been fully received
-- Frame IDs MUST be in ascending order
-- Frame ID of 0 indicates padding (ignored)
-- Maximum frame IDs per message: `(C - 4) / 4`
+| Field             | Size         | Description                              | Rules                                 |
+| ----------------- | ------------ | ---------------------------------------- | ------------------------------------- |
+| **Frame ID List** | 4 bytes each | List of fully received frame identifiers | See Acknowledgement Rules table below |
+
+#### Acknowledgement Rules
+
+| Rule             | Requirement | Description                                     |
+| ---------------- | ----------- | ----------------------------------------------- |
+| **Ordering**     | MUST        | Frame IDs MUST be in ascending order            |
+| **Padding**      | MAY         | Frame ID of `0` indicates padding (ignored)     |
+| **Entry Limit**  | MUST        | Maximum frame IDs per message: `(C - 4) / 4`    |
+| **Completeness** | MUST        | Only acknowledge frames that are fully received |
 
 ### 4.6 Protocol State Machines
 
@@ -202,12 +250,14 @@ stateDiagram-v2
 - No delivery guarantees
 - Suitable for real-time or loss-tolerant applications
 
-#### 4.7.2 Reliable Mode
+#### 4.7.2 Reliable Mode Parameters
 
-- **Frame Timeout**: Default 800ms before requesting retransmission
-- **Acknowledgement Window**: Max 255 unacknowledged frames
-- **Retransmission Limit**: Implementation-defined (suggested: 3)
-- **Acknowledgement Batching**: Delayed up to 100ms for efficiency
+| Parameter                    | Default Value | Description                           | Requirement            |
+| ---------------------------- | ------------- | ------------------------------------- | ---------------------- |
+| **Frame Timeout**            | 800ms         | Time before requesting retransmission | SHOULD be configurable |
+| **Acknowledgement Window**   | 255 frames    | Maximum unacknowledged frames         | MUST NOT exceed 255    |
+| **Retransmission Limit**     | 3 attempts    | Maximum retransmission attempts       | Implementation-defined |
+| **Acknowledgement Batching** | 100ms         | Maximum delay for batching ACKs       | SHOULD be configurable |
 
 ### 4.8 Session Termination
 
@@ -227,7 +277,7 @@ Sending a 300-byte frame with MTU=256 (246 bytes available per segment after 10-
 sequenceDiagram
     participant S as Sender
     participant R as Receiver
-    
+
     S->>R: Segment(frame_id=1, seq_idx=0, seq_flags=0b00000001, data[246])
     S->>R: Segment(frame_id=1, seq_idx=1, seq_flags=0b00000001, data[54])
 ```
@@ -240,11 +290,11 @@ Reliable transmission where the middle segment is lost and retransmitted:
 sequenceDiagram
     participant S as Sender
     participant R as Receiver
-    
+
     S->>R: Segment(frame_id=1, seq_idx=0, seq_flags=0b00000010, data[246])
     S-xR: Segment(frame_id=1, seq_idx=1, seq_flags=0b00000010, data[246]) - LOST
     S->>R: Segment(frame_id=1, seq_idx=2, seq_flags=0b00000010, data[100])
-    
+
     R->>S: RetransmissionRequest(frame_id=1, missing_bitmap=0b00000010)
     S->>R: Segment(frame_id=1, seq_idx=1, seq_flags=0b00000010, data[246]) - RETRANSMITTED
     R->>S: FrameAcknowledgement(frame_ids=[1])
@@ -258,11 +308,11 @@ Efficiently acknowledging multiple received frames in a batch:
 sequenceDiagram
     participant S as Sender
     participant R as Receiver
-    
+
     S->>R: Segment(frame_id=10, seq_idx=0, seq_flags=0b00000000, data[200])
     S->>R: Segment(frame_id=11, seq_idx=0, seq_flags=0b00000000, data[150])
     S->>R: Segment(frame_id=12, seq_idx=0, seq_flags=0b00000000, data[100])
-    
+
     R->>S: FrameAcknowledgement(frame_ids=[10, 11, 12])
 ```
 
@@ -274,7 +324,7 @@ Graceful session termination with acknowledgement:
 sequenceDiagram
     participant S as Sender
     participant R as Receiver
-    
+
     S->>R: Segment(frame_id=5, seq_idx=0, seq_flags=0b00000000, data[100])
     S->>R: Segment(frame_id=6, seq_idx=0, seq_flags=0b10000000, data[])
     R->>S: FrameAcknowledgement(frame_ids=[5, 6])
@@ -288,7 +338,7 @@ Immediate session termination without acknowledgement:
 sequenceDiagram
     participant S as Sender
     participant R as Receiver
-    
+
     S->>R: Segment(frame_id=7, seq_idx=0, seq_flags=0b10000000, data[])
 ```
 

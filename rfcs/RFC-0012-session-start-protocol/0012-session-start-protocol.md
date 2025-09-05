@@ -69,14 +69,21 @@ title "Common Message Format"
 +32: "..."
 ```
 
-- **Version** (1 byte): Protocol version, MUST be 0x02 for version 2
-- **Type** (1 byte): Message type discriminant
-  - 0x00: StartSession
-  - 0x01: SessionEstablished
-  - 0x02: SessionError
-  - 0x03: KeepAlive
-- **Length** (2 bytes): Big-endian payload length in bytes
-- **Payload** (variable): Message-specific data (CBOR-encoded where applicable)
+| Field       | Size     | Description                          | Value                         |
+| ----------- | -------- | ------------------------------------ | ----------------------------- |
+| **Version** | 1 byte   | Protocol version                     | MUST be `0x02` for version 2  |
+| **Type**    | 1 byte   | Message type discriminant            | See Message Types table below |
+| **Length**  | 2 bytes  | Payload length in bytes (big-endian) | 0-65535                       |
+| **Payload** | Variable | Message-specific data                | CBOR-encoded where applicable |
+
+#### Message Types
+
+| Type Code | Name               | Description                           |
+| --------- | ------------------ | ------------------------------------- |
+| `0x00`    | StartSession       | Initiates a new session               |
+| `0x01`    | SessionEstablished | Confirms session establishment        |
+| `0x02`    | SessionError       | Reports session establishment failure |
+| `0x03`    | KeepAlive          | Maintains session liveness            |
 
 ### 4.3 StartSession Message
 
@@ -92,10 +99,25 @@ title "StartSession Message"
 +32: "..."
 ```
 
-- **Challenge** (8 bytes): Random challenge for correlating responses
-- **Capabilities** (1 byte): Session capabilities bitmap
-- **Additional Data** (4 bytes): Capability-dependent options (0x00000000 to ignore)
-- **Target** (variable): CBOR-encoded session target (e.g., "127.0.0.1:1234")
+| Field               | Size     | Description                                | Notes                         |
+| ------------------- | -------- | ------------------------------------------ | ----------------------------- |
+| **Challenge**       | 8 bytes  | Random challenge for correlating responses | MUST use CSPRNG               |
+| **Capabilities**    | 1 byte   | Session capabilities bitmap                | See Capability Flags table    |
+| **Additional Data** | 4 bytes  | Capability-dependent options               | Set to `0x00000000` to ignore |
+| **Target**          | Variable | CBOR-encoded session target                | e.g., "127.0.0.1:1234"        |
+
+#### Capability Flags
+
+| Bit | Flag Name | Description             |
+| --- | --------- | ----------------------- |
+| 0   | Reserved  | Reserved for future use |
+| 1   | Reserved  | Reserved for future use |
+| 2   | Reserved  | Reserved for future use |
+| 3   | Reserved  | Reserved for future use |
+| 4   | Reserved  | Reserved for future use |
+| 5   | Reserved  | Reserved for future use |
+| 6   | Reserved  | Reserved for future use |
+| 7   | Reserved  | Reserved for future use |
 
 ### 4.4 SessionEstablished Message
 
@@ -109,8 +131,10 @@ title "SessionEstablished Message"
 +32: "..."
 ```
 
-- **Original Challenge** (8 bytes): Challenge from StartSession message
-- **Session ID** (variable): CBOR-encoded session identifier assigned by responder
+| Field                  | Size     | Description                         | Notes                                 |
+| ---------------------- | -------- | ----------------------------------- | ------------------------------------- |
+| **Original Challenge** | 8 bytes  | Challenge from StartSession message | MUST match original challenge         |
+| **Session ID**         | Variable | CBOR-encoded session identifier     | Assigned by responder, MUST be unique |
 
 ### 4.5 SessionError Message
 
@@ -123,11 +147,18 @@ title "SessionError Message"
 +8: "Reason"
 ```
 
-- **Challenge** (8 bytes): Challenge from StartSession message
-- **Reason** (1 byte): Error reason code
-  - 0x00: Unknown error
-  - 0x01: No slots available
-  - 0x02: Busy
+| Field         | Size    | Description                         | Notes                         |
+| ------------- | ------- | ----------------------------------- | ----------------------------- |
+| **Challenge** | 8 bytes | Challenge from StartSession message | MUST match original challenge |
+| **Reason**    | 1 byte  | Error reason code                   | See Error Codes table below   |
+
+#### Error Codes
+
+| Code   | Name               | Description                              | Recommended Action                      |
+| ------ | ------------------ | ---------------------------------------- | --------------------------------------- |
+| `0x00` | Unknown Error      | Unspecified error condition              | Retry with different parameters or node |
+| `0x01` | No Slots Available | Exit node has no available session slots | Retry later or try different node       |
+| `0x02` | Busy               | Exit node is temporarily busy            | Retry after brief delay                 |
 
 ### 4.6 KeepAlive Message
 
@@ -142,9 +173,11 @@ title "KeepAlive Message"
 +#2: "..."
 ```
 
-- **Flags** (1 byte): Reserved for future use (MUST be 0x00)
-- **Additional Data** (8 bytes): Flag-dependent options (0x0000000000000000 to ignore)
-- **Session ID** (variable): CBOR-encoded session identifier
+| Field               | Size     | Description                     | Notes                                 |
+| ------------------- | -------- | ------------------------------- | ------------------------------------- |
+| **Flags**           | 1 byte   | Reserved for future use         | MUST be `0x00`                        |
+| **Additional Data** | 8 bytes  | Flag-dependent options          | Set to `0x0000000000000000` to ignore |
+| **Session ID**      | Variable | CBOR-encoded session identifier | MUST match established session        |
 
 ### 4.7 Protocol Flow
 
@@ -166,15 +199,26 @@ sequenceDiagram
     end
 ```
 
-### 4.8 Protocol Rules
+### 4.8 Protocol Constants
 
-1. Challenge values MUST be randomly generated using cryptographically secure random number generation
-2. Session IDs MUST be unique per responder
-3. Targets and Session IDs use CBOR encoding [01]
-4. Messages MUST fit within HOPR packet payload limits
-5. KeepAlive messages SHOULD be sent periodically to maintain session state
-6. Implementations MUST handle all defined error conditions gracefully
-7. Session establishment timeouts SHOULD be configurable but default to 30 seconds
+| Constant               | Value       | Description                           |
+| ---------------------- | ----------- | ------------------------------------- |
+| **Protocol Version**   | `0x02`      | Current protocol version              |
+| **Default Timeout**    | 30 seconds  | Default session establishment timeout |
+| **Challenge Size**     | 8 bytes     | Fixed size for challenge field        |
+| **Max Payload Length** | 65535 bytes | Maximum message payload size          |
+
+### 4.9 Protocol Rules
+
+| Rule                      | Requirement Level | Description                                                          |
+| ------------------------- | ----------------- | -------------------------------------------------------------------- |
+| **Challenge Generation**  | MUST              | Challenge values MUST be randomly generated using CSPRNG             |
+| **Session ID Uniqueness** | MUST              | Session IDs MUST be unique per responder                             |
+| **CBOR Encoding**         | MUST              | Targets and Session IDs use CBOR encoding [01]                       |
+| **Payload Limits**        | MUST              | Messages MUST fit within HOPR packet payload limits                  |
+| **Keep-Alive Frequency**  | SHOULD            | KeepAlive messages SHOULD be sent periodically                       |
+| **Error Handling**        | MUST              | Implementations MUST handle all defined error conditions gracefully  |
+| **Timeout Configuration** | SHOULD            | Session establishment timeouts SHOULD be configurable (default: 30s) |
 
 ### 4.9 Example Message Exchanges
 
@@ -186,7 +230,7 @@ Complete session establishment with immediate keep-alive:
 sequenceDiagram
     participant E as Entry Node
     participant X as Exit Node
-    
+
     E->>X: StartSession(challenge=0x1234567890ABCDEF, target="127.0.0.1:8080")
     X->>E: SessionEstablished(challenge=0x1234567890ABCDEF, session_id=42)
     E->>X: KeepAlive(session_id=42)
@@ -200,7 +244,7 @@ Session establishment failing due to resource exhaustion:
 sequenceDiagram
     participant E as Entry Node
     participant X as Exit Node
-    
+
     E->>X: StartSession(challenge=0xFEDCBA0987654321, target="192.168.1.100:9090")
     X->>E: SessionError(challenge=0xFEDCBA0987654321, reason=0x01)
 ```
@@ -213,9 +257,9 @@ Session establishment with no response from Exit Node:
 sequenceDiagram
     participant E as Entry Node
     participant X as Exit Node
-    
+
     E-xX: StartSession(challenge=0xABCDEF0123456789, target="10.0.0.50:8080")
-    
+
     rect rgba(255, 0, 0, 0.1)
         Note over E: Timeout after 30 seconds
     end
@@ -229,10 +273,10 @@ Maintaining an established session over time:
 sequenceDiagram
     participant E as Entry Node
     participant X as Exit Node
-    
+
     E->>X: StartSession(challenge, target)
     X->>E: SessionEstablished(challenge, session_id=42)
-    
+
     loop Every 60 seconds
         E->>X: KeepAlive(session_id=42)
     end
