@@ -79,7 +79,7 @@ title "Common Structure"
 | **Length**  | 2 bytes  | Payload length in bytes   | Maximum is `C - 4`             |
 | **Payload** | Variable | Message-specific data     | Format depends on message type |
 
-#### Message Types
+#### 4.2.1 Message Types
 
 | Type Code | Name                   | Description                       |
 | --------- | ---------------------- | --------------------------------- |
@@ -87,7 +87,7 @@ title "Common Structure"
 | `0x01`    | Retransmission Request | Requests missing segments         |
 | `0x02`    | Frame Acknowledgement  | Confirms successful frame receipt |
 
-#### Byte Order
+#### 4.2.2 Byte Order
 
 All multi-byte integer fields and values in the Session Data Protocol MUST be encoded and interpreted in network byte order (big-endian). This applies to:
 
@@ -120,7 +120,7 @@ title "Segment"
 | **Sequence Flags** | 1 byte   | Segment metadata flags                  | See Sequence Flags table below |
 | **Segment Data**   | Variable | Payload data                            | 0 to (`C - 10`) bytes          |
 
-#### Sequence Flags Bitmap
+#### 4.3.2 Sequence Flags Bitmap
 
 | Bit | Flag Name            | Description                     | Values                          |
 | --- | -------------------- | ------------------------------- | ------------------------------- |
@@ -128,7 +128,7 @@ title "Segment"
 | 6   | **Reserved**         | Reserved for future use         | MUST be `0`                     |
 | 5-0 | **Segment Count**    | Total segments in frame minus 1 | `0`-`63` (1-64 segments)        |
 
-#### 4.3.2 Segmentation Rules
+#### 4.3.3 Segmentation Rules
 
 | Rule                       | Requirement | Description                                                       |
 | -------------------------- | ----------- | ----------------------------------------------------------------- |
@@ -138,7 +138,7 @@ title "Segment"
 | **Empty Segments**         | MUST        | Empty segments MUST be valid (used for terminating segments)      |
 | **Frame ID Ordering**      | MUST        | Frame IDs MUST be monotonically increasing within a session       |
 
-#### Protocol Constants
+#### 4.3.4 Protocol Constants
 
 | Constant                   | Value         | Description                                        |
 | -------------------------- | ------------- | -------------------------------------------------- |
@@ -171,7 +171,7 @@ The message contains a sequence of 5-byte entries:
 | **Frame ID**       | 4 bytes | Frame identifier           | 1 to 4,294,967,295             |
 | **Missing Bitmap** | 1 byte  | Bitmap of missing segments | See Missing Bitmap table below |
 
-#### Missing Bitmap Format
+#### 4.4.2 Missing Bitmap Format
 
 | Bit | Segment Index | Description                   |
 | --- | ------------- | ----------------------------- |
@@ -186,7 +186,7 @@ The message contains a sequence of 5-byte entries:
 
 **Note:** This message MUST be used only for frames with up to 8 segments (due to bitmap size limitation). Reliable sessions are limited to 7 segments per frame. Unreliable sessions SHOULD not have this limitation.
 
-#### 4.4.2 Request Rules
+#### 4.4.3 Request Rules
 
 | Rule              | Requirement | Description                                          |
 | ----------------- | ----------- | ---------------------------------------------------- |
@@ -212,7 +212,7 @@ title "Frame Acknowledgement Message"
 | ----------------- | ------------ | ---------------------------------------- | ------------------------------------- |
 | **Frame ID List** | 4 bytes each | List of fully received frame identifiers | See Acknowledgement Rules table below |
 
-#### Acknowledgement Rules
+#### 4.5.2 Acknowledgement Rules
 
 | Rule             | Requirement | Description                                     |
 | ---------------- | ----------- | ----------------------------------------------- |

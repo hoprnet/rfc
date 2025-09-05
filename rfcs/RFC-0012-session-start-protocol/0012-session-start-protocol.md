@@ -76,7 +76,7 @@ title "Common Message Format"
 | **Length**  | 2 bytes  | Payload length in bytes   | 0-65535                       |
 | **Payload** | Variable | Message-specific data     | CBOR-encoded where applicable |
 
-#### Message Types
+#### 4.2.1 Message Types
 
 | Type Code | Name               | Description                           |
 | --------- | ------------------ | ------------------------------------- |
@@ -85,7 +85,7 @@ title "Common Message Format"
 | `0x02`    | SessionError       | Reports session establishment failure |
 | `0x03`    | KeepAlive          | Maintains session liveness            |
 
-#### Byte Order
+#### 4.2.2 Byte Order
 
 All multi-byte integer fields and values in the Session Start Protocol MUST be encoded and interpreted in network byte order (big-endian). This applies to:
 
@@ -121,7 +121,7 @@ title "StartSession Message"
 | **Additional Data** | 4 bytes  | Capability-dependent options               | Set to `0x00000000` to ignore |
 | **Target**          | Variable | CBOR-encoded session target                | e.g., "127.0.0.1:1234"        |
 
-#### Capability Flags
+#### 4.3.1 Capability Flags
 
 | Bit | Flag Name | Description             |
 | --- | --------- | ----------------------- |
@@ -167,7 +167,7 @@ title "SessionError Message"
 | **Challenge** | 8 bytes | Challenge from StartSession message | MUST match original challenge |
 | **Reason**    | 1 byte  | Error reason code                   | See Error Codes table below   |
 
-#### Error Codes
+#### 4.5.1 Error Codes
 
 | Code   | Name               | Description                              | Recommended Action                      |
 | ------ | ------------------ | ---------------------------------------- | --------------------------------------- |
@@ -401,7 +401,11 @@ The protocol provides structured error reporting:
 - Test capability negotiation edge cases
 - Validate CBOR encoding/decoding correctness
 
-## Appendix 1
+## 10. References
+
+[01] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.
+
+## 11. Appendix 1
 
 Within HOPR protocol a Session is identified uniquely via HOPR Session ID,
 this consists of a 10-byte pseudorandom bytes as prefix and 64-bit unsigned integer as suffix. The 64-bit suffix is encoded and interpreted as a big-endian unsigned integer.
@@ -412,7 +416,3 @@ In human readable format, a HOPR Session ID has the following syntax:
 
 The prefix represents a fixed pseudonym prefix of in the HOPR Packet protocol (as in RFC-0003).
 The suffix represents an application tag that identifies Sessions within the reserved range in the Application protocol (as in RFC-0014).
-
-## 10. References
-
-[01] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.
