@@ -1,6 +1,6 @@
 # RFC-0009: Economic Reward System
 
-- **RFC Number:** 0009 
+- **RFC Number:** 0009
 - **Title:** Economic Reward System
 - **Status:** Raw
 - **Author(s):** Jean Demeusy (@jeandemeusy)
@@ -9,21 +9,22 @@
 - **Version:** v0.1.0
 - **Supersedes:** N/A
 - **References:** none
- 
+
 ## Abstract
 
 <!-- Provide a brief and clear summary of the RFC, outlining its purpose, context, and scope. -->
 
-This RFC describes mechanisms around the economic reward system such as how the eligible peer set is constructed and how the rewards per peer are calculated 
+This RFC describes mechanisms around the economic reward system such as how the eligible peer set is constructed and how the rewards per peer are calculated
 
 ## Motivation
 
 <!-- Explain the problem this RFC aims to solve.
 Discuss existing limitations, technical gaps, and why the proposed solution is necessary. -->
+
 The rewards calculation can be seen as an opaque procedure selecting who receives which amount. This RFC aims to raise the veil and clarify the reasoning behind it.
 
-The economic reward system is a necessary component of the HOPR mixnet, as it incentivize node runners to keep their node running, in order to have a network topology as stable as possible. It must be a fair logic, to never favour or disadvantage a subset of node runners, that encourages sustainability without compromising decentralization. It must also incentivize node runners to be connected to other nodes in the network with channels. Isolated nodes are way less useful to the network than well intricately connected nodes. 
- 
+The economic reward system is a necessary component of the HOPR mixnet, as it incentivize node runners to keep their node running, in order to have a network topology as stable as possible. It must be a fair logic, to never favour or disadvantage a subset of node runners, that encourages sustainability without compromising decentralization. It must also incentivize node runners to be connected to other nodes in the network with channels. Isolated nodes are way less useful to the network than well intricately connected nodes.
+
 ## 2. Terminology
 
 <!-- Define key terms, abbreviations, and domain-specific language used throughout the RFC. -->
@@ -38,7 +39,6 @@ The economic reward system is a necessary component of the HOPR mixnet, as it in
 - **MessageFormat**: Class encoding message metadata and payload as bytes.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
-
 
 ## 3. System Overview
 
@@ -58,7 +58,7 @@ flowchart TD
     H --> I[Send Messages through Sessions]
     I --> J[End]
 ```
- 
+
 ## 4. Data Collection and Enrichment
 
 ### 4.1 Data Sources
@@ -91,7 +91,7 @@ flowchart LR
     EOA --> Peer
     Topology --> Peer
 ```
- 
+
 ## 5. Peer Eligibility Filtering
 
 The eligibility filtering process is designed to ensure that only peers who are meaningfully participating in the network and contributing resources are considered for rewards. The first filter checks that the peer's safe allowance meets a minimum threshold, ensuring that only active and funded peers are included. Next, the system excludes any peer that is also a CT node, to prevent self-rewarding. The NFT/stake requirement is then applied: if a peer is not an NFT holder, they must meet a higher minimum stake threshold, while NFT holders may be subject to a lower threshold. Finally, all peers must meet a minimum stake requirement, regardless of NFT status. Only those who pass all these checks are considered eligible for rewards.
@@ -114,7 +114,7 @@ flowchart TD
     F -- No --> X
     F -- Yes --> Y[Eligible]
 ```
- 
+
 ## 6. Economic Model Application
 
 For each eligible peer, the system applies an economic model—such as a sigmoid or legacy model—to determine the number of messages (reward units) they should receive over the course of a year. The model takes into account the peer's individual stake, the total network stake, the network's capacity, and historical activity metrics such as message relay counts. The output of this model is the yearly message count for each peer, which directly determines their share of the rewards.
@@ -131,13 +131,13 @@ graph TD
     Params --> Model
     Model --> Output
 ```
- 
+
 ## 7. Message Timing and Delay Calculation
 
 The timing between messages sent to each eligible peer is carefully calculated to ensure a fair and even distribution throughout the year. The base delay between two messages is computed as the total number of seconds in a non-leap year divided by the peer's yearly message count. To allow for efficient batching and aggregation, the system introduces two session parameters: `aggregated_packets` and `batch_size`. The actual sleep time between message batches is the product of the base delay, the number of aggregated packets, and the batch size. This approach allows the system to send bursts of messages followed by a pause, balancing throughput and network load. The values of these parameters can be tuned to optimize performance and reliability.
 
 The `aggregated_packets` parameter specifies how many messages are grouped together and sent in a single relay operation, while `batch_size` determines how many such operations are performed before the system waits for the next delay interval. The product of these two parameters gives the total number of messages sent in each cycle, and the delay is applied after each cycle. This mechanism provides fine-grained control over the message sending pattern.
- 
+
 ## 8. Message Sending Architecture
 
 When it is time to send messages, the system first establishes a UDP session for each eligible peer, selecting a destination CT node at random (excluding the local node). Each session is managed by a `SessionToSocket` object, which handles both the session metadata and the underlying UDP socket. The socket is configured with appropriate buffer sizes and is closed when the session ends to prevent resource leaks.
@@ -155,7 +155,7 @@ flowchart TD
     T --> R[Optional Response]
     R --> C[Session Closed]
 ```
- 
+
 ## 9. Security and Monitoring
 
 Security and monitoring are integral to the HOPR CT reward distribution process. To ensure transparency and facilitate troubleshooting, all delays and message counts are tracked using Prometheus metrics. This allows operators and developers to monitor the system's performance in real time, detect anomalies, and analyze historical trends.
@@ -168,60 +168,61 @@ Finally, the system enforces strict eligibility checks before sending messages. 
 
 ### Registered Node
 
-| Variable Name | Type   | Purpose                                      |
-|--------------|--------|----------------------------------------------|
-| address      | str    | Node's unique address                        |
-| safe         | Safe   | Associated Gnosis Safe object                |
-| ...          | ...    | (Other metadata as provided by subgraph)     |
+| Variable Name | Type | Purpose                                  |
+| ------------- | ---- | ---------------------------------------- |
+| address       | str  | Node's unique address                    |
+| safe          | Safe | Associated Gnosis Safe object            |
+| ...           | ...  | (Other metadata as provided by subgraph) |
 
 ### Safe
 
-| Variable Name      | Type   | Purpose                                      |
-|-------------------|--------|----------------------------------------------|
-| address           | str    | Safe contract address                        |
-| balance           | Balance| Total balance held in the safe               |
-| allowance         | Balance| Allowance available for node operations      |
-| additional_balance| Balance| Extra balance from allocations/EOA           |
-| owners            | list   | List of owner addresses                      |
-| ...               | ...    | (Other metadata as provided by subgraph)     |
+| Variable Name      | Type    | Purpose                                  |
+| ------------------ | ------- | ---------------------------------------- |
+| address            | str     | Safe contract address                    |
+| balance            | Balance | Total balance held in the safe           |
+| allowance          | Balance | Allowance available for node operations  |
+| additional_balance | Balance | Extra balance from allocations/EOA       |
+| owners             | list    | List of owner addresses                  |
+| ...                | ...     | (Other metadata as provided by subgraph) |
 
 ### Allocation
 
-| Variable Name     | Type    | Purpose                                      |
-|------------------|---------|----------------------------------------------|
-| address          | str     | Allocation contract address                  |
-| unclaimed_amount | Balance | Amount not yet claimed                       |
-| linked_safes     | set     | Safes associated with this allocation        |
-| num_linked_safes | int     | Number of safes linked                       |
+| Variable Name    | Type    | Purpose                               |
+| ---------------- | ------- | ------------------------------------- |
+| address          | str     | Allocation contract address           |
+| unclaimed_amount | Balance | Amount not yet claimed                |
+| linked_safes     | set     | Safes associated with this allocation |
+| num_linked_safes | int     | Number of safes linked                |
 
 ### EOA Balance
 
-| Variable Name     | Type    | Purpose                                      |
-|------------------|---------|----------------------------------------------|
-| address          | str     | EOA address                                  |
-| balance          | Balance | Balance held by the EOA                      |
-| linked_safes     | set     | Safes associated with this EOA               |
-| num_linked_safes | int     | Number of safes linked                       |
+| Variable Name    | Type    | Purpose                        |
+| ---------------- | ------- | ------------------------------ |
+| address          | str     | EOA address                    |
+| balance          | Balance | Balance held by the EOA        |
+| linked_safes     | set     | Safes associated with this EOA |
+| num_linked_safes | int     | Number of safes linked         |
 
 ### Topology Entry
 
-| Variable Name     | Type    | Purpose                                      |
-|------------------|---------|----------------------------------------------|
-| address          | str     | Peer address                                 |
-| channels_balance | Balance | Total balance in outgoing channels           |
+| Variable Name    | Type    | Purpose                            |
+| ---------------- | ------- | ---------------------------------- |
+| address          | str     | Peer address                       |
+| channels_balance | Balance | Total balance in outgoing channels |
 
 ### Peer (Enriched)
 
-| Variable Name         | Type      | Purpose                                      |
-|----------------------|-----------|----------------------------------------------|
-| address              | Address   | Peer’s unique address                        |
-| version              | Version   | Peer’s software version                      |
-| safe                 | Safe      | Associated safe object                       |
-| channel_balance      | Balance   | Balance in outgoing channels                 |
-| yearly_message_count | int/None  | Calculated reward allocation                 |
-| params               | Parameters| Application parameters                       |
-| running              | bool      | Is the peer currently active                 |
-| ...                  | ...       | (Other runtime attributes)                   |
- 
+| Variable Name        | Type       | Purpose                      |
+| -------------------- | ---------- | ---------------------------- |
+| address              | Address    | Peer’s unique address        |
+| version              | Version    | Peer’s software version      |
+| safe                 | Safe       | Associated safe object       |
+| channel_balance      | Balance    | Balance in outgoing channels |
+| yearly_message_count | int/None   | Calculated reward allocation |
+| params               | Parameters | Application parameters       |
+| running              | bool       | Is the peer currently active |
+| ...                  | ...        | (Other runtime attributes)   |
+
 ## Changelog
+
 - 2025-06-26: Initial draft.
