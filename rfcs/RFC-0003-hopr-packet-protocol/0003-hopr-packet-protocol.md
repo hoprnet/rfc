@@ -263,7 +263,7 @@ For the above reasons, the forward payload MUST consist of:
 ```
 PacketPayload {
   signals: u4,
-  num_surbs: u4, 
+  num_surbs: u4,
   surbs: [Surb; num_surbs]
   user_payload: [u8; <variable length>]
 }
