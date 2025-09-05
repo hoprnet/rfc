@@ -59,13 +59,14 @@ The protocol uses HOPR packets as the underlying transport mechanism and support
 
 All Session Start Protocol messages follow a common structure:
 
-```
-+--------+--------+--------+--------+
-|Version |  Type  |     Length      |
-+--------+--------+--------+--------+
-|          Message Payload          |
-|              ...                  |
-+-----------------------------------+
+```mermaid
+packet
+title "Common Message Format"
++8: "Version"
++8: "Type"
++16: "Length"
++32: "Payload (variable-length)"
++32: "..."
 ```
 
 - **Version** (1 byte): Protocol version, MUST be 0x02 for version 2
@@ -75,24 +76,20 @@ All Session Start Protocol messages follow a common structure:
   - 0x02: SessionError
   - 0x03: KeepAlive
 - **Length** (2 bytes): Big-endian payload length in bytes
-- **Payload**: Message-specific data (CBOR-encoded where applicable)
+- **Payload** (variable): Message-specific data (CBOR-encoded where applicable)
 
 ### 4.3 StartSession Message
 
 Initiates a new session with the remote peer.
 
-```
-+--------+--------+--------+--------+
-|          Challenge (8 bytes)      |
-+--------+--------+--------+--------+
-|          (continued)              |
-+--------+--------+--------+--------+
-|  Cap.  |    Additional Data      |
-+--------+--------+--------+--------+
-|  (cont)|     Target (CBOR)       |
-+--------+--------+--------+--------+
-|              ...                  |
-+-----------------------------------+
+```mermaid
+packet
+title "StartSession Message"
++64: "Challenge"
++8: "Capabilities"
++32: "Additional Data"
++32: "Target (CBOR, variable-length)"
++32: "..."
 ```
 
 - **Challenge** (8 bytes): Random challenge for correlating responses
@@ -104,16 +101,12 @@ Initiates a new session with the remote peer.
 
 Confirms successful session establishment.
 
-```
-+--------+--------+--------+--------+
-|      Original Challenge (8 bytes) |
-+--------+--------+--------+--------+
-|          (continued)              |
-+--------+--------+--------+--------+
-|       Session ID (CBOR)           |
-+--------+--------+--------+--------+
-|              ...                  |
-+-----------------------------------+
+```mermaid
+packet
+title "SessionEstablished Message"
++64: "Original Challenge"
++32: "Session ID (CBOR, variable-length)"
++32: "..."
 ```
 
 - **Original Challenge** (8 bytes): Challenge from StartSession message
@@ -123,14 +116,11 @@ Confirms successful session establishment.
 
 Reports session establishment failure.
 
-```
-+--------+--------+--------+--------+
-|          Challenge (8 bytes)      |
-+--------+--------+--------+--------+
-|          (continued)              |
-+--------+--------+--------+--------+
-| Reason |
-+--------+
+```mermaid
+packet
+title "SessionError Message"
++64: "Challenge"
++8: "Reason"
 ```
 
 - **Challenge** (8 bytes): Challenge from StartSession message
@@ -143,14 +133,13 @@ Reports session establishment failure.
 
 Maintains session liveness.
 
-```
-+--------+--------+--------+--------+
-| Flags  |    Additional Data      |
-+--------+--------+--------+--------+
-| (cont) |    Session ID (CBOR)    |
-+--------+--------+--------+--------+
-|              ...                  |
-+-----------------------------------+
+```mermaid
+packet
+title "KeepAlive Message"
++8: "Flags"
++64: "Additional Data"
++32: "Session ID (CBOR, variable-length)"
++#2: "..."
 ```
 
 - **Flags** (1 byte): Reserved for future use (MUST be 0x00)
@@ -312,6 +301,7 @@ The protocol provides structured error reporting:
 - Validate CBOR encoding/decoding correctness
 
 ## Appendix 1
+
 Within HOPR protocol a Session is identified uniquely via HOPR Session ID,
 this consists of a 10-byte pseudorandom bytes as prefix and 64-bit unsigned integer as suffix.
 
@@ -321,7 +311,6 @@ In human readable format, a HOPR Session ID has the following syntax:
 
 The prefix represents a fixed pseudonym prefix of in the HOPR Packet protocol (as in RFC-0003).
 The suffix represents an application tag that identifies Sessions within the reserved range in the Application protocol (as in RFC-0014).
-
 
 ## 10. References
 

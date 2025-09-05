@@ -58,18 +58,18 @@ The protocol supports two operational modes:
 
 Session establishment and lifecycle management is handled by the HOPR Session Start Protocol.
 
-
 ### 4.2 Session Data Protocol Message Format
 
 All Session Data Protocol messages follow a common structure:
 
-```
-+--------+--------+--------+--------+
-|Version |  Type  |     Length      |
-+--------+--------+--------+--------+
-|          Message Payload          |
-|              ...                  |
-+-----------------------------------+
+```mermaid
+packet
+title "Common Structure"
++8: "Version"
++8: "Type"
++16: "Length"
++32: "Payload (variable-length)"
++32: "..."
 ```
 
 - **Version** (1 byte): Protocol version, MUST be 0x01 for version 1
@@ -78,20 +78,20 @@ All Session Data Protocol messages follow a common structure:
   - 0x01: Retransmission Request
   - 0x02: Frame Acknowledgement
 - **Length** (2 bytes): Big-endian payload length in bytes (max 2047)
-- **Payload**: Message-specific data
+- **Payload** (variable): Message-specific data
 
 ### 4.3 Segment Message
 
 #### 4.3.1 Segment Structure
 
-```
-+--------+--------+--------+--------+
-|            Frame ID               |
-+--------+--------+--------+--------+
-|Seq Idx |Seq Flag|   Segment Data  |
-+--------+--------+                 |
-|              ...                  |
-+-----------------------------------+
+```mermaid
+packet
+title "Segment"
++32: "Frame ID"
++8: "Sequence Index"
++8: "Sequence Flags"
++48: "Segment Data (variable-length)"
++32: "..."
 ```
 
 - **Frame ID** (4 bytes): Big-endian frame identifier (MUST be > 0)
@@ -100,7 +100,7 @@ All Session Data Protocol messages follow a common structure:
   - Bit 7: Termination flag (1 = terminating segment)
   - Bit 6: Reserved (MUST be 0)
   - Bits 0-5: Total segments in frame minus 1 (max value: 63)
-- **Segment Data**: Variable length payload data
+- **Segment Data** (variable): payload data
 
 #### 4.3.2 Segmentation Rules
 
@@ -114,18 +114,16 @@ All Session Data Protocol messages follow a common structure:
 
 #### 4.4.1 Request Structure
 
-```
-+--------+--------+--------+--------+
-|           Frame ID 1              |
-+--------+--------+--------+--------+
-|Missing |           Frame ID 2     |
-+--------+--------+--------+--------+
-|       Missing   |    Frame ID 3   |
-+--------+--------+--------+--------+
-|              Missing              |
-+--------+--------+--------+--------+
-|              ...                  |
-+-----------------------------------+
+```mermaid
+packet
+title "Retransmission Request Message"
++32: "Frame ID 1"
++8: "Missing Bitmap 1"
++32: "Frame ID 2"
++8: "Missing Bitmap 2"
++32: "Frame ID 3"
++8: "Missing Bitmap 3"
++32: "..."
 ```
 
 The message contains a sequence of 5-byte entries:
@@ -135,8 +133,8 @@ The message contains a sequence of 5-byte entries:
   - Bit N set = segment N is missing (N: 0-7)
 
 The above message MUST be used only for Frames with up to 7 Segments (due to the bitmap size limitation).
-Since this message is used only with *reliable* Sessions, the number of Segments per Frame MUST be limited to 7.
-The *unreliable* Sessions SHOULD not have this limitation.
+Since this message is used only with _reliable_ Sessions, the number of Segments per Frame MUST be limited to 7.
+The _unreliable_ Sessions SHOULD not have this limitation.
 
 #### 4.4.2 Request Rules
 
@@ -149,14 +147,13 @@ The *unreliable* Sessions SHOULD not have this limitation.
 
 #### 4.5.1 Acknowledgement Structure
 
-```
-+--------+--------+--------+--------+
-|           Frame ID 1              |
-+--------+--------+--------+--------+
-|           Frame ID 2              |
-+--------+--------+--------+--------+
-|              ...                  |
-+-----------------------------------+
+```mermaid
+packet
+title "Frame Acknowledgement Message"
++32: "Frame ID 1"
++32: "Frame ID 2"
++32: "Frame ID 3"
++32: "..."
 ```
 
 - Contains a list of 4-byte Frame IDs that have been fully received
@@ -329,7 +326,6 @@ Limiting retransmission requests to the first 8 segments per frame:
 - Simulate packet loss, reordering, and duplication
 - Verify termination handling under all conditions
 - Stress test with maximum frame sizes and counts
-
 
 ## 10. References
 
