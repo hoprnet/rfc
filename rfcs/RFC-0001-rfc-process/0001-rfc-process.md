@@ -1,43 +1,43 @@
-# RFC-0001: RFC Life Cycle and Process
+# RFC-0001: RFC Life Cycle, Process and Structure
 
 - **RFC Number:** 0001
-- **Title:** RFC Life Cycle and Process
+- **Title:** RFC Life Cycle, Process and Structure
 - **Status:** Raw
-- **Author(s):** QYuQianchen
+- **Author(s):** Qianchen Yu (@QYuQianchen), Tino Breddin (@tolbrino)
 - **Created:** 2025-02-20
-- **Updated:** 2025-02-20
-- **Version:** v0.1.0 (Raw)
+- **Updated:** 2025-08-20
+- **Version:** v0.2.0 (Raw)
 - **Supersedes:** N/A
-- **References:**
+- **Related Links:** none
 
-## Abstract
+## 1. Abstract
 
-This RFC defines the life cycle, contribution process, versioning system, and governance model for RFCs at HOPR.
-It outlines stages, naming conventions, and validation rules that MUST be followed to ensure consistency
+This RFC defines the life cycle, contribution process, versioning system, governance model, and document structure for RFCs at HOPR.
+It outlines stages, naming conventions, validation rules, and formatting standards that MUST be followed to ensure consistency
 and clarity across all RFC submissions.
 The process ensures iterative development with feedback loops and transparent updates with pull requests (PR).
 
-## Motivation
+## 2. Motivation
 
 HOPR project requires a clear and consistent process for managing technical proposals, documenting protocol architecture.
 A well-defined life cycle MUST be established to maintain coherence, ensure quality, and streamline future development.
 
-## Terminology
+## 3. Terminology
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",
 "MAY", and "OPTIONAL" in this document are to be interpreted as described
-in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
+in [01].
 
 **Draft:** An RFC is considered a draft from the moment it is proposed for review.
 A draft MUST include a clear summary, context, and initial technical details.
 Drafts MUST follow the v0.x.x versioning scheme, with each version being independently implementable.
 A draft version is assigned as soon as the first PR is created.
 
-## Specification
+## 4. Specification
 
-### 1. RFC Life Cycle Stages
+### 4.1. RFC Life Cycle Stages
 
-#### **Mermaid Diagram for RFC Life Cycle Stages**
+#### 4.1.1. **Mermaid Diagram for RFC Life Cycle Stages**
 
 ```mermaid
 graph TD
@@ -70,7 +70,7 @@ graph TD
     A --> I
 ```
 
-#### **Stage Descriptions:**
+#### 4.1.2. **Stage Descriptions:**
 
 - **Raw:** The RFC **MUST** begin as a raw draft reflecting initial ideas.
   The draft MAY contain incomplete details but MUST provide a clear objective.
@@ -92,7 +92,7 @@ graph TD
   accompanied with a link to the new RFC that supersedes it.
 - **Rejected:** If an RFC does not progress past the discussion stage, reasons **MUST** be documented.
 
-### 2. File Structure
+### 4.2. File Structure
 
 ```plaintext
 RFC-0001-rfc-life-cycle-process/
@@ -106,7 +106,7 @@ RFC-0001-rfc-life-cycle-process/
 
 ---
 
-### 3. Validation Rules
+### 4.3. Validation Rules
 
 - Directory **MUST** be prefixed with uppercased "RFC", followed by its RFC number,
   and a succinct title all in lowercase joined by hyphens. E.g. `RFC-0001-rfc-life-cycle-process`
@@ -115,59 +115,106 @@ RFC-0001-rfc-life-cycle-process/
 - All assets **MUST** reside in the `assets/` folder.
 - Errata **MUST** reside in the `errata/` folder.
 
-## Design Considerations
+### 4.4. RFC Document Structure
+
+All RFCs **MUST** follow a consistent document structure to ensure readability and maintainability.
+
+#### 4.4.1. Metadata Preface
+
+Every RFC **MUST** begin with the following metadata structure:
+
+```markdown
+# RFC-XXXX: [Title]
+
+- **RFC Number:** XXXX
+- **Title:** [Title in Title Case]
+- **Status:** Raw | Discussion | Review | Draft | Implementation | Finalized | Errata | Rejected | Superseded
+- **Author(s):** [Name (GitHub Handle)]
+- **Created:** YYYY-MM-DD
+- **Updated:** YYYY-MM-DD
+- **Version:** vX.X.X (Status)
+- **Supersedes:** RFC-YYYY (if applicable) | N/A
+- **Related Links:** [RFC-XXXX](../RFC-XXXX-[slug]/XXXX-[slug].md) | none
+```
+
+#### 4.4.2. Reference Styles
+
+RFCs **MUST** use two distinct reference styles:
+
+##### 4.4.2.1. RFC-to-RFC References
+
+- RFC references to other HOPR RFCs **MUST** be listed in the metadata's **Related Links:** field
+- Format: `[RFC-XXXX](../RFC-XXXX-[slug]/XXXX-[slug].md)`
+- Multiple references **SHALL** be separated by commas
+- If no RFC references exist, the field **MUST** contain "none"
+- Example: `[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)`
+
+##### 4.4.2.2. External References
+
+- External references **MUST** be listed in a dedicated `## References` section at the end of the document
+- References **MUST** use sequential numbering with zero-padding: [01], [02], etc.
+- In-text citations **MUST** use the numbered format: "as described in [01]"
+- Reference format **SHOULD** follow academic citation style:
+  ```
+  [XX] Author(s). (Year). [Title](URL). _Publication_, Volume(Issue), pages.
+  ```
+- Example:
+  ```
+  [01] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf). _Communications of the ACM, 24_(2), 84-90.
+  ```
+
+#### 4.4.3. Required Sections
+
+All RFCs **MUST** include the following sections:
+
+1. **Metadata Preface** (as defined in 4.4.1)
+2. **Abstract** - Brief summary of the RFC's purpose and scope
+3. **References** - External citations (if any)
+
+## 5. Design Considerations
 
 - Modular RFCs **SHOULD** be preferred.
 - PR system **MUST** be the primary mechanism for contribution, review, and errata handling.
 
-## Compatibility
+## 6. Compatibility
 
 - New RFCs **MUST** maintain backward compatibility unless explicitly stated.
 - Errata **MUST NOT** introduce backward-incompatible changes.
 - Breaking changes **MUST** be reflected in a major version increment (`v2.0.0`).
 
-## Security Considerations
+## 7. Security Considerations
 
 - Security review phase **MUST** be included before finalization.
 - Errata **MUST** undergo security review if impacting critical components.
 
-## Drawbacks
+## 8. Drawbacks
 
 - Strict naming conventions **MAY** limit creative flexibility.
 
-## Alternatives
+## 9. Alternatives
 
 - Collaborative document editing tools, e.g. hackmd.
 
-## Unresolved Questions
+## 10. Unresolved Questions
 
 - Handling emergency RFCs
 - Enforcing cross-RFC dependencies
 - Formal approval timeline for errata
 
-## Future Work
+## 11. Future Work
 
 - Automated validation tools
 - CI/CD integration for automated versioning and errata checks
-- Web interface for publishing RPCs
+- Web interface for publishing RFCs
 
-## References
+## 12. References
 
-- [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119)
-- https://www.rfc-editor.org/rfc/rfc2616
-- https://www.rfc-editor.org/styleguide/
-- https://datatracker.ietf.org/doc/rfc9114/
-- https://katzenpost.network/docs/
-- https://github.com/rust-lang/rfcs
-- https://github.com/rust-lang/rfcs/blob/master/0000-template.md
-- https://github.com/martinthomson/i-d-template/blob/main/example/draft-todo-yourname-protocol.md
-- https://github.com/rpaulo/quic-base-drafts/tree/master
-- https://www.rfc-editor.org/rfc/rfc2026.txt
-- https://rfc.zeromq.org
-- https://github.com/unprotocols/rfc
-- https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=120722035#LightweightRFCProcess-Collaboration
-- https://authors.ietf.org/en/templates-and-schemas
-- https://raw.githubusercontent.com/martinthomson/internet-draft-template/main/draft-todo-yourname-protocol.md
-- https://github.com/unprotocols/rfc/tree/master/2
-- https://zguide.wdfiles.com/local--files/main%3A_start/zguide-c.pdf
-- https://github.com/vacp2p/rfc-index
+[01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
+
+[02] [RFC Editor Style Guide](https://www.rfc-editor.org/styleguide/). RFC Editor.
+
+[03] [Rust RFC Process](https://github.com/rust-lang/rfcs). Rust Language Team.
+
+[04] [ZeroMQ RFC Process](https://rfc.zeromq.org). ZeroMQ Community.
+
+[05] [VACP2P RFC Index](https://github.com/vacp2p/rfc-index). Vac Research.
