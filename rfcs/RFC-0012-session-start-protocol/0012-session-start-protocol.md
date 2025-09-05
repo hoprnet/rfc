@@ -176,25 +176,66 @@ sequenceDiagram
 6. Implementations MUST handle all defined error conditions gracefully
 7. Session establishment timeouts SHOULD be configurable but default to 30 seconds
 
-### 4.9 Example Message Exchange
+### 4.9 Example Message Exchanges
 
-Complete session establishment and maintenance:
+#### 4.9.1 Successful Session Establishment
 
+Complete session establishment with immediate keep-alive:
+
+```mermaid
+sequenceDiagram
+    participant E as Entry Node
+    participant X as Exit Node
+    
+    E->>X: StartSession(challenge=0x1234567890ABCDEF, target="127.0.0.1:8080")
+    X->>E: SessionEstablished(challenge=0x1234567890ABCDEF, session_id=42)
+    E->>X: KeepAlive(session_id=42)
 ```
-Entry → Exit:
-  StartSession(challenge=0x1234567890ABCDEF,
-               target="127.0.0.1:8080",
-               capabilities=0x00,
-               additional_data=0x00000000)
 
-Exit → Entry:
-  SessionEstablished(orig_challenge=0x1234567890ABCDEF,
-                     session_id=42)
+#### 4.9.2 Session Establishment with Error
 
-Entry → Exit:
-  KeepAlive(session_id=42, flags=0x00, additional_data=0x00000000)
+Session establishment failing due to resource exhaustion:
 
-// Session is now established and ready for data exchange
+```mermaid
+sequenceDiagram
+    participant E as Entry Node
+    participant X as Exit Node
+    
+    E->>X: StartSession(challenge=0xFEDCBA0987654321, target="192.168.1.100:9090")
+    X->>E: SessionError(challenge=0xFEDCBA0987654321, reason=0x01)
+```
+
+#### 4.9.3 Session Establishment Timeout
+
+Session establishment with no response from Exit Node:
+
+```mermaid
+sequenceDiagram
+    participant E as Entry Node
+    participant X as Exit Node
+    
+    E-xX: StartSession(challenge=0xABCDEF0123456789, target="10.0.0.50:8080")
+    
+    rect rgba(255, 0, 0, 0.1)
+        Note over E: Timeout after 30 seconds
+    end
+```
+
+#### 4.9.4 Long-Running Session with Periodic Keep-Alives
+
+Maintaining an established session over time:
+
+```mermaid
+sequenceDiagram
+    participant E as Entry Node
+    participant X as Exit Node
+    
+    E->>X: StartSession(challenge, target)
+    X->>E: SessionEstablished(challenge, session_id=42)
+    
+    loop Every 60 seconds
+        E->>X: KeepAlive(session_id=42)
+    end
 ```
 
 ## 5. Design Considerations

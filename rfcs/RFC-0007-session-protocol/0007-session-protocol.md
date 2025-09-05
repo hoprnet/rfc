@@ -221,39 +221,75 @@ stateDiagram-v2
 
 #### 4.9.1 Simple Frame Transmission (Unreliable Mode)
 
-Sending a 300-byte frame with MTU=256:
+Sending a 300-byte frame with MTU=256 (246 bytes available per segment after 10-byte overhead):
 
-```
-Sender → Receiver:
-  Segment(frame_id=1, seq_idx=0, seq_flags=0x02, data[246])
-  Segment(frame_id=1, seq_idx=1, seq_flags=0x02, data[54])
+```mermaid
+sequenceDiagram
+    participant S as Sender
+    participant R as Receiver
+    
+    S->>R: Segment(frame_id=1, seq_idx=0, seq_flags=0b00000001, data[246])
+    S->>R: Segment(frame_id=1, seq_idx=1, seq_flags=0b00000001, data[54])
 ```
 
 #### 4.9.2 Frame with Retransmission (Reliable Mode)
 
-Sending a frame where segment 1 is lost:
+Reliable transmission where the middle segment is lost and retransmitted:
 
-```
-Sender → Receiver:
-  Segment(frame_id=1, seq_idx=0, seq_flags=0x03, data[246])
-  Segment(frame_id=1, seq_idx=1, seq_flags=0x03, data[246])  // Lost
-  Segment(frame_id=1, seq_idx=2, seq_flags=0x03, data[100])
-
-Receiver → Sender (after timeout):
-  Request(frame_id=1, missing_bitmap=0b00000010)
-
-Sender → Receiver:
-  Segment(frame_id=1, seq_idx=1, seq_flags=0x03, data[246])
-
-Receiver → Sender:
-  Acknowledge(frame_ids=[1])
+```mermaid
+sequenceDiagram
+    participant S as Sender
+    participant R as Receiver
+    
+    S->>R: Segment(frame_id=1, seq_idx=0, seq_flags=0b00000010, data[246])
+    S-xR: Segment(frame_id=1, seq_idx=1, seq_flags=0b00000010, data[246]) - LOST
+    S->>R: Segment(frame_id=1, seq_idx=2, seq_flags=0b00000010, data[100])
+    
+    R->>S: RetransmissionRequest(frame_id=1, missing_bitmap=0b00000010)
+    S->>R: Segment(frame_id=1, seq_idx=1, seq_flags=0b00000010, data[246]) - RETRANSMITTED
+    R->>S: FrameAcknowledgement(frame_ids=[1])
 ```
 
-#### 4.9.3 Session Termination
+#### 4.9.3 Multiple Frame Acknowledgement (Reliable Mode)
 
+Efficiently acknowledging multiple received frames in a batch:
+
+```mermaid
+sequenceDiagram
+    participant S as Sender
+    participant R as Receiver
+    
+    S->>R: Segment(frame_id=10, seq_idx=0, seq_flags=0b00000000, data[200])
+    S->>R: Segment(frame_id=11, seq_idx=0, seq_flags=0b00000000, data[150])
+    S->>R: Segment(frame_id=12, seq_idx=0, seq_flags=0b00000000, data[100])
+    
+    R->>S: FrameAcknowledgement(frame_ids=[10, 11, 12])
 ```
-Sender → Receiver:
-  Segment(frame_id=5, seq_idx=0, seq_flags=0x81, data[])  // Terminating flag set
+
+#### 4.9.4 Session Termination (Reliable Mode)
+
+Graceful session termination with acknowledgement:
+
+```mermaid
+sequenceDiagram
+    participant S as Sender
+    participant R as Receiver
+    
+    S->>R: Segment(frame_id=5, seq_idx=0, seq_flags=0b00000000, data[100])
+    S->>R: Segment(frame_id=6, seq_idx=0, seq_flags=0b10000000, data[])
+    R->>S: FrameAcknowledgement(frame_ids=[5, 6])
+```
+
+#### 4.9.5 Session Termination (Unreliable Mode)
+
+Immediate session termination without acknowledgement:
+
+```mermaid
+sequenceDiagram
+    participant S as Sender
+    participant R as Receiver
+    
+    S->>R: Segment(frame_id=7, seq_idx=0, seq_flags=0b10000000, data[])
 ```
 
 ## 5. Design Considerations
