@@ -14,7 +14,7 @@
 
 This RFC describes the wire format of a HOPR packet and its encoding and decoding protocol. The HOPR packet format is heavily based on the Sphinx packet format [01], as it aims to fulfil the similiar set of goals: to provide anonymous indistinguishable packets, hiding the path length and unlinkability of messages. Moreover, the HOPR packet format adds additional information to the header, which allows incentivization of individual relay nodes via Proof of Relay.
 
-The Proof of Relay (PoR) is described in the separate RFC-0004.
+The Proof of Relay (PoR) is described in the separate [RFC-0004].
 
 ## 2. Introduction
 
@@ -28,7 +28,7 @@ The HOPR packet consists of two primary parts:
 
 - _Meta packet_ (also called the _Sphinx packet_) that carries the necessary routing information for the selected path and the encrypted payload. This will be described in the following sections.
 
-- _Ticket_, which contains payout (incentivization) information for the next hop on the path. The structure of Tickets is described in the separate RFC-0004.
+- _Ticket_, which contains payout (incentivization) information for the next hop on the path. The structure of Tickets is described in the separate [RFC-0004].
 
 **This document describes version 1.0.0 of the HOPR Packet format and protocol.**
 
@@ -62,7 +62,7 @@ The HOPR packet format requires certain cryptographic primitives in place, namel
 - a Key Derivation Function (KDF) allowing to:
   - generate secret key material from a high-entropy pre-key K, context string C, and a salt S: `KDF(C, K, S)`. KDF will perform the necessary expansion to match the size required by the output. The Salt `S` argument is optional and MAY be omitted.
   - if the above is applied to an EC point as `K`, the point MUST be in its compressed form.
-- Hash to Field (Scalar) operation `HS(S,T)` which computes a field element of the elliptic curve from RFC-0004, given the secret `S` and a tag `T`.
+- Hash to Field (Scalar) operation `HS(S,T)` which computes a field element of the elliptic curve from [RFC-0004], given the secret `S` and a tag `T`.
 
 The concrete instantiations of these primitives are discussed in Appendix 1. All the primitives MUST have corresponding security bounds (e.g., they all have 128-bit security) and the generated key material MUST also satisfy the required bounds of the primitives.
 
@@ -92,7 +92,7 @@ The size of the forward and return paths (number of hops) MUST be between 0 and 
 
 ### 3.1. Partial Ticket creation
 
-The creation of the HOPR packet starts with the creation of the partial Ticket structure as defined in RFC-0004. If Ticket creation fails at this point, the packet creation process MUST be terminated.
+The creation of the HOPR packet starts with the creation of the partial Ticket structure as defined in [RFC-0004]. If Ticket creation fails at this point, the packet creation process MUST be terminated.
 
 The Ticket is created almost completely, apart from the Challenge field, which can be populated only after the Proof of Relay values have been fully created for the packet.
 
@@ -100,28 +100,28 @@ The Ticket is created almost completely, apart from the Challenge field, which c
 
 In the next step, shared secrets for individual hops on the forward path are generated, as described in Section 2.2 in [01]:
 
-Assume the length of the path is N (between 0 and 3) and each hop's public key is `Phop_i`.
+Assume the length of the path is `N` (between 0 and 3) and each hop's public key is `Phop_i`.
 The public key of the destination is `Pdst`.
 
-Let the extended path be a list of `Phop_i` and `Pdst` (for i = 1 .. N).
-For N = 0, the Extended path consists of just `Pdst`.
+Let the extended path be a list of `Phop_i` and `Pdst` (for `i = 1 .. N`).
+For `N = 0`, the extended path consists of just `Pdst`.
 
 1. A new random ephemeral key pair is generated, `Epriv` and `Epub` respectively.
 2. Set `Alpha` = `Epub` and `Coeff` = `Epriv`
 3. For each (i-th) public key `P_i` the Extended path:
    - `SharedPreSecret_i` = `Coeff` \* `P_i`
    - `SharedSecret_i` = KDF("HASH_KEY_SPHINX_SECRET", `SharedPreSecret_i`, `P_i`)
-   - if i == N, quit the loop
-   - `B_i` = KDF("HASH_KEY_SPHINX_BLINDING", `SharedPreSecret_i`, `Alpha`)
-   - `Alpha` = `B_i` \* `Alpha`
-   - `Coeff` = `B_i` \* `Coeff`
+   - if `i == N`, quit the loop
+   - `B_i = KDF("HASH_KEY_SPHINX_BLINDING", SharedPreSecret_i, Alpha)`
+   - `Alpha = B_i \* Alpha`
+   - `Coeff = B_i \* Coeff`
 4. Return `Alpha` and the list of `SharedSecret_i`
 
-For path of length N, the list length of the Shared secrets is N+1.
+For path of length `N`, the list length of the Shared secrets is `N+1`.
 
 In some instantiations, an invalid elliptic curve point may be encountered anywhere during step 3. In such case the computation MUST fail with an error. The process then MAY restart from step 1.
 
-After KDF_expand, the `B_i` MAY be additionally transformed so that it conforms to a valid field scalar. Shall that operation fail, the computation MUST fail with an error and the process then MAY restart from step 1.
+After `KDF_expand``, the `B_i` MAY be additionally transformed so that it conforms to a valid field scalar. Shall that operation fail, the computation MUST fail with an error and the process then MAY restart from step 1.
 
 The returned `Alpha` value MAY be encoded to an equivalent representation (such as using elliptic curve point compression), so that space is preserved.
 
@@ -129,14 +129,14 @@ The returned `Alpha` value MAY be encoded to an equivalent representation (such 
 
 The packet generation continues with per-hop proof generation of relay values, Ticket challenge, and Acknowledgement challenge for the first downstream node. This generation is done for each hop on the path.
 
-This is described in RFC-0004 and is a two-step process.
+This is described in [RFC-0004] and is a two-step process.
 
 The first step uses the List of shared secrets for the extended path as input. As a result, there is a list of length N, where each entry contains:
 
 - Ticket challenge for the hop i+1 on the extended path
 - Hint value for the i-th hop
 
-Both values in each list entry are elliptic curve points. The Ticket challenge value MAY be transformed via a one-way cryptographic hash function, whose output MAY be truncated. See RFC-0004 on how such representation is instantiated.
+Both values in each list entry are elliptic curve points. The Ticket challenge value MAY be transformed via a one-way cryptographic hash function, whose output MAY be truncated. See [RFC-0004] on how such representation is instantiated.
 
 This list consists of `PoRStrings_i` entries.
 
@@ -449,7 +449,7 @@ Let `Phop_priv` be the private key corresponding to the public key `Phop` of the
 Upon reception of a byte-sequence that is at least `|HOPR_Packet|` bytes-long, the `|Ticket|` is separated from the sequence. As per section 2.4, the order of the fields in `HOPR_Packet` is canonical,
 thefore the `Ticket` starts exactly at |HOPR_Packet| - |Ticket| byte-offset.
 
-The resulting Meta packet is processed first, and if this processing is successful, the `Ticket` is validated as well, as defined in RFC-0004.
+The resulting Meta packet is processed first, and if this processing is successful, the `Ticket` is validated as well, as defined in [RFC-0004].
 
 If any of the operations fail, the packet MUST be rejected, and subsequently, it MUST be acknowledged. See Section 5.4.
 
@@ -508,7 +508,7 @@ new_payload = PRP(Kprp, encrypted_payload)
 
 #### 5.3.1. Forwarded packet
 
-If the processed header indicated that the packet is destined for another node, the `new_payload` is the `encrypted_payload: EncryptedPayload` . The updated `header` and `alpha` values from the previous steps are used to construct the forwarded packet. A new `ticket` structure is created for the recipient (as described in RFC-0004), while the current `ticket` structure MUST be verified (as also described in RFC-0004).
+If the processed header indicated that the packet is destined for another node, the `new_payload` is the `encrypted_payload: EncryptedPayload` . The updated `header` and `alpha` values from the previous steps are used to construct the forwarded packet. A new `ticket` structure is created for the recipient (as described in [RFC-0004]), while the current `ticket` structure MUST be verified (as also described in [RFC-0004]).
 
 The forwarded packet MUST have the identical structure :
 
@@ -569,16 +569,16 @@ The `user_payload` can then be used by the upper protocol layer.
 
 ### 5.4. Ticket verification and acknowledgement
 
-In the next step the `ticket` MUST be pre-verified using the `SharedSecret_i`, as defined in RFC-0004.
+In the next step the `ticket` MUST be pre-verified using the `SharedSecret_i`, as defined in [RFC-0004].
 If the packet was not destined for this node (not final) OR the packet is final and the `NoAckFlag` is 0, the packet MUST be acknowledged.
 
-The acknowledgement of the successfully processed packet is created as per RFC-0004 using `SharedKey_i+1_ack` = `HS(SharedSecret_i, "HASH_ACK_KEY")`. The `SharedKey_i+1_ack` is the scalar in the field of the elliptic curve chosen in RFC-0004. The acknowledgement is sent back to the previous hop.
+The acknowledgement of the successfully processed packet is created as per [RFC-0004] using `SharedKey_i+1_ack` = `HS(SharedSecret_i, "HASH_ACK_KEY")`. The `SharedKey_i+1_ack` is the scalar in the field of the elliptic curve chosen in [RFC-0004]. The acknowledgement is sent back to the previous hop.
 
 This is done creating and sending a standard forward packet directly to the node the original packet was received from.
 The `NoAckFlag` on this packet MUST be set. The `user_payload` of the packet contains the encoded `Acknowledgement` structure
-as defined in RFC-0004. The `num_surbs` of this packet MUST be set to 0.
+as defined in [RFC-0004]. The `num_surbs` of this packet MUST be set to 0.
 
-If the packet processing was not successful at any point, a random acknowledgement MUST be generated (as defined in RFC-0004) and sent to the previous hop.
+If the packet processing was not successful at any point, a random acknowledgement MUST be generated (as defined in [RFC-0004]) and sent to the previous hop.
 
 ## 6. Appendix A
 
