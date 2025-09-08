@@ -265,11 +265,15 @@ The generation process of `ProofOfRelayString_i` proceeds as follows for each `i
    - if `i` = `n` : the `SharedKey_i+1_ack` MUST be generated as a uniformly random byte-string with the byte-length of `E`'s field elements.
 2. The own shared secret `SharedKey_i_own` from `SharedSecret_i` is generated as: `SharedKey_i_own = HS(SharedKey_i, "HASH_KEY_OWN_KEY")`
 3. The `hint` value is computed:
+
    - if `i` = 0: `hint = HS(SharedKey_0, "HASH_KEY_ACK_KEY`)
    - if `i` > 0: `hint = SharedKey_i+1_ack` (from step 1)
+
 4. For `i` > 0, the `ProofOfRelayString_i` is composed and added to the list:
+
    - `challenge` is computed as: `challenge = MUL(SharedKey_i_own + SharedKey_i+1_ack, G)` and encoded as `ECPoint`
    - `hint` is used from step 3.
+
 5. For `i` = 0, the `ProofOfRelayValues` is created:
    - `challenge` is computed as: `challenge = MUL(SharedKey_i_own + SharedKey_i+1_ack, G)` and encoded as `ECPoint`
    - `hint` is used from step 3.
