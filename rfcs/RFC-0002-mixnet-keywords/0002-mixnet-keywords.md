@@ -27,6 +27,8 @@ truth for the terminology used in the HOPR ecosystem.
 
 ## 3. Terminology
 
+- **Mixnet:** Also known as a **Mix network** is a routing protocol that creates hard-to-trace communications by using a chain of proxy servers known as mixes which take in messages from multiple senders, shuffle them, and send them back out in random order to the next destination.
+
 - **Node:** A process which implements the HOPR protocol and participates in
   the mixnet. Nodes can be run by anyone. A node can be a sender, destination or
   a relay node which helps to relay messages through the network. Also referred to as "peer" [01, 02].
