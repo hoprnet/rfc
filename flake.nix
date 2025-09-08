@@ -62,6 +62,8 @@
               with pkgs;
               [
                 just
+                nodejs_24
+                (yarn.override { nodejs = nodejs_24; })
                 config.treefmt.build.wrapper
               ]
               ++ (pkgs.lib.attrValues config.treefmt.build.programs);
