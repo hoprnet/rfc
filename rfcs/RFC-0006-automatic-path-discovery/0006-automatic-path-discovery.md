@@ -1,7 +1,7 @@
-# RFC-0006: Network topology discovery
+# RFC-0006: Automatic path discovery
 
 - **RFC Number:** 0006
-- **Title:** Automatic path discovery mechanism
+- **Title:** Automatic path discovery
 - **Status:** Raw
 - **Author(s):** @Teebor-Choka
 - **Created:** 2025-02-25
