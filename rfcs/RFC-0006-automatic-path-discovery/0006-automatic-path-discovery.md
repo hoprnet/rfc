@@ -167,12 +167,11 @@ phasing the BFA into smaller proportion.
 ##### 4.2.1.2 Depth-first algorithm (DFA)
 
 Depth-First Search (DFS) is a graph traversal algorithm that explores as far as possible along each branch before
-backtracking. It MUST start the current node to explore each branch of the graph deeply before moving to another branch.
+backtracking. It MUST start at the current node to explore each branch of the graph deeply before moving to another branch.
 
 DFS is particularly useful for solving problems related to maze exploration and pathfinding.
 
-This algorithm SHOULD be primarily implemented in terms of the **n-hop to self**, where `n > 1` and
-`n < MAX_HOPR_SUPPORTED_PATH_LENGTH`, with each edge probed as soon as feasible, but at the same time not at the expense
+This algorithm SHOULD be primarily implemented in terms of the **n-hop to self**, where `n > 1` and `n < MAX_HOPR_SUPPORTED_PATH_LENGTH` (a network parameter defined in RFC-0003, RFC-0007, or this RFC’s Parameters section), with each edge probed as soon as feasible, but at the same time not at the expense
 of other edges in the topology. `n` SHOULD be chosen randomly, but MUST conform with the minimum requirement for edge traversal.
 
 
