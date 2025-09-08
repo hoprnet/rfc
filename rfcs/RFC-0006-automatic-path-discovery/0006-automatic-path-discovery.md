@@ -171,7 +171,7 @@ backtracking. It MUST start at the current node to explore each branch of the gr
 
 DFS is particularly useful for solving problems related to maze exploration and pathfinding.
 
-This algorithm SHOULD be primarily implemented in terms of the **n-hop to self**, where `n > 1` and `n < MAX_HOPR_SUPPORTED_PATH_LENGTH` (a network parameter defined in RFC-0003 or RFC-0007), with each edge probed as soon as feasible, but at the same time not at the expense
+This algorithm SHOULD be primarily implemented in terms of the **n-hop to self**, where `n > 1` and `n < MAX_HOPR_SUPPORTED_PATH_LENGTH` (a network parameter defined in RFC-0003), with each edge probed as soon as feasible, but at the same time not at the expense
 of other edges in the topology. `n` SHOULD be chosen randomly, but MUST conform with the minimum requirement for edge traversal.
 
 
@@ -274,15 +274,16 @@ The content of the probing message:
 - Path identification for attribution
   - a unique value identifying a single specific path in the graph using a `uint64` equivalent value 
 - Timestamp of packet creation for channel latency observations
-  - formatted as a `UNIX time in nanoseconds`
+  - formatted as an 8-byte (64-bit) `UNIX time in nanoseconds`
 
 ```ascii
 +-------------+------------+------------+
 |   Counter   |   PathId   |  Timestamp |
-|     8B      |     8B     |     16B    |
+|     8B      |     8B     |     8B     |
 +-------------+------------+------------+
 ```
 
+The total packet size is 32 bytes.
 ### 4.4 Component placement
 
 The network probing functionality, with the exception of the PPT mechanism, MUST be implemented using HOPR loopback communication.
