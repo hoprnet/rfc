@@ -1,7 +1,7 @@
 # RFC-0006: Network topology discovery
 
 - **RFC Number:** 0006
-- **Title:** Network topology discovery
+- **Title:** Automatic path discovery mechanism
 - **Status:** Raw
 - **Author(s):** @Teebor-Choka
 - **Created:** 2025-02-25
@@ -57,7 +57,7 @@ The network discovery algorithms SHOULD make the following assumptions about the
 
 1. the network topology is not static
    - the network topology can change as individual nodes peer preferences or open/close channels
-   - for peers that require a relay the disappearance of the relay can cause topologoy reconfiguration
+   - for peers that require a relay the disappearance of the relay can cause topology reconfiguration
 2. every other node can be unreliable
    - rooted deeply in the physical network infrastructure performance
 3. every other node can be malicious
@@ -171,7 +171,7 @@ backtracking. It MUST start at the current node to explore each branch of the gr
 
 DFS is particularly useful for solving problems related to maze exploration and pathfinding.
 
-This algorithm SHOULD be primarily implemented in terms of the **n-hop to self**, where `n > 1` and `n < MAX_HOPR_SUPPORTED_PATH_LENGTH` (a network parameter defined in RFC-0003, RFC-0007, or this RFC’s Parameters section), with each edge probed as soon as feasible, but at the same time not at the expense
+This algorithm SHOULD be primarily implemented in terms of the **n-hop to self**, where `n > 1` and `n < MAX_HOPR_SUPPORTED_PATH_LENGTH` (a network parameter defined in RFC-0003 or RFC-0007), with each edge probed as soon as feasible, but at the same time not at the expense
 of other edges in the topology. `n` SHOULD be chosen randomly, but MUST conform with the minimum requirement for edge traversal.
 
 
@@ -204,7 +204,7 @@ A -> B -> D -> A
 ##### 4.2.1.3 BFA and DFA interactions
 
 Average values calculated over the differences of various observations can be used to establish individual per node properties.
-From the previous example, given multiple averaged telemetry values over the path it is possible to establish ansemble
+From the previous example, given multiple averaged telemetry values over the path it is possible to establish ensemble
 information about the topology.
 
 Example:
