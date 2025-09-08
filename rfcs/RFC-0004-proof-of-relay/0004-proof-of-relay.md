@@ -8,15 +8,15 @@
 - **Updated:** 2025/08/28
 - **Version:** v0.9.0 (Draft)
 - **Supersedes:** N/A
-- **References:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)
 
-## Abstract
+## 1. Abstract
 
 This RFC describes the structures and protocol for establishing a Proof of Relay (PoR) of HOPR packets
 sent between two peers over a relay. In addition, such PoR can be used to unlock incentives for the node
 relaying the packets to the destination.
 
-## 1 Motivation
+## 2. Motivation
 
 This RFC aims to solve the assurance of packet delivery between two peers inside a mixnet.
 In particular, when data are sent from a sender (peer A) using
@@ -28,7 +28,7 @@ that:
 3. node B can use such proof to claim a reward from node A
 4. the identity of node A is not revealed to node C
 
-## 2 Terminology
+## 3. Terminology
 
 This document builds upon standard terminology established in RFC-0002. Mentions to "HOPR packets" or
 "mixnet packets" refer to a particular structure (`HOPR_Packet`) defined in RFC-0003.
@@ -46,7 +46,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 "MAY", and "OPTIONAL" in this document are to be interpreted as described
 in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
-### 2.1 Cryptographic and security parameters
+### 3.1. Cryptographic and security parameters
 
 This document makes use of certain cryptographic and mathematical terms. A security parameter `L` is chosen,
 and corresponding cryptographic primitives are used in a concrete instantiation of this RFC.
@@ -69,7 +69,7 @@ Nodes and clients MUST implement handling for each of the above to ensure compli
 
 The concrete choices of the above cryptographic primitives for the implementation of version 1.0 are given in Appendix 1.
 
-## 3 Payment channels
+## 4. Payment channels
 
 Let A, B and C be peers participating in the mixnet. Each node is in possesion of its own private key (`Kpriv_A`, `Kpriv_B`, `Kpriv_C`)
 and the corresponding public key (`P_A`, `P_B`, `P_C`). The public keys of participating nodes are publicly exposed.
@@ -126,7 +126,7 @@ Such structure is sufficient to describe the payment channel A -> B.
 
 Channels are uniquely identified by the `channel_id` above. The fixed‑length byte string returned by the function is called `ChannelId`.
 
-### 3.1 Payment channel life-cycle
+### 4.1. Payment channel life-cycle
 
 A payment channel between nodes A -> B MUST always be initiated by node A. It MUST be initialized with a non-zero `balance`,
 a `ticket_index` equal to `0`, `channel_epoch` equal to `1` and `status` equal to `Open`.
@@ -155,7 +155,7 @@ Node B SHALL claim unclaimed rewards before the state transition, because any un
 the state transit, resulting a lost for node B.
 To prevent spamming, the reward amount MUST be larger than `MIN_USED_BALANCE` and smaller than `MAX_USED_BALANCE`.
 
-## 4 Tickets
+## 5. Tickets
 
 Tickets are always created by a node that is the source (`A`) of an existing channel. It is created whenever `A` wishes to send a HOPR packet to a certain destination (`C`), while having the
 existing channel's destination (`B`) act as a relay.
@@ -169,7 +169,7 @@ A Ticket:
 3. the solution of the cryptographic challenge MAY unlock a reward for ticket's recipient `B` at expense of `A`
 4. MUST NOT contain information about packet's destination (`C`)
 
-### 4.1 Ticket structure encoding
+### 5.1. Ticket structure encoding
 
 The Ticket has the following structure:
 
@@ -214,7 +214,7 @@ H_ticket = H(0x1901 || dst || H_2)
 
 The `Ticket` signature MUST be done over the same elliptic curve `E` using the private key of the ticket creator (issuer).
 
-### 4.2 Construction of Proof-of-Relay (PoR) secrets
+### 5.2. Construction of Proof-of-Relay (PoR) secrets
 
 This section uses terms defined in Section 2.2 in RFC-0003, namely the `SharedSecret_i` generated for `i`-th node
 on the path (`i` ranges from 0 (sender node) up to `n` (destination node), i.e. `n` is equal to the path length).
@@ -254,24 +254,16 @@ ProofOfRelayValues {
 }
 ```
 
-#### 4.2.1 Creation of Proof of Relay strings and values
+#### 5.2.1. Creation of Proof of Relay strings and values
 
 Let `HS` be the Hash to Field operation defined in RFC-0003 over the field of the chosen `E`.
 
 The generation process of `ProofOfRelayString_i` proceeds as follows for each `i` from 0 to `n-1` :
 
-
-1. The `SharedKey_i+1_ack` is derived from the shared secret (`SharedSecret_i`) provided during the HOPR packet construction. 
-`SharedKey_i+1_ack` denotes the secret acknowledgement key for the next downstream node (`i+1`).
-	- if `i` < `n` : `SharedKey_i+1_ack = HS(SharedKey_i, "HASH_KEY_ACK_KEY")`
-	- if `i` = `n` : the `SharedKey_i+1_ack` MUST be generated as a uniformly random byte-string with the byte-length
-of `E`'s field elements.
-
-
-2. The own shared secret `SharedKey_i_own` from `SharedSecret_i` is generated as:
-
-`SharedKey_i_own = HS(SharedKey_i, "HASH_KEY_OWN_KEY")`
-
+1. The `SharedKey_i+1_ack` is derived from the shared secret (`SharedSecret_i`) provided during the HOPR packet construction. `SharedKey_i+1_ack` denotes the secret acknowledgement key for the next downstream node (`i+1`).
+   - if `i` < `n` : `SharedKey_i+1_ack = HS(SharedKey_i, "HASH_KEY_ACK_KEY")`
+   - if `i` = `n` : the `SharedKey_i+1_ack` MUST be generated as a uniformly random byte-string with the byte-length of `E`'s field elements.
+2. The own shared secret `SharedKey_i_own` from `SharedSecret_i` is generated as: `SharedKey_i_own = HS(SharedKey_i, "HASH_KEY_OWN_KEY")`
 3. The `hint` value is computed:
 
    - if `i` = 0: `hint = HS(SharedKey_0, "HASH_KEY_ACK_KEY`)
@@ -287,12 +279,12 @@ of `E`'s field elements.
    - `hint` is used from step 3.
    - `path_length` is set to `n`
 
-## 4.3 Creation of the ticket for the first relayer
+### 5.3 Creation of the ticket for the first relayer
 
 The first ticket MUST be created by the packet Sender and MUST contain the `challenge` field equal
 to the `challenge` in the `ProofOfRelayValues` from the previous step.
 
-### Multi-hop ticket: for `n` > 1
+#### Multi-hop ticket: for `n` > 1
 
 In this situation, the `Channel` between the Sender and the next hop MUST exist and be in the `OPEN` state.
 
@@ -309,7 +301,7 @@ In this situation, the `Channel` between the Sender and the next hop MUST exist 
 
 6. The `channel_epoch` MUST be set to the `channel_epoch` from the corresponding `Channel`.
 
-### Zero-hop ticket: `n` = 1
+#### Zero-hop ticket: `n` = 1
 
 This is a specific case when the packet is 0-hop (`n` = 1, it is sent directly from the Sender to the Recipient).
 If the `Channel` between the Sender and Recipient does exist, it MUST be ignored.
@@ -328,7 +320,7 @@ In any case, once the `Ticket` structure is complete, it MUST be signed by the S
 
 As described in Section 2.5 in RFC-0003, the complete encoded `Ticket` structure becomes part of the outgoing `HOPR_Packet`.
 
-## 4.4 Ticket processing at a node
+### 5.4. Ticket processing at a node
 
 This is inherently part of the packet processing from the RFC-0003.
 Once a node receives a `HOPR_Packet` structure, the `Ticket` is separated and its processing is a two step process:
@@ -337,7 +329,7 @@ Once a node receives a `HOPR_Packet` structure, the `Ticket` is separated and it
 2. If the packet is to be forwarded to a next node, the ticket MUST be fully-verified
    - If successful, the ticket is replaced with a new ticket in the `HOPR_Packet` for the next hop
 
-### 4.4.1 Ticket pre-verification
+#### 5.4.1. Ticket pre-verification
 
 Failure to validate in any of the verification steps MUST result in discarding the ticket and the corresponding `HOPR_Packet`,
 and interrupting the processing further.
@@ -357,7 +349,7 @@ the `ProofOfRelayString_i` has already been extracted from the packet header (se
 
 If the pre-verification fails at any point, it still applies that the discarded `HOPR_Packet` MUST be acknowledged (as per section 4.2.3.1).
 
-### 4.4.2 Ticket validation and replacement
+#### 5.4.2. Ticket validation and replacement
 
 Let `corr_channel` be the `Channel` that corresponds to the `channel_id` on the `Ticket`. This channel MUST exist and
 not be in the `CLOSED` state per previous section, otherwise the entire `HOPR_Packet` has been discarded.
@@ -394,12 +386,12 @@ The following applies in addition to 4.3:
 
 If the ticket validation fails at any point, it still applies that the discarded `HOPR_Packet` MUST be acknowledged (as per section 4.2.3.1).
 
-### 4.2.3 Ticket acknowledgement
+#### 5.2.3. Ticket acknowledgement
 
 The following sections first describe how acknowledgements are created when sent back to the original packet's Sender,
 and secondly how a received acknowledgement should be processed.
 
-#### 4.2.3.1 Sending acknowledgement
+##### 5.2.3.1. Sending acknowledgement
 
 Per section 4.3.3 in RFC-0003, each packet without `NoAckFlag` set MUST be acknowledged. Such an acknowledgement becomes
 a payload of a 0-hop packet sent from the original packet's recipient to the original packet's sender.
@@ -424,7 +416,7 @@ This EC field element MUST be encoded as a big-endian integer (denoted as `ECSca
 
 This `signature` field contains the signature of the encoded `ack_secret` bytes. The signature done over `H(ack_secret)` using the private key of the acknowledging party. For this purpose the same EC cryptosystem for signing and verification as with `Ticket` SHOULD be used. The same encoding of the `signature` field is used as with the `Ticket`.
 
-#### 4.2.3.2 Receiving an acknowledgement
+##### 5.2.3.2. Receiving an acknowledgement
 
 After the `Ticket` has been extracted and validated by the relay node, it awaits until the packet acknowledgement is received back from the
 next hop. The node SHOULD discard tickets that haven't been acknowledged for a certain given period of time.
@@ -447,7 +439,7 @@ The response is a field element of `E`.
 
 - If no matching `Ticket` was found, the received `Acknowledgement` SHOULD be discarded.
 
-#### 4.2.3.3 Derivation of VRF parameters for an Acknowledged ticket
+##### 5.2.3.3. Derivation of VRF parameters for an Acknowledged ticket
 
 Once the ticket becomes acknowledged, the node then calculates the `vrf_V` value, that will be useful to determine
 if the ticket is suitable for value extraction.
@@ -480,9 +472,9 @@ s = r + h * a
 The `vrf_V` is the uncompressed representation of the EC point `V` as `X || Y`, where `X` and `Y` are big-endian unsigned integer representation
 of the EC point's coordinates.
 
-## 5 Ticket and Channel interactions
+## 6 Ticket and Channel interactions
 
-### 5.1 Discovering acknowledged winning tickets
+### 6.1. Discovering acknowledged winning tickets
 
 The aknowledged tickets are _probabilistic_ in the sense that the monetary value represented by the `amount` MUST be claimable
 only if the aknowledged ticket is _winning_. This is determined using the `encoded_win_prob` field on the `Ticket`.
@@ -499,7 +491,7 @@ The `vrf_V` is a value computed by the ticket recipient during acknowledgement.
 
 The `amount` on the `Ticket` MUST be claimable only if `luck` < `encoded_win_prob` on the `Ticket`. Such an acknowledged ticket is called _winning_ ticket.
 
-### 5.2 Claiming a winning ticket
+### 6.2. Claiming a winning ticket
 
 The monetary value represented by the `amount` on a _winning_ ticket can be claimable at some 3rd party which provides such service.
 Such a 3rd party MUST have the ability to modify global state of all the involved `Channels`.
@@ -546,7 +538,7 @@ Upon successful redemption, the 3rd party MUST make sure that:
 1. The `balance` on `Channel` from which the claim has been made MUST be decreased by `amount`
 2. The `ticket_index` on `Channel` is set to `index` + `index_offset` (where `index` and `index_offset` are from the claimed ticket)
 
-## Appendix 1
+## 7. Appendix 1
 
 The current implementation of the Proof of Relay protocol (which is in correspondence with the HOPR Packet protocol from RFC-0003):
 
@@ -559,7 +551,7 @@ The current implementation of the Proof of Relay protocol (which is in correspon
 - **MIN_USED_BALANCE** = `1e-18` HOPR.
 - **MAX_USED_BALANCE** = `1e7` HOPR.
 
-## Appendix 2
+## 8. Appendix 2
 
 This appendix describes the ticket states which are implementation specific for the current Proof Of Relay implementation
 as part of the HOPR protocol.
@@ -591,7 +583,7 @@ as part of the HOPR protocol.
 
   - A compact, verifiable representation of a **winning** ticket intended for off-chain aggregation.
 
-### Allowed transitions
+### 8.1. Allowed transitions
 
 ```mermaid
 flowchart TB
@@ -651,12 +643,11 @@ flowchart TB
 
    - Debug/escape hatch only. Implementations SHOULD avoid downgrading state in production flows.
 
-## Appendix 3
+## 9. Appendix 3
 
 Domain separator (`dst`) for the current implementation (in Solidity) is derived as:
 
 ```
-
 domainSeparator = keccak256(
   abi.encode(
     keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
@@ -668,4 +659,4 @@ domainSeparator = keccak256(
 )
 ```
 
-## References
+## 10. References
