@@ -8,7 +8,7 @@
 - **Updated:** 2025-07-21
 - **Version:** v0.0.1 (Raw)
 - **Supersedes:** None
-- **References:** RFC-0002, RFC-0003, RFC-0009
+- **References:** RFC-0002, RFC-0003, RFC-0004, RFC-0007, RFC-0009
 
 ## 1. Abstract
 
@@ -20,21 +20,21 @@ nodes with the goal of establishing compliance with the HOPR protocol specified 
 
 ## 2. Motivation
 
-Effective end-to-end communication over the HOPR protocol requires the communication producer to select
+Effective end-to-end communication over the HOPR protocol requires the communication sender to select
 viable paths across the network:
 
-- From producer to consumer for unidirectional communication
-- Additionally, from consumer to producer using the Return Path mechanism [RFC-0003] for bidirectional communication
+- From sender to destination for unidirectional communication
+- Additionally, from destination to sender using the Return Path mechanism [RFC-0003] for bidirectional communication
 
 The HOPR protocol does not define communication flow control, as this is handled by upper protocol layers. This design
 decision places responsibility of every network element to keep track of peer and network status to allow establishing
 stable propagation paths with consistent transport link properties.
 
-In the mixnet architecture, both forward and return paths MUST be constructed by the producer to preserve anonymity [RFC-0003].
-Consequently, the producer MUST maintain an accurate and current view of the network topology to create effective forward
+In the mixnet architecture, both forward and return paths MUST be constructed by the sender to preserve anonymity [RFC-0003].
+Consequently, the sender MUST maintain an accurate and current view of the network topology to create effective forward
 and return path pools.
 
-Relayers and consumers must also discover the network in order to make sure the incentivized layer and
+Relayers and destinations must also discover the network in order to make sure the incentivized layer and
 network transport are aligned.
 
 
@@ -79,10 +79,10 @@ The network topology is an oriented graph structure consisting of nodes performi
 Each edge corresponds to a combination of properties defined by the physical transport and the HOPR protocol that MUST
 be present:
 
-1. Existence of a HOPR staking channel from the node in the path in the direction of the relayer
+1. Existence of a HOPR staking channel [RFC-0004] from the node in the path in the direction of the relayer
 2. Presence of a physical transport connection allowing data transfer
 
-While property 1 is known from the blockchain, property 2 MUST be discovered on the physical network and is subject to network
+While property 1 is known from the incentive mechanism [RFC-0009], property 2 MUST be discovered on the physical network and is subject to network
 probing. The only exception to property 1 in the HOPR protocol
 [RFC-0003](https://github.com/hoprnet/rfc/blob/main/rfcs/RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)
 is the last hop (i.e., the last relayer to the destination), where a staking channel is not required for data delivery.
@@ -110,7 +110,7 @@ too slowly to a usable network topology nor focuses exclusively on small sub-top
 Loopback probing methods with respect to the sender:
 
 1. Immediate 0-hop: Observe only whether acknowledgment was received from the counterparty and measure response latency,
-   using the junk format
+   using indistinguishable payloads (“junk” data indistinguishable from application data via padding and AEAD) with acknowledgements produced by the destination and authenticated before acceptance
 2. 1-hop to self: First-order checks of immediate peer connections - functionally equivalent to option 1 but executed
 in a manner that conceals probing activity
 3. 2-hop to self: Checks second-order communication paths, MAY replace some 3-hop paths to reduce total probing paths
@@ -122,7 +122,7 @@ Algorithm:
 - Basic operations:
   1. Discover immediate peers
   2. Generate paths for n-hop connections (referential probing with low frequency)
-  3. for sessions, prepopulate the cache from sufficiently recent historical knowledge of successful paths
+  3. for sessions [RFC-0007], prepopulate the cache from sufficiently recent historical knowledge of successful paths
   4. perform higher frequency probing checks
 
 ##### 4.2.1.1 Breadth-first algorithm (BFA)
@@ -222,7 +222,13 @@ It is possible to establish the average latency of introducing the node `F` into
 Assuming artificial mixer delays introducing additional anonymity, repeated observations of this value averaged over longer
 windows would provide an average expected latency introduced by element `F`.
 
-#### 4.2.2 Throughput considerations
+#### 4.2.2 Evaluation mechanism
+Evaluation mechanism SHOULD have short-term memory and equally reward and penalize probe success and failures.
+
+#### 4.2.3 Retention and slashing mechanism
+Nodes MAY implement a slashing mechanism based on failed probes to avoid using the relay nodes in non-probing communication and avoid dropped messages.
+
+#### 4.2.4 Throughput considerations
 
 Paths SHOULD be used by the discovery mechanism in a way that would allow sustained throughput, i.e. the maximum
 achievable packet rate:
@@ -265,8 +271,11 @@ be transmitted in network byte order (big endian).
 The content of the probing message:
 
 - Iterating counter to verify the mixing property over a path
+  - an iterated `uint64` equivalent value
 - Path identification for attribution
+  - a unique value identifying a single specific path in the graph using a `uint64` equivalent value 
 - Timestamp of packet creation for channel latency observations
+  - formatted as a `UNIX time in nanoseconds`
 
 ```ascii
 +-------------+------------+------------+
@@ -277,7 +286,7 @@ The content of the probing message:
 
 ### 4.4 Component placement
 
-The network probing functionality, with the exception of the PPT mechanism, MUST be implemented using HOPR loopback sessions.
+The network probing functionality, with the exception of the PPT mechanism, MUST be implemented using HOPR loopback communication.
 
 Implementation requirements:
 
@@ -285,7 +294,7 @@ Implementation requirements:
   - Only the onchain channel information SHALL be retained
 - Implementations MUST provide processes to:
   - Generate a low-rate continuous stream of network path probes
-  - Generate session-specific paths for session obfuscation
+  - Generate session-specific paths for session path selection obfuscation [RFC-0007]
 - A new path graph system SHALL be derived from these processes
 - Paths SHALL be cached for a configurable minimum time window
 - Session metrics SHALL incorporate:
@@ -294,23 +303,23 @@ Implementation requirements:
   - Session-derived cover traffic for exploratory network traversal
 
 ## 5. Design considerations
-Each producer SHOULD:
+Each sender SHOULD:
 
 - Be able to identify a sufficiently large number of network nodes to ensure privacy through path pool diversity
 - Be capable of detecting unstable, malicious, or adversarial nodes
 - Be able to establish basic propagation metrics for Quality of Service (QoS) estimation
 
-Given the capabilities described above, the message producer SHOULD be able to construct a functional representation of the
+Given the capabilities described above, the message sender SHOULD be able to construct a functional representation of the
 network topology, state, and constraints, enabling optimal selection and exclusion of message propagation paths.
 
 The multihop probing traffic and measurement packets MUST be indistinguishable from ordinary traffic to ensure accurate
 recording of network node propagation characteristics.
 Due to the dynamic nature of decentralized peer-to-peer networks,
-the message producer SHOULD employ adaptive mechanisms for establishing and
+the message sender SHOULD employ adaptive mechanisms for establishing and
 maintaining topological awareness.
 
 For both unidirectional and bidirectional communication to adapt to changing network conditions,
-the producer MUST actively probe the network in a continuous manner.
+the sender MUST actively probe the network in a continuous manner.
 
 The measurement traffic itself SHOULD adhere to economic feasibility constraints, i.e., it SHOULD be
 proportional to actual message traffic and MAY be incorporated as part of the Cover Traffic (CT)
@@ -332,7 +341,7 @@ SHOULD exist.
 
 The nearest one-hop probing mechanism MAY NOT comply with the anonymity requirement, since it:
 
-1. mimics the 0-hop session which does not fully benefit from relaying mechanisms
+1. mimics the 0-hop session [RFC-0007] which does not fully benefit from relaying mechanisms
 2. could be used as a first layer for relayers to discover viable candidates for future channel openings
 
 The network probing mechanism SHALL utilize graph-based algorithms to efficiently discover and maintain network topology
@@ -343,7 +352,7 @@ information.
 
 This feature affects only a single node in the network and MAY be modified without impacting overall network operation.
 
-The network probing mechanism MUST be compatible with the loopback session mechanism [RFC-0007](https://github.com/hoprnet/rfc/blob/main/rfcs/RFC-0007-session-protocol/0007-session-protocol.md)
+The network probing mechanism MAY be compatible with the loopback session mechanism [RFC-0007](https://github.com/hoprnet/rfc/blob/main/rfcs/RFC-0007-session-protocol/0007-session-protocol.md)
 
 ## 7. Security Considerations
 
@@ -354,6 +363,7 @@ Security considerations related to resource utilization include:
 1. In highly volatile networks, adversarial behavior may cause excessive resource expenditure, potentially enabling
 resource depletion attacks.
 2. The PPT mechanism MAY serve as an attack vector for Denial of Service (DoS) attempts.
+3. Nodes MAY implement any security risk mitigation strategy
 
 ## 8. Drawbacks
 
@@ -382,8 +392,13 @@ Future development SHOULD focus on:
 1. Improving the ability to collect additional network metrics primarily by extending the data payload transmitted along
 the loopback path
 2. Developing new path generating strategies allowing statistical inference of information from the path section overlaps
+3. Improve metric evaluation mechanism
+4. Add proper slashing mechanism with equation based logic
 
 ## 12. References
 
+- RFC-0002 – Mixnet terminology
 - RFC-0003 – HOPR packet protocol
-- RFC-0009 – Cover traffic
+- RFC-0004 – Proof of Relay
+- RFC-0007 - Session Data Protocol
+- RFC-0009 – Economic Reward System
