@@ -277,7 +277,7 @@ The content of the probing message:
 +-------------+------------+------------+
 ```
 
-The total packet size is 32 bytes.
+The total packet size is 24 bytes.
 
 ### 4.4 Component placement
 
