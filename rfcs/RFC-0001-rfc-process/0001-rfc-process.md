@@ -147,7 +147,7 @@ RFCs **MUST** use two distinct reference styles:
 - Format: `[RFC-XXXX](../RFC-XXXX-[slug]/XXXX-[slug].md)`
 - Multiple references **SHALL** be separated by commas
 - If no RFC references exist, the field **MUST** contain "none"
-- Example: `[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)`
+- Example: `[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)`
 
 ##### 4.4.2.2. External References
 

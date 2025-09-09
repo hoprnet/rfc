@@ -1,6 +1,6 @@
-# RFC-0003 HOPR Packet Protocol
+# RFC-0004 HOPR Packet Protocol
 
-- **RFC Number:** 0003
+- **RFC Number:** 0004
 - **Title:** HOPR Packet Protocol
 - **Status:** Draft
 - **Author(s):** Lukas Pohanka (@NumberFour8)
@@ -8,7 +8,7 @@
 - **Updated:** 2025-08-27
 - **Version:** v0.9.0 (Draft)
 - **Supersedes:** N/A
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-proof-of-relay/0004-proof-of-relay.md), [RFC-0005](../RFC-0005-hopr-mixer/0005-hopr-mixer.md), [RFC-0014](../RFC-0014-application-protocol/0014-application-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md), [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
 
 ## 1. Abstract
 
@@ -262,7 +262,7 @@ PacketPayload {
 The `signals` and `num_surbs` fields MAY be encoded as a single byte, where the most-significant 4 bits represent the `signals` and the least-significant 4 bits represent the `num_surbs`.
 When no signals are passed, the `signals` field MUST be zero.
 
-The user payload usually consists of the Application layer protocol as described in [RFC-0014](../RFC-0014-application-protocol/0014-application-protocol.md), but it can be arbitrary.
+The user payload usually consists of the Application layer protocol as described in [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md), but it can be arbitrary.
 
 #### 3.4.3. Generating SURBs
 

@@ -1,6 +1,6 @@
-# RFC-0004: Proof of Relay
+# RFC-0005: Proof of Relay
 
-- **RFC Number:** 0004
+- **RFC Number:** 0005
 - **Title:** Proof of Relay
 - **Status:** Implementation
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
@@ -8,7 +8,7 @@
 - **Updated:** 2025/08/28
 - **Version:** v0.9.0 (Draft)
 - **Supersedes:** N/A
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
 
 ## 1. Abstract
 
@@ -31,7 +31,7 @@ that:
 ## 3. Terminology
 
 This document builds upon standard terminology established in RFC-0002. Mentions to "HOPR packets" or
-"mixnet packets" refer to a particular structure (`HOPR_Packet`) defined in RFC-0003.
+"mixnet packets" refer to a particular structure (`HOPR_Packet`) defined in RFC-0004.
 
 In addition, this document also uses the following terms:
 
@@ -164,7 +164,7 @@ Their creation MAY happen at the same time as the HOPR packet, or MAY be precomp
 
 A Ticket:
 
-1. MUST be tied (via a cryptographic challenge) to a single HOPR packet (from RFC-0003)
+1. MUST be tied (via a cryptographic challenge) to a single HOPR packet (from RFC-0004)
 2. the cryptographic challenge MUST be solvable by the ticket recipient (`B`) once it delivers the corresponding HOPR packet to `C`
 3. the solution of the cryptographic challenge MAY unlock a reward for ticket's recipient `B` at expense of `A`
 4. MUST NOT contain information about packet's destination (`C`)
@@ -216,7 +216,7 @@ The `Ticket` signature MUST be done over the same elliptic curve `E` using the p
 
 ### 5.2. Construction of Proof-of-Relay (PoR) secrets
 
-This section uses terms defined in Section 2.2 in RFC-0003, namely the `SharedSecret_i` generated for `i`-th node
+This section uses terms defined in Section 2.2 in RFC-0004, namely the `SharedSecret_i` generated for `i`-th node
 on the path (`i` ranges from 0 (sender node) up to `n` (destination node), i.e. `n` is equal to the path length).
 Note, that for 0-hop path (a direct packet from sender to destination), `n` = 1.
 
@@ -256,7 +256,7 @@ ProofOfRelayValues {
 
 #### 5.2.1. Creation of Proof of Relay strings and values
 
-Let `HS` be the Hash to Field operation defined in RFC-0003 over the field of the chosen `E`.
+Let `HS` be the Hash to Field operation defined in RFC-0004 over the field of the chosen `E`.
 
 The generation process of `ProofOfRelayString_i` proceeds as follows for each `i` from 0 to `n-1` :
 
@@ -318,11 +318,11 @@ The `Ticket` is still created:
 
 In any case, once the `Ticket` structure is complete, it MUST be signed by the Sender, who MUST be always the first ticket's issuer.
 
-As described in Section 2.5 in RFC-0003, the complete encoded `Ticket` structure becomes part of the outgoing `HOPR_Packet`.
+As described in Section 2.5 in RFC-0004, the complete encoded `Ticket` structure becomes part of the outgoing `HOPR_Packet`.
 
 ### 5.4. Ticket processing at a node
 
-This is inherently part of the packet processing from the RFC-0003.
+This is inherently part of the packet processing from the RFC-0004.
 Once a node receives a `HOPR_Packet` structure, the `Ticket` is separated and its processing is a two step process:
 
 1. The ticket is pre-verified (this is already mentioned in section 4.4 of RFC 0003).
@@ -340,7 +340,7 @@ the packet sender and the node where it is being processed, or the channel is in
 the corresponding `HOPR_Packet` MUST be discarded.
 
 At this point, the node knows its `SharedSecret_i` with which it is able to decrypt the `HOPR_Packet` and
-the `ProofOfRelayString_i` has already been extracted from the packet header (see section 4.2 in RFC-0003).
+the `ProofOfRelayString_i` has already been extracted from the packet header (see section 4.2 in RFC-0004).
 
 1. `SharedSecret_i` is used to derive `SharedSecret_i_own` as per Section 4.2.1
 2. The `hint` is extracted from the `ProofOfRelayString_i`
@@ -354,7 +354,7 @@ If the pre-verification fails at any point, it still applies that the discarded 
 Let `corr_channel` be the `Channel` that corresponds to the `channel_id` on the `Ticket`. This channel MUST exist and
 not be in the `CLOSED` state per previous section, otherwise the entire `HOPR_Packet` has been discarded.
 
-If the packet is to be forwarded (as per section 4.3.1 in RFC-0003), the `Ticket` MUST be verified as follows:
+If the packet is to be forwarded (as per section 4.3.1 in RFC-0004), the `Ticket` MUST be verified as follows:
 
 1. the `signature` of the `Ticket` is verified - if the signature uses ERC-2098 encoding, the ticket issuer from the
    signature is recovered and compared to the public key of the packet sender (or its representation)
@@ -393,7 +393,7 @@ and secondly how a received acknowledgement should be processed.
 
 ##### 5.2.3.1. Sending acknowledgement
 
-Per section 4.3.3 in RFC-0003, each packet without `NoAckFlag` set MUST be acknowledged. Such an acknowledgement becomes
+Per section 4.3.3 in RFC-0004, each packet without `NoAckFlag` set MUST be acknowledged. Such an acknowledgement becomes
 a payload of a 0-hop packet sent from the original packet's recipient to the original packet's sender.
 
 ```
@@ -412,7 +412,7 @@ There are two possibilities how the `ack_secret` field is calculated:
 
 This EC field element MUST be encoded as a big-endian integer (denoted as `ECScalar`).
 
-2. if the processing of the `HOPR_Packet` failed for any reason (either failure of the packet processing in RFC-0003 or during packet pre-verification or validation from Section 4.4): `ack_secret` is set to a randomly EC point on `E`.
+2. if the processing of the `HOPR_Packet` failed for any reason (either failure of the packet processing in RFC-0004 or during packet pre-verification or validation from Section 4.4): `ack_secret` is set to a randomly EC point on `E`.
 
 This `signature` field contains the signature of the encoded `ack_secret` bytes. The signature done over `H(ack_secret)` using the private key of the acknowledging party. For this purpose the same EC cryptosystem for signing and verification as with `Ticket` SHOULD be used. The same encoding of the `signature` field is used as with the `Ticket`.
 
@@ -540,7 +540,7 @@ Upon successful redemption, the 3rd party MUST make sure that:
 
 ## 7. Appendix 1
 
-The current implementation of the Proof of Relay protocol (which is in correspondence with the HOPR Packet protocol from RFC-0003):
+The current implementation of the Proof of Relay protocol (which is in correspondence with the HOPR Packet protocol from RFC-0004):
 
 - Hash function `H` is Keccak256
 - Elliptic curve `E` is chosen as secp256k1

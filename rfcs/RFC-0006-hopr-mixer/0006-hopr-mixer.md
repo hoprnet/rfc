@@ -1,6 +1,6 @@
-# RFC-0005: HOPR Mixer
+# RFC-0006: HOPR Mixer
 
-- **RFC Number:** 0005
+- **RFC Number:** 0006
 - **Title:** HOPR Mixer
 - **Status:** Implementation
 - **Author(s):** Tino Breddin (@tolbrino)
@@ -8,7 +8,7 @@
 - **Updated:** 2025-09-04
 - **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
 
 ## 1. Abstract
 

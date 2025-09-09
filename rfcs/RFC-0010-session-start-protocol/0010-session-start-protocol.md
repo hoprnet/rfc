@@ -1,6 +1,6 @@
-# RFC-0012: Session Start Protocol
+# RFC-0010: Session Start Protocol
 
-- **RFC Number:** 0012
+- **RFC Number:** 0010
 - **Title:** Session Start Protocol
 - **Status:** Implementation
 - **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
@@ -8,7 +8,7 @@
 - **Updated:** 2025-09-05
 - **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0003](../RFC-0003-hopr-packet-protocol/0003-hopr-packet-protocol.md), [RFC-0007](../RFC-0007-session-protocol/0007-session-protocol.md), [RFC-0014](../RFC-0014-application-protocol/0014-application-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
 
 ## 1. Abstract
 
@@ -16,7 +16,7 @@ This RFC specifies the HOPR Session Start Protocol, a handshake protocol for est
 
 ## 2. Motivation
 
-The HOPR mixnet requires a standardized mechanism for establishing communication sessions between nodes. While the Session Data Protocol (see RFC-0007) handles data transmission, there needs to be a separate protocol for:
+The HOPR mixnet requires a standardized mechanism for establishing communication sessions between nodes. While the Session Data Protocol (see RFC-0009) handles data transmission, there needs to be a separate protocol for:
 
 - Establishing sessions with capability negotiation
 - Exchanging session identifiers and targets
@@ -359,7 +359,7 @@ The protocol provides structured error reporting:
 
 ### 6.3 Integration with HOPR Session Data Protocol
 
-- HOPR Session Start Protocol establishes sessions for use by HOPR Session Data Protocol (see RFC-0007)
+- HOPR Session Start Protocol establishes sessions for use by HOPR Session Data Protocol (see RFC-0009)
 - Session IDs from this protocol are used to identify data sessions
 - Protocol operates independently but provides foundation for data exchange
 
@@ -407,6 +407,8 @@ The protocol provides structured error reporting:
 
 ## 11. Related Links
 
+- [RFC-0011 Application Layer protocol](../RFC-0011-application-protocol/0011-application-protocol.md)
+
 ## 12. Appendix 1
 
 Within HOPR protocol a Session is identified uniquely via HOPR Session ID,
@@ -416,5 +418,5 @@ In human readable format, a HOPR Session ID has the following syntax:
 
 `0xabcdefabcdefabcdefab:123456`
 
-The prefix represents a fixed pseudonym prefix of in the HOPR Packet protocol (as in RFC-0003).
-The suffix represents an application tag that identifies Sessions within the reserved range in the Application protocol [RFC-0014].
+The prefix represents a fixed pseudonym prefix of in the HOPR Packet protocol (as in RFC-0004).
+The suffix represents an application tag that identifies Sessions within the reserved range in the Application protocol [RFC-0011].
