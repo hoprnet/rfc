@@ -76,14 +76,10 @@ The network topology is an oriented graph structure consisting of nodes performi
 Each edge corresponds to a combination of properties defined by the physical transport and the HOPR protocol that MUST
 be present:
 
-1. Existence of a HOPR staking channel [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) from the node in the path in the direction of the relayer
+1. Existence of a HOPR staking channel [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) from the node in the path in the direction of the relayer
 2. Presence of a physical transport connection allowing data transfer
 
-While property 1 is known from the incentive mechanism [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md), property 2 MUST be discovered on the physical network and is subject to network
-probing. The only exception to property 1 in the HOPR protocol
-
-is the last hop (i.e., the last relayer to the destination), where a staking channel is not required for data delivery.
-
+While property 1 is known from the incentive mechanism [RFC-0008](../RFC-0008-economic-reward-system/0008-economic-reward-system.md), property 2 MUST be discovered on the physical network and is subject to network probing. The only exception to property 1 in the HOPR protocol is the last hop (i.e., the last relayer to the destination), where a staking channel is not required for data delivery.
 The network probing mechanism, abstracting transport interactions completely, consists of 3 components:
 
 1. Path generating probing algorithm
