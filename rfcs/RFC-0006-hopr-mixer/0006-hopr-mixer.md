@@ -27,7 +27,7 @@ The HOPR Mixer addresses this attack vector by:
 
 ## 3. Terminology
 
-Terms defined in [RFC-0002] are used. Additional mixer-specific terms include:
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additional mixer-specific terms include:
 
 _mixing delay_: A random time interval added to a packet's transit time through a node to prevent timing correlation attacks.
 

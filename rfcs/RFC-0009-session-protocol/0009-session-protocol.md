@@ -12,14 +12,14 @@
 
 ## 1. Abstract
 
-This RFC specifies the HOPR Session Data Protocol, which provides reliable and unreliable data transmission capabilities over the HOPR mixnet. The protocol implements TCP-like [01] features including message segmentation, reassembly, acknowledgement, and retransmission while maintaining simplicity and efficiency. This protocol works in conjunction with the HOPR Session Start Protocol (see RFC-0010) to provide complete session management capabilities for applications within the HOPR mixnet ecosystem.
+This RFC specifies the HOPR Session Data Protocol, which provides reliable and unreliable data transmission capabilities over the HOPR mixnet. The protocol implements TCP-like [01] features including message segmentation, reassembly, acknowledgement, and retransmission while maintaining simplicity and efficiency. This protocol works in conjunction with the HOPR Session Start Protocol (see [RFC-0010](../RFC-0010-session-start-protocol/0010-session-start-protocol.md)) to provide complete session management capabilities for applications within the HOPR mixnet ecosystem.
 
 ## 2. Motivation
 
-The HOPR mixnet uses HOPR packets [RFC-0004] to send data between nodes. This fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to implement TCP [01] or UDP all over again.
+The HOPR mixnet uses HOPR packets [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) to send data between nodes. This fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to implement TCP [01] or UDP all over again.
 Since HOPR protocol is not IP-based, such implementation would require IP protocol emulation.
 
-The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the HOPR Session Start Protocol [RFC-0010], while this protocol focuses exclusively on data transmission.
+The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the HOPR Session Start Protocol [RFC-0010](../RFC-0010-session-start-protocol/0010-session-start-protocol.md), while this protocol focuses exclusively on data transmission.
 
 ## 3. Terminology
 
