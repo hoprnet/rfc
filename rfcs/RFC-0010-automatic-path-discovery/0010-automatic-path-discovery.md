@@ -1,6 +1,6 @@
-# RFC-0007: Automatic path discovery
+# RFC-0010: Automatic path discovery
 
-- **RFC Number:** 0007
+- **RFC Number:** 0010
 - **Title:** Automatic path discovery
 - **Status:** Raw
 - **Author(s):** @Teebor-Choka
@@ -8,7 +8,7 @@
 - **Updated:** 2025-07-21
 - **Version:** v0.0.1 (Raw)
 - **Supersedes:** None
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md), [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md), [RFC-0010](../RFC-0010-session-start-protocol/0010-session-start-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
 
 ## 1. Abstract
 
@@ -79,7 +79,7 @@ be present:
 1. Existence of a HOPR staking channel [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) from the node in the path in the direction of the relayer
 2. Presence of a physical transport connection allowing data transfer
 
-While property 1 is known from the incentive mechanism [RFC-0008](../RFC-0008-economic-reward-system/0008-economic-reward-system.md), property 2 MUST be discovered on the physical network and is subject to network probing. The only exception to property 1 in the HOPR protocol is the last hop (i.e., the last relayer to the destination), where a staking channel is not required for data delivery.
+While property 1 is known from the incentive mechanism [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md), property 2 MUST be discovered on the physical network and is subject to network probing. The only exception to property 1 in the HOPR protocol is the last hop (i.e., the last relayer to the destination), where a staking channel is not required for data delivery.
 The network probing mechanism, abstracting transport interactions completely, consists of 3 components:
 
 1. Path generating probing algorithm
@@ -92,7 +92,7 @@ The primary responsibility of the path generating component is to apply differen
 that would offer insights in algorithm selected sections of the network with the goal of collecting path viability information.
 
 The algorithm MUST use a loopback form of communication to conceal the nature of the probing traffic from relayers.
-Loopback MAY be realized via the Session protocol [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md) or via an equivalent ephemeral mechanism; Sessions are OPTIONAL.
+Loopback MAY be realized via the Session protocol [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) or via an equivalent ephemeral mechanism; Sessions are OPTIONAL.
 In this approach, the probing node functions as both sender and receiver of the probing traffic, effectively designating each node
 in the path as a probed relayer and each edge between consecutive relayers as a probed connection. While this approach
 does not guarantee extraction of all relevant information from a single probing attempt, when combined with results from
@@ -115,7 +115,7 @@ Algorithm:
 - Basic operations:
   1. Discover immediate peers
   2. Generate paths for n-hop connections (referential probing with low frequency)
-  3. for sessions [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md), prepopulate the cache from sufficiently recent historical knowledge of successful paths
+  3. for sessions [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), prepopulate the cache from sufficiently recent historical knowledge of successful paths
   4. perform higher frequency probing checks
 
 ##### 4.2.1.1 Breadth-first algorithm (BFA)
@@ -289,7 +289,7 @@ Implementation requirements:
   - Only the onchain channel information SHALL be retained
 - Implementations MUST provide processes to:
   - Generate a low-rate continuous stream of network path probes
-  - Generate session-specific paths for session path selection obfuscation [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md)
+  - Generate session-specific paths for session path selection obfuscation [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)
 - A new path graph system SHALL be derived from these processes
 - Paths SHALL be cached for a configurable minimum time window
 - Session metrics SHALL incorporate:
@@ -319,7 +319,7 @@ the sender MUST actively probe the network in a continuous manner.
 
 The measurement traffic itself SHOULD adhere to economic feasibility constraints, i.e., it SHOULD be
 proportional to actual message traffic and MAY be incorporated as part of the Cover Traffic (CT)
-[RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md).
+[RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md).
 
 Any measurements obtained from the probing traffic SHOULD be node-specific and MUST NOT be subject to
 data or topology exchange with other nodes.
@@ -337,7 +337,7 @@ SHOULD exist.
 
 The nearest one-hop probing mechanism MAY NOT comply with the anonymity requirement, since it:
 
-1. mimics the 0-hop session [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md) which does not fully benefit from relaying mechanisms
+1. mimics the 0-hop session [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) which does not fully benefit from relaying mechanisms
 2. could be used as a first layer for relayers to discover viable candidates for future channel openings
 
 The network probing mechanism SHALL utilize graph-based algorithms to efficiently discover and maintain network topology
@@ -395,5 +395,5 @@ Future development SHOULD focus on:
 - [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) – Mixnet terminology
 - [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) – HOPR packet protocol
 - [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) – Proof of Relay
-- [RFC-0008](../RFC-0008-economic-reward-system/0008-economic-reward-system.md) – Economic Reward System
-- [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md) - Session Data Protocol
+- [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md) – Economic Reward System
+- [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) - Session Data Protocol

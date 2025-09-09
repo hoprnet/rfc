@@ -1,6 +1,6 @@
-# RFC-0010: Session Start Protocol
+# RFC-0009: Session Start Protocol
 
-- **RFC Number:** 0010
+- **RFC Number:** 0009
 - **Title:** Session Start Protocol
 - **Status:** Implementation
 - **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
@@ -8,7 +8,7 @@
 - **Updated:** 2025-09-05
 - **Version:** v0.1.0 (Draft)
 - **Supersedes:** N/A
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
 
 ## 1. Abstract
 
@@ -16,7 +16,7 @@ This RFC specifies the HOPR Session Start Protocol, a handshake protocol for est
 
 ## 2. Motivation
 
-The HOPR mixnet requires a standardized mechanism for establishing communication sessions between nodes. While the Session Data Protocol (see [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md)) handles data transmission, there needs to be a separate protocol for:
+The HOPR mixnet requires a standardized mechanism for establishing communication sessions between nodes. While the Session Data Protocol (see [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) handles data transmission, there needs to be a separate protocol for:
 
 - Establishing sessions with capability negotiation
 - Exchanging session identifiers and targets
@@ -359,7 +359,7 @@ The protocol provides structured error reporting:
 
 ### 6.3 Integration with HOPR Session Data Protocol
 
-- HOPR Session Start Protocol establishes sessions for use by HOPR Session Data Protocol (see [RFC-0009](../RFC-0009-session-protocol/0009-session-protocol.md))
+- HOPR Session Start Protocol establishes sessions for use by HOPR Session Data Protocol (see [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md))
 - Session IDs from this protocol are used to identify data sessions
 - Protocol operates independently but provides foundation for data exchange
 

@@ -20,7 +20,7 @@ The Proof of Relay (PoR) is described in the separate [RFC-0005](../RFC-0005-pro
 
 The HOPR packet format is the fundamental building block of the HOPR protocol, allowing to build the HOPR mixnet. The format is designed to create indistinguishable packets sent between source and destination using a set of relays over a path [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), thereby achieving unlinkability of messages between sender and destination.
 In HOPR protocol, the relays SHOULD also perform packet mixing, as described in [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md).
-The format is built using the Sphinx packet format [01] but adds additional information for each hop to allow incentivization of the hops (except the last one) for the relaying duties. The incentivization of the last hop is exempt from the HOPR packet format itself and is subject to a separate [RFC-0008](../RFC-0008-economic-reward-system/0008-economic-reward-system.md).
+The format is built using the Sphinx packet format [01] but adds additional information for each hop to allow incentivization of the hops (except the last one) for the relaying duties. The incentivization of the last hop is exempt from the HOPR packet format itself and is subject to a separate [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md).
 
 The HOPR packet format does not require a reliable underlying transport or in-order delivery. The packet payloads are encrypted, however, payload authenticity and integrity is not assured and MAY be ensured by the overlay protocol. In addition, the packet format is aimed to minimize overhead and maximize payload capacity.
 
