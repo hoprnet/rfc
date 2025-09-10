@@ -1,6 +1,6 @@
-# RFC-0009: Economic Reward System
+# RFC-0007: Economic Reward System
 
-- **RFC Number:** 0009
+- **RFC Number:** 0007
 - **Title:** Economic Reward System
 - **Status:** Raw
 - **Author(s):** Jean Demeusy (@jeandemeusy)

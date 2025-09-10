@@ -1,6 +1,6 @@
-# RFC-0008: Return path incentivization
+# RFC-0013: Return path incentivization
 
-- **RFC Number:** 0008
+- **RFC Number:** 0013
 - **Title:** Return path incentivization
 - **Status:** Raw | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded
 - **Author(s):** \<Name (GitHub Handle)\>
