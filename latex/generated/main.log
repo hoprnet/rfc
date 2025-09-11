@@ -1,0 +1,1096 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.9.11)  11 SEP 2025 15:13
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**/Users/michal/dev/hoprnet/rfc/latex/generated/main.tex
+(/Users/michal/dev/hoprnet/rfc/latex/generated/main.tex
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2025-01-18>
+(/usr/local/texlive/2025/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2024/06/29 v1.4n Standard LaTeX document class
+(/usr/local/texlive/2025/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2024/06/29 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count196
+\c@section=\count197
+\c@subsection=\count198
+\c@subsubsection=\count199
+\c@paragraph=\count266
+\c@subparagraph=\count267
+\c@figure=\count268
+\c@table=\count269
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+\bibindent=\dimen141
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count270
+\l__pdf_internal_box=\box52
+)
+No file main.aux.
+\openout1 = `main.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 2.
+LaTeX Font Info:    ... okay on input line 2.
+\openout2 = `0001-rfc-process.aux'.
+
+(./0001-rfc-process.tex
+Overfull \hbox (6.70454pt too wide) in paragraph at lines 2--2
+[]\OT1/cmr/bx/n/14.4 RFC-0001: RFC Life Cy-cle, Pro-cess and Struc-
+ []
+
+./0001-rfc-process.tex:5: Undefined control sequence.
+l.5 \tightlist
+              
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+Overfull \hbox (5.1385pt too wide) in paragraph at lines 45--49
+\OT1/cmr/m/n/10 NOT'', ``SHOULD'', ``SHOULD NOT'', ``REC-OM-MENDED'', ``MAY'', and ``OP-
+ []
+
+./0001-rfc-process.tex:64: Undefined control sequence.
+\@svsechd ...p \z@ \relax \@svsec \texorpdfstring 
+                                                  {4.1.1. \textbf {Mermaid D...
+l.64 \paragraph
+               {\texorpdfstring{4.1.2. \textbf{Stage
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:64: Undefined control sequence.
+<argument> ...raph\endcsname }\fi \texorpdfstring 
+                                                  {4.1.1. \textbf {Mermaid D...
+l.64 \paragraph
+               {\texorpdfstring{4.1.2. \textbf{Stage
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+
+[1
+
+
+{/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+./0001-rfc-process.tex:67: Undefined control sequence.
+\@svsechd ...p \z@ \relax \@svsec \texorpdfstring 
+                                                  {4.1.2. \textbf {Stage Des...
+l.67 \begin{itemize}
+                    
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:67: Undefined control sequence.
+<argument> ...raph\endcsname }\fi \texorpdfstring 
+                                                  {4.1.2. \textbf {Stage Des...
+l.67 \begin{itemize}
+                    
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:68: Undefined control sequence.
+l.68 \tightlist
+               
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./0001-rfc-process.tex:112: LaTeX Error: Environment Shaded undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.112 \begin{Shaded}
+                    
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+
+./0001-rfc-process.tex:113: LaTeX Error: Environment Highlighting undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.113 \begin{Highlighting}
+                          []
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+./0001-rfc-process.tex:114: Undefined control sequence.
+l.114 \NormalTok
+                {RFC{-}0001{-}rfc{-}life{-}cycle{-}process/}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:115: Undefined control sequence.
+l.115 \NormalTok
+                {│}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./0001-rfc-process.tex:115: LaTeX Error: Unicode character │ (U+2502)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.115 \NormalTok{│
+                    }
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+./0001-rfc-process.tex:116: Undefined control sequence.
+l.116 \NormalTok
+                {├── 0001{-}rfc{-}life{-}cycle{-}process.md}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./0001-rfc-process.tex:116: LaTeX Error: Unicode character ├ (U+251C)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.116 \NormalTok{├
+                    ── 0001{-}rfc{-}life{-}cycle{-}process.md}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:116: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.116 \NormalTok{├─
+                       ─ 0001{-}rfc{-}life{-}cycle{-}process.md}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:116: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.116 \NormalTok{├──
+                           0001{-}rfc{-}life{-}cycle{-}process.md}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+./0001-rfc-process.tex:117: Undefined control sequence.
+l.117 \NormalTok
+                {├── errata/}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./0001-rfc-process.tex:117: LaTeX Error: Unicode character ├ (U+251C)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.117 \NormalTok{├
+                    ── errata/}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:117: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.117 \NormalTok{├─
+                       ─ errata/}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:117: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.117 \NormalTok{├──
+                           errata/}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+./0001-rfc-process.tex:118: Undefined control sequence.
+l.118 \NormalTok
+                {│   └── 0001{-}v1.0.1{-}erratum.md}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./0001-rfc-process.tex:118: LaTeX Error: Unicode character │ (U+2502)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.118 \NormalTok{│
+                       └── 0001{-}v1.0.1{-}erratum.md}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:118: LaTeX Error: Unicode character └ (U+2514)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.118 \NormalTok{│   └
+                          ── 0001{-}v1.0.1{-}erratum.md}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:118: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.118 \NormalTok{│   └─
+                             ─ 0001{-}v1.0.1{-}erratum.md}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:118: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.118 \NormalTok{│   └──
+                                 0001{-}v1.0.1{-}erratum.md}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+./0001-rfc-process.tex:119: Undefined control sequence.
+l.119 \NormalTok
+                {└── assets/}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./0001-rfc-process.tex:119: LaTeX Error: Unicode character └ (U+2514)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.119 \NormalTok{└
+                    ── assets/}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:119: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.119 \NormalTok{└─
+                       ─ assets/}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:119: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.119 \NormalTok{└──
+                           assets/}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+./0001-rfc-process.tex:120: Undefined control sequence.
+l.120 \NormalTok
+                {    └── life{-}cycle{-}overview.png}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./0001-rfc-process.tex:120: LaTeX Error: Unicode character └ (U+2514)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 \NormalTok{    └
+                        ── life{-}cycle{-}overview.png}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:120: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 \NormalTok{    └─
+                           ─ life{-}cycle{-}overview.png}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:120: LaTeX Error: Unicode character ─ (U+2500)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 \NormalTok{    └──
+                               life{-}cycle{-}overview.png}
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+./0001-rfc-process.tex:121: LaTeX Error: \begin{document} ended by \end{Highlighting}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.121 \end{Highlighting}
+                        
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+
+./0001-rfc-process.tex:122: LaTeX Error: \begin{document} ended by \end{Shaded}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.122 \end{Shaded}
+                  
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+
+Overfull \hbox (2.3338pt too wide) in paragraph at lines 113--123
+\OT1/cmr/m/n/10 [] RFC-0001-rfc-life-cycle-process/   0001-rfc-life-cycle-process.md  er-rata/   0001-
+ []
+
+./0001-rfc-process.tex:129: Undefined control sequence.
+l.129 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+
+[2]
+
+./0001-rfc-process.tex:154: LaTeX Error: Environment Shaded undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.154 \begin{Shaded}
+                    
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+
+./0001-rfc-process.tex:155: LaTeX Error: Environment Highlighting undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.155 \begin{Highlighting}
+                          []
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+./0001-rfc-process.tex:156: Undefined control sequence.
+l.156 \FunctionTok
+                  {\# RFC{-}XXXX: [Title]}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:158: Undefined control sequence.
+l.158 \SpecialStringTok
+                       {{-} }\NormalTok{**RFC Number:** XXXX}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:158: Undefined control sequence.
+l.158 \SpecialStringTok{{-} }\NormalTok
+                                       {**RFC Number:** XXXX}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:159: Undefined control sequence.
+l.159 \SpecialStringTok
+                       {{-} }\NormalTok{**Title:** }\CommentTok{[}\OtherTok{...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:159: Undefined control sequence.
+l.159 \SpecialStringTok{{-} }\NormalTok
+                                       {**Title:** }\CommentTok{[}\OtherTok{...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:159: Undefined control sequence.
+l.159 ...k{{-} }\NormalTok{**Title:** }\CommentTok
+                                                  {[}\OtherTok{Title in Titl...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:159: Undefined control sequence.
+l.159 ...alTok{**Title:** }\CommentTok{[}\OtherTok
+                                                  {Title in Title Case}\Comm...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:159: Undefined control sequence.
+l.159 ...\OtherTok{Title in Title Case}\CommentTok
+                                                  {]}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:160: Undefined control sequence.
+l.160 \SpecialStringTok
+                       {{-} }\NormalTok{**Status:** Raw | Discussion | Revie...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:160: Undefined control sequence.
+l.160 \SpecialStringTok{{-} }\NormalTok
+                                       {**Status:** Raw | Discussion | Revie...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:161: Undefined control sequence.
+l.161 \SpecialStringTok
+                       {{-} }\NormalTok{**Author(s):** }\CommentTok{[}\Other...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:161: Undefined control sequence.
+l.161 \SpecialStringTok{{-} }\NormalTok
+                                       {**Author(s):** }\CommentTok{[}\Other...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:161: Undefined control sequence.
+l.161 ...} }\NormalTok{**Author(s):** }\CommentTok
+                                                  {[}\OtherTok{Name (GitHub ...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:161: Undefined control sequence.
+l.161 ...k{**Author(s):** }\CommentTok{[}\OtherTok
+                                                  {Name (GitHub Handle)}\Com...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:161: Undefined control sequence.
+l.161 ...OtherTok{Name (GitHub Handle)}\CommentTok
+                                                  {]}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:162: Undefined control sequence.
+l.162 \SpecialStringTok
+                       {{-} }\NormalTok{**Created:** YYYY{-}MM{-}DD}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:162: Undefined control sequence.
+l.162 \SpecialStringTok{{-} }\NormalTok
+                                       {**Created:** YYYY{-}MM{-}DD}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:163: Undefined control sequence.
+l.163 \SpecialStringTok
+                       {{-} }\NormalTok{**Updated:** YYYY{-}MM{-}DD}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:163: Undefined control sequence.
+l.163 \SpecialStringTok{{-} }\NormalTok
+                                       {**Updated:** YYYY{-}MM{-}DD}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:164: Undefined control sequence.
+l.164 \SpecialStringTok
+                       {{-} }\NormalTok{**Version:** vX.X.X (Status)}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:164: Undefined control sequence.
+l.164 \SpecialStringTok{{-} }\NormalTok
+                                       {**Version:** vX.X.X (Status)}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:165: Undefined control sequence.
+l.165 \SpecialStringTok
+                       {{-} }\NormalTok{**Supersedes:** RFC{-}YYYY (if appli...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:165: Undefined control sequence.
+l.165 \SpecialStringTok{{-} }\NormalTok
+                                       {**Supersedes:** RFC{-}YYYY (if appli...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:166: Undefined control sequence.
+l.166 \SpecialStringTok
+                       {{-} }\NormalTok{**Related Links:** }\CommentTok{[}\O...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:166: Undefined control sequence.
+l.166 \SpecialStringTok{{-} }\NormalTok
+                                       {**Related Links:** }\CommentTok{[}\O...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:166: Undefined control sequence.
+l.166 ...NormalTok{**Related Links:** }\CommentTok
+                                                  {[}\OtherTok{RFC{-}XXXX}\C...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:166: Undefined control sequence.
+l.166 ...Related Links:** }\CommentTok{[}\OtherTok
+                                                  {RFC{-}XXXX}\CommentTok{](...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:166: Undefined control sequence.
+l.166 ...entTok{[}\OtherTok{RFC{-}XXXX}\CommentTok
+                                                  {](../RFC{-}XXXX{-}[slug]/...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:166: Undefined control sequence.
+l.166 ...XXX{-}[slug]/XXXX{-}[slug].md)}\NormalTok
+                                                  { | none}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./0001-rfc-process.tex:167: LaTeX Error: \begin{document} ended by \end{Highlighting}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.167 \end{Highlighting}
+                        
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+
+./0001-rfc-process.tex:168: LaTeX Error: \begin{document} ended by \end{Shaded}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.168 \end{Shaded}
+                  
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+./0001-rfc-process.tex:178: Undefined control sequence.
+l.178 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+Overfull \hbox (60.85832pt too wide) in paragraph at lines 190--192
+[]\OT1/cmr/m/n/10 Example: \OT1/cmtt/m/n/10 [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
+ []
+
+
+Overfull \hbox (63.24669pt too wide) in paragraph at lines 190--192
+\OT1/cmtt/m/n/10 [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) 
+ []
+
+
+
+[3]
+Overfull \hbox (68.49664pt too wide) in paragraph at lines 211--211
+ []\OT1/cmtt/m/n/10 [XX] Author(s). (Year). [Title](URL). _Publication_, Volume(Issue), pages.[] 
+ []
+
+
+Overfull \hbox (693.2412pt too wide) in paragraph at lines 217--217
+ []\OT1/cmtt/m/n/10 [01] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf). _Communications of the ACM, 24_(2), 84-90.[] 
+ []
+
+./0001-rfc-process.tex:226: Undefined control sequence.
+l.226 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:238: Undefined control sequence.
+l.238 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:249: Undefined control sequence.
+l.249 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+Overfull \hbox (11.04054pt too wide) in paragraph at lines 256--258
+[]\OT1/cmr/m/n/10 Breaking changes \OT1/cmr/bx/n/10 MUST \OT1/cmr/m/n/10 be re-flected in a ma-jor ver-sion in-cre-ment (\OT1/cmtt/m/n/10 v2.0.0\OT1/cmr/m/n/10 ). 
+ []
+
+./0001-rfc-process.tex:263: Undefined control sequence.
+l.263 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:274: Undefined control sequence.
+l.274 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:282: Undefined control sequence.
+l.282 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+
+[4]
+./0001-rfc-process.tex:290: Undefined control sequence.
+l.290 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:302: Undefined control sequence.
+l.302 \tightlist
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:314: Undefined control sequence.
+l.314 \href
+           {https://datatracker.ietf.org/doc/html/rfc2119}{Key words for use
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+Overfull \hbox (4.46378pt too wide) in paragraph at lines 313--316
+\OT1/cmr/m/n/10 [01] Brad-ner, S. (1997). https://datatracker.ietf.org/doc/html/rfc2119Key words
+ []
+
+./0001-rfc-process.tex:317: Undefined control sequence.
+l.317 {[}02{]} \href
+                    {https://www.rfc-editor.org/styleguide/}{RFC Editor Style
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:320: Undefined control sequence.
+l.320 {[}03{]} \href
+                    {https://github.com/rust-lang/rfcs}{Rust RFC Process}.
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:323: Undefined control sequence.
+l.323 {[}04{]} \href
+                    {https://rfc.zeromq.org}{ZeroMQ RFC Process}. ZeroMQ
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0001-rfc-process.tex:326: Undefined control sequence.
+l.326 {[}05{]} \href
+                    {https://github.com/vacp2p/rfc-index}{VACP2P RFC Index}.
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+)
+Overfull \hbox (6.32251pt too wide) in paragraph at lines 326--3
+[]\OT1/cmr/m/n/10 [05] https://github.com/vacp2p/rfc-indexVACP2P RFC In-dex. Vac Re-search. 
+ []
+
+
+
+[5]
+\openout2 = `0002-mixnet-keywords.aux'.
+
+ (./0002-mixnet-keywords.tex
+./0002-mixnet-keywords.tex:5: Undefined control sequence.
+l.5 \tightlist
+              
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+
+[6
+
+
+
+]
+
+[7]
+./0002-mixnet-keywords.tex:146: Undefined control sequence.
+l.146 \href
+           {https://www.freehaven.net/anonbib/cache/chaum-mix.pdf}{Untraceable
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+Overfull \hbox (65.65831pt too wide) in paragraph at lines 145--149
+\OT1/cmr/m/n/10 [01] Chaum, D. (1981). https://www.freehaven.net/anonbib/cache/chaum-mix.pdfUntraceable
+ []
+
+./0002-mixnet-keywords.tex:151: Undefined control sequence.
+l.151 \href
+           {https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{Sphinx: A
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./0002-mixnet-keywords.tex:151: Missing $ inserted.
+<inserted text> 
+                $
+l.151 ...https://cypherpunks.ca/~iang/pubs/Sphinx_
+                                                  Oakland09.pdf}{Sphinx: A
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 151.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 151.
+./0002-mixnet-keywords.tex:151: Extra }, or forgotten $.
+l.151 ...punks.ca/~iang/pubs/Sphinx_Oakland09.pdf}
+                                                  {Sphinx: A
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+./0002-mixnet-keywords.tex:154: Missing $ inserted.
+<inserted text> 
+                $
+l.154 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (588.89258pt too wide) in paragraph at lines 150--154
+[]\OT1/cmr/m/n/10 [02] Danezis, G., & Gold-berg, I. (2009). https://cypherpunks.ca/ iang/pubs/Sphinx$[]\OML/cmm/m/it/10 akland\OT1/cmr/m/n/10 09\OML/cmm/m/it/10 :pdf[]:[]; \OT1/cmr/m/n/10 262 \OMS/cmsy/m/n/10 ^^@
+ []
+
+./0002-mixnet-keywords.tex:160: Undefined control sequence.
+l.160 \href
+           {https://www.onion-router.net/Publications/JSAC-1998.pdf}{Anonymous
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+Overfull \hbox (25.5192pt too wide) in paragraph at lines 159--163
+[]\OT1/cmr/m/n/10 [04] Reed, M. G., Syver-son, P. F., & Gold-schlag, D. M. (1998). https://www.onion-
+ []
+
+
+Overfull \hbox (9.80635pt too wide) in paragraph at lines 159--163
+\OT1/cmr/m/n/10 router.net/Publications/JSAC-1998.pdfAnonymous Con-nec-tions and Onion Rout-
+ []
+
+
+Overfull \hbox (19.26169pt too wide) in paragraph at lines 164--167
+\OT1/cmr/m/it/10 Sys-tem Tech-ni-cal Jour-nal, 28\OT1/cmr/m/n/10 (4), 656-715. DOI: 10.1002/j.1538-7305.1949.tb00928.x 
+ []
+
+)
+
+[8] (./main.aux (./0001-rfc-process.aux) (./0002-mixnet-keywords.aux))
+ ***********
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2025-01-18>
+ ***********
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ )
+(\end occurred inside a group at level 1)
+
+### simple group (level 1) entered at line 151 ({)
+### bottom level 
+Here is how much of TeX's memory you used:
+ 537 strings out of 473190
+ 10983 string characters out of 5715800
+ 404064 words of memory out of 5000000
+ 23856 multiletter control sequences out of 15000+600000
+ 561204 words of font info for 44 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 35i,5n,50p,294b,224s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb>
+Output written on main.pdf (8 pages, 151578 bytes).
+PDF statistics:
+ 77 PDF objects out of 1000 (max. 8388607)
+ 48 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

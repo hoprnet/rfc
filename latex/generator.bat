@@ -1,1 +1,0 @@
-./bin/pandoc-win.exe ../rfcs/RFC-0001-rfc-process/0001-rfc-process.md -o ./generated/0001-rfc-process.tex -F mermaid-filter
