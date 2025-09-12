@@ -12,7 +12,8 @@
 
 ## 1. Abstract
 
-This RFC is a placeholder for future work on return path incentivization in the HOPR protocol. The specification is currently in development and will define mechanisms to incentivize relay nodes on return paths for bidirectional communication.
+This RFC is a placeholder for future work on return path incentivization in the HOPR protocol. The specification is currently in development and will
+define mechanisms to incentivize relay nodes on return paths for bidirectional communication.
 
 ## 2. Motivation
 

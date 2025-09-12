@@ -83,7 +83,7 @@
             programs.prettier = {
               enable = true;
               settings = {
-                printWidth = 120;
+                printWidth = 150;
                 proseWrap = "always";
                 tabWidth = 2;
                 useTabs = false;

@@ -1,6 +1,7 @@
 # LLM Agent Instructions for HOPR RFC Repository
 
-This document provides instructions for LLM agents working with the HOPR RFC repository to ensure consistent formatting, referencing, and quality standards.
+This document provides instructions for LLM agents working with the HOPR RFC repository to ensure consistent formatting, referencing, and quality
+standards.
 
 ## Reference Style Standards
 
@@ -20,9 +21,11 @@ This document provides instructions for LLM agents working with the HOPR RFC rep
 ```markdown
 [01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
 
-[02] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf). _Communications of the ACM, 24_(2), 84-90.
+[02] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf).
+_Communications of the ACM, 24_(2), 84-90.
 
-[03] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
+[03] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf).
+_2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 ```
 
 **In-Text Citations:**
@@ -49,7 +52,8 @@ This document provides instructions for LLM agents working with the HOPR RFC rep
 **Example:**
 
 ```markdown
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
+  [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
 ```
 
 **In-Text RFC References:**
