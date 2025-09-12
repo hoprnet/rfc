@@ -7,16 +7,22 @@
 - **Created:** 2025-08-14
 - **Updated:** 2025-09-04
 - **Version:** v0.1.0 (Draft)
-- **Supersedes:** N/A
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
+- **Supersedes:** none
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
+  [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
 
 ## 1. Abstract
 
-This RFC describes the HOPR Mixer component, a critical element of the HOPR mixnet that introduces temporal mixing to break timing correlation between incoming and outgoing packets. The mixer applies random delays to packets, effectively destroying temporal patterns that could be used for traffic analysis. This specification details the mixer's design, implementation requirements, and integration points to enable consistent implementations across different HOPR nodes.
+This RFC describes the HOPR Mixer component, a critical element of the HOPR mixnet that introduces temporal mixing to break timing correlation between
+incoming and outgoing packets. The mixer applies random delays to packets, effectively destroying temporal patterns that could be used for traffic
+analysis. This specification details the mixer's design, implementation requirements, and integration points to enable consistent implementations
+across different HOPR nodes.
 
 ## 2. Motivation
 
-In mixnets, simply forwarding packets through multiple hops is insufficient to prevent traffic analysis attacks. Adversaries can correlate packets by observing timing patterns, even if packet contents are encrypted and routes are obscured. Without temporal mixing, an observer monitoring network traffic can potentially link incoming and outgoing packets based on their timing relationships.
+In mixnets, simply forwarding packets through multiple hops is insufficient to prevent traffic analysis attacks. Adversaries can correlate packets by
+observing timing patterns, even if packet contents are encrypted and routes are obscured. Without temporal mixing, an observer monitoring network
+traffic can potentially link incoming and outgoing packets based on their timing relationships.
 
 The HOPR Mixer addresses this attack vector by:
 
@@ -72,7 +78,8 @@ Random delay generation:
 - MUST be independent per packet (no reuse/correlation across packets)
 - SHOULD allow uniform distribution as the baseline; other distributions MAY be added via configuration
 
-Note: Uniform distribution is a simple baseline. More advanced strategies like Poisson mixing (as used in Loopix [01]) can provide stronger anonymity properties by making packet timings less distinguishable from cover traffic patterns.
+Note: Uniform distribution is a simple baseline. More advanced strategies like Poisson mixing (as used in Loopix [01]) can provide stronger anonymity
+properties by making packet timings less distinguishable from cover traffic patterns.
 
 #### 4.3.2. Mixing Buffer
 
@@ -136,9 +143,10 @@ An implementation should prioritize:
 ### 5.2. Abuse Resistance and Resource Limits
 
 - **Timing attacks**: Random delays must use cryptographically secure randomness
-- **Statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies
-  (e.g., exponential/Poisson as in Loopix [01]) provide better resistance to pattern inference
-- **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behavior when full (e.g., drop-tail oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
+- **Statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies (e.g., exponential/Poisson as in Loopix [01])
+  provide better resistance to pattern inference
+- **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behavior when full (e.g., drop-tail
+  oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
 
 ### 5.3. Monitoring and Metrics
 
@@ -178,7 +186,8 @@ The mixer does not protect against:
 - **Increased latency**: Every packet experiences additional delay
 - **Memory usage**: Buffering packets requires memory proportional to traffic volume and queue size
 - **Complexity**: Adds another component to the protocol stack which even makes node-local debugging harder
-- **Simplistic nature**: The mixing does not account for the total count of elements in the buffer, with increasing amounts of messages in the mixer the generated delay can decrease without sacrificing the mixing properties.
+- **Simplistic nature**: The mixing does not account for the total count of elements in the buffer, with increasing amounts of messages in the mixer
+  the generated delay can decrease without sacrificing the mixing properties.
 
 ## 8. Alternatives
 
@@ -187,9 +196,11 @@ Alternative mixing strategies considered:
 - **Batch mixing**: Release packets in fixed-size batches (higher latency)
 - **Threshold mixing**: Release when buffer reaches certain size (variable latency)
 - **Stop-and-go mixing**: Fixed delays at each hop (predictable patterns)
-- **Poisson mixing**: As implemented in Loopix [01], uses Poisson-distributed delays that make real traffic harder to distinguish from cover traffic. This can provide stronger anonymity properties but requires careful parameter tuning and integration with cover traffic.
+- **Poisson mixing**: As implemented in Loopix [01], uses Poisson-distributed delays that make real traffic harder to distinguish from cover traffic.
+  This can provide stronger anonymity properties but requires careful parameter tuning and integration with cover traffic.
 
-The current continuous mixing approach with uniform distribution is a simple baseline that balances latency and anonymity while being easier to implement and analyze.
+The current continuous mixing approach with uniform distribution is a simple baseline that balances latency and anonymity while being easier to
+implement and analyze.
 
 ## 9. Unresolved Questions
 
@@ -200,9 +211,11 @@ The current continuous mixing approach with uniform distribution is a simple bas
 
 ## 10. Future Work
 
-- **Poisson Mixing Implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as described in Loopix [01] to provide stronger anonymity properties when combined with cover traffic
+- **Poisson Mixing Implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as
+  described in Loopix [01] to provide stronger anonymity properties when combined with cover traffic
 - Performance optimizations for hardware acceleration
 
 ## 11. References
 
-[01] Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., & Danezis, G. (2017). [The Loopix Anonymity System](https://arxiv.org/pdf/1703.00536.pdf). _26th USENIX Security Symposium_, 1199-1216.
+[01] Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., & Danezis, G. (2017). [The Loopix Anonymity System](https://arxiv.org/pdf/1703.00536.pdf).
+_26th USENIX Security Symposium_, 1199-1216.

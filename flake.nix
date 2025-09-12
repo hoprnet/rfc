@@ -41,15 +41,19 @@
           pre-commit-check = pre-commit.lib.${system}.run {
             src = ./.;
             hooks = {
-              # https://github.com/cachix/git-hooks.nix
-              treefmt.enable = false;
+              # Formatting with treefmt
+              treefmt.enable = true;
               treefmt.package = config.treefmt.build.wrapper;
+
+              # Git repository checks
               check-executables-have-shebangs.enable = true;
               check-shebang-scripts-are-executable.enable = true;
               check-case-conflicts.enable = true;
               check-symlinks.enable = true;
               check-merge-conflicts.enable = true;
               check-added-large-files.enable = true;
+
+              # Commit message formatting
               commitizen.enable = true;
             };
             tools = pkgs;
@@ -58,9 +62,11 @@
           };
 
           devShell = pkgs.mkShell {
+            inherit (pre-commit-check) shellHook;
             buildInputs =
               with pkgs;
               [
+                # Task runner and formatting
                 just
                 config.treefmt.build.wrapper
               ]
@@ -71,7 +77,15 @@
           treefmt = {
             inherit (config.flake-root) projectRootFile;
 
-            programs.prettier.enable = true;
+            programs.prettier = {
+              enable = true;
+              settings = {
+                printWidth = 150;
+                proseWrap = "always";
+                tabWidth = 2;
+                useTabs = false;
+              };
+            };
 
             settings.global.excludes = [
               "**/.gitignore"

@@ -24,10 +24,7 @@ function HomepageHeader() {
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
-        <img
-          src="./img/HOPR_logo.svg"
-          style={{ maxWidth: "1000px", width: "100%" }}
-        />
+        <img src="./img/HOPR_logo.svg" style={{ maxWidth: "1000px", width: "100%" }} />
         <Heading as="h1" className="hero__title">
           RFCs
         </Heading>
@@ -49,10 +46,7 @@ function HomepageHeader() {
 export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout
-      title={`${siteConfig.title}`}
-      description={`Request for Comments (RFC) for HOPR protocol`}
-    >
+    <Layout title={`${siteConfig.title}`} description={`Request for Comments (RFC) for HOPR protocol`}>
       <HomepageHeader />
     </Layout>
   );
