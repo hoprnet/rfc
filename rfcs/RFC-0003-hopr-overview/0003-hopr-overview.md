@@ -15,11 +15,11 @@
 
 ## 1. Abstract
 
-This RFC provides a introductary overview of the HOPR network (sometimes referred to as HOPRnet) and protocol stack. HOPR is a decentralized,
+This RFC provides an introductory overview of the HOPR network (sometimes referred to as HOPRnet) and protocol stack. HOPR is a decentralized,
 incentivized mixnet that enables privacy-preserving communication by routing messages through multiple relay nodes.
 
-HOPR's innovation includes the proof-of-relay mechanism, which solves challenge of creating economically sustainable anonymous communication networks.
-HOPR enables scalable privacy infrastructure that grows stronger with increased adoption, unlike volunteer-based networks that struggle with
+HOPR's innovation includes the proof-of-relay mechanism, which solves the challenge of creating economically sustainable anonymous communication
+networks. HOPR enables scalable privacy infrastructure that grows stronger with increased adoption, unlike volunteer-based networks that struggle with
 sustainability and performance.
 
 This document serves as the primary entry point for understanding the HOPR ecosystem, providing detailed architectural explanations while referencing
@@ -136,7 +136,7 @@ The Proof of Relay mechanism ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-o
 
 The HOPR Mixer ([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) provides traffic analysis resistance:
 
-- **Temporal Mixing**: Introduces random delays to break timing correlations [01, 06]
+- **Temporal Mixing**: Introduces random delays to break timing correlations between packets [01, 06]
 - **Batching**: Groups packets together before forwarding to obscure traffic patterns
 - **Configurable Strategies**: Multiple mixing strategies for different privacy/latency trade-offs
 

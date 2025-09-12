@@ -12,7 +12,8 @@ standards.
 - Use sequential numbering: `[01]`, `[02]`, `[03]`, etc.
 - Always use zero-padded two-digit format
 - Follow academic citation format:
-  ```
+
+  ```text
   [XX] Author(s). (Year). [Title](URL). _Publication_, Volume(Issue), pages.
   ```
 
