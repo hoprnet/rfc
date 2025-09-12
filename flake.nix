@@ -69,9 +69,6 @@
                 # Task runner and formatting
                 just
                 config.treefmt.build.wrapper
-
-                # Pre-commit
-                pre-commit
               ]
               ++ (pkgs.lib.attrValues config.treefmt.build.programs);
           };
