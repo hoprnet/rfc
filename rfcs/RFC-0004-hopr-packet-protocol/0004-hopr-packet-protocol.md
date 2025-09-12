@@ -7,7 +7,7 @@
 - **Created:** 2025-03-19
 - **Updated:** 2025-08-27
 - **Version:** v0.9.0 (Draft)
-- **Supersedes:** N/A
+- **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md), [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
 
 ## 1. Abstract
@@ -36,7 +36,7 @@ The HOPR packet consists of two primary parts:
 
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",
 "MAY", and "OPTIONAL" in this document are to be interpreted as described
-in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119) when, and only when, they appear in all
+in [02] when, and only when, they appear in all
 capitals, as shown here.
 
 Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used, as well as some following additional terms:
@@ -589,14 +589,16 @@ The current version is instantiated using the following cryptographic primitives
 - PRG is instantiated using Chacha20 [02]
 - OA is instantiated with Poly1305 [02]
 - KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`: `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
-- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [02]. `S` is used a the secret input, and `T` as an additional domain separator.
+- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [04]. `S` is used a the secret input, and `T` as an additional domain separator.
 
 ## 7. References
 
 [01] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 
-[02] Nir, Y., & Langley, A. (2015). [ChaCha20 and Poly1305 for IETF Protocols](https://www.rfc-editor.org/rfc/rfc7539.html). _IETF RFC 7539_.
+[02] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
 
-[03] Faz-Hernandez, A., et al. (2023). [Hashing to Elliptic Curves](https://www.rfc-editor.org/rfc/rfc9380.html). _IETF RFC 9380_.
+[03] Nir, Y., & Langley, A. (2015). [ChaCha20 and Poly1305 for IETF Protocols](https://www.rfc-editor.org/rfc/rfc7539.html). _IETF RFC 7539_.
 
-[04] Anderson, R., & Biham, E. (1996). Two practical and provably secure block ciphers: BEAR and LION. _In International Workshop on Fast Software Encryption (pp. 113-120). Berlin, Heidelberg: Springer Berlin Heidelberg._
+[04] Faz-Hernandez, A., et al. (2023). [Hashing to Elliptic Curves](https://www.rfc-editor.org/rfc/rfc9380.html). _IETF RFC 9380_.
+
+[05] Anderson, R., & Biham, E. (1996). Two practical and provably secure block ciphers: BEAR and LION. _In International Workshop on Fast Software Encryption (pp. 113-120). Berlin, Heidelberg: Springer Berlin Heidelberg._

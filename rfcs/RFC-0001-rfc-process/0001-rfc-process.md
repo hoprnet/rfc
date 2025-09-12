@@ -7,7 +7,7 @@
 - **Created:** 2025-02-20
 - **Updated:** 2025-08-20
 - **Version:** v0.2.0 (Raw)
-- **Supersedes:** N/A
+- **Supersedes:** none
 - **Related Links:** none
 
 ## 1. Abstract

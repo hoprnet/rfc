@@ -7,7 +7,7 @@
 - **Created:** 2025-08-15
 - **Updated:** 2025-09-05
 - **Version:** v0.1.0 (Draft)
-- **Supersedes:** N/A
+- **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
 
 ## 1. Abstract
@@ -22,6 +22,8 @@ Since HOPR protocol is not IP-based, such implementation would require IP protoc
 The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the HOPR Session Start Protocol [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md), while this protocol focuses exclusively on data transmission.
 
 ## 3. Terminology
+
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following session-specific terms:
 
 - **Frame**: A logical unit of data transmission in the Session Protocol. Frames can be of arbitrary length and are identified by a unique Frame ID.
 

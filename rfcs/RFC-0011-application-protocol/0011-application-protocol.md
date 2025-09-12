@@ -7,7 +7,7 @@
 - **Created:** 2025-08-22
 - **Updated:** 2025-08-22
 - **Version:** v0.1.0 (Draft)
-- **Supersedes:** N/A
+- **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md), [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
 
 ## 1. Abstract

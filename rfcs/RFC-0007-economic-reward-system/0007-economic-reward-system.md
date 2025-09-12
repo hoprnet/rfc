@@ -6,8 +6,8 @@
 - **Author(s):** Jean Demeusy (@jeandemeusy)
 - **Created:** 2025-08-25
 - **Updated:** 2025-08-25
-- **Version:** v0.1.0
-- **Supersedes:** N/A
+- **Version:** v0.1.0 (Raw)
+- **Supersedes:** none
 - **Related Links:** none
 
 ## 1. Abstract
@@ -27,7 +27,7 @@ The economic reward system is a necessary component of the HOPR mixnet, as it in
 
 ## 3. Terminology
 
-<!-- Define key terms, abbreviations, and domain-specific language used throughout the RFC. -->
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document uses the following economic system-specific terms:
 
 - **Subgraph**: Off-chain data indexer (e.g., The Graph) for blockchain data (NFT holders, registered nodes, allocations, EOA balances).
 - **API**: HOPR node HTTP API for live network data (topology, channel balances).

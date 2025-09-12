@@ -7,7 +7,7 @@
 - **Created:** 2025-08-20
 - **Updated:** 2025-09-05
 - **Version:** v0.1.0 (Draft)
-- **Supersedes:** N/A
+- **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
 
 ## 1. Abstract
@@ -27,6 +27,8 @@ The HOPR mixnet requires a standardized mechanism for establishing communication
 The Session Start Protocol fills this gap by providing a lightweight, transport-agnostic handshake mechanism specifically designed for the HOPR ecosystem.
 
 ## 3. Terminology
+
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following session start protocol-specific terms:
 
 - **Challenge**: A 64-bit random value used to correlate requests and responses in the handshake process. Challenge values are interpreted as big-endian unsigned integers.
 
