@@ -106,6 +106,18 @@ truth for the terminology used in the HOPR ecosystem.
 - **Reply Message:** A packet that is sent along the return path. Also referred
   to as "reply packet".
 
+- **HOPR Network:** The decentralized network of HOPR nodes that relay messages to provide privacy-preserving communications with economic incentives.
+
+- **HOPR Node:** A participant in the HOPR network that implements the full HOPR protocol stack and can send, receive, and relay messages while participating in the payment system.
+
+- **Session:** An established communication channel between two HOPR nodes for exchanging multiple messages with state management and reliability features.
+
+- **Proof of Relay:** A cryptographic proof that demonstrates a HOPR node has correctly relayed a message and is eligible to receive payment for the relay service.
+
+- **Channel:** A payment channel between two HOPR nodes that enables efficient micropayments for relay services without requiring blockchain transactions for each payment.
+
+- **Mixer:** A HOPR protocol component that introduces random delays and batching to packets to break timing correlation attacks and enhance traffic analysis resistance.
+
 ## 4. References
 
 [01] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf). _Communications of the ACM, 24_(2), 84-90.

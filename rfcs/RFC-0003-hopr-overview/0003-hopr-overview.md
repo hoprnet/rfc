@@ -12,7 +12,11 @@
 
 ## 1. Abstract
 
-This RFC provides a comprehensive overview of the HOPR (HOPRnet) network and protocol stack. HOPR is a decentralized, incentivized mixnet that enables privacy-preserving communication by routing messages through multiple relay nodes. This document introduces the network architecture, core protocol concepts, and the motivation behind HOPR's design. It serves as an entry point for understanding the HOPR ecosystem and references other RFCs that provide detailed technical specifications for individual protocol components.
+This RFC provides a introductary overview of the HOPR network (sometimes referred to as HOPRnet) and protocol stack. HOPR is a decentralized, incentivized mixnet that enables privacy-preserving communication by routing messages through multiple relay nodes.
+
+HOPR's innovation includes the proof-of-relay mechanism, which solves challenge of creating economically sustainable anonymous communication networks. HOPR enables scalable privacy infrastructure that grows stronger with increased adoption, unlike volunteer-based networks that struggle with sustainability and performance.
+
+This document serves as the primary entry point for understanding the HOPR ecosystem, providing detailed architectural explanations while referencing specialized RFCs for implementation-specific details. It targets researchers, developers, and infrastructure providers seeking to understand or implement privacy-preserving communication solutions.
 
 ## 2. Motivation
 
@@ -25,26 +29,15 @@ HOPR addresses these privacy challenges by implementing a decentralized mixnet t
 - **Ensures decentralization**: No single entity controls the network, preventing censorship and single points of failure
 - **Maintains accessibility**: Applications can integrate privacy features without requiring users to understand complex cryptographic concepts
 
-The HOPR protocol is designed to be transport-agnostic, allowing it to operate over various network infrastructures while providing strong privacy guarantees. By combining proven cryptographic techniques with novel incentive mechanisms, HOPR creates a practical solution for privacy-preserving communications at scale.
+The HOPR protocol is designed to be transport-agnostic, allowing it to operate over standard internet infrastructures while providing strong privacy guarantees. By combining proven cryptographic techniques with novel incentive mechanisms, HOPR creates a practical solution for privacy-preserving communications at scale.
 
 ## 3. Terminology
 
-This section provides key terminology for understanding the HOPR ecosystem. For a comprehensive list of mixnet terminology, refer to [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md).
-
-- **HOPR Network**: The decentralized network of nodes that relay messages to provide privacy-preserving communications
-- **HOPR Node**: A participant in the HOPR network that can send, receive, and relay messages
-- **Mixnet**: A type of network that provides anonymous communication by routing messages through multiple intermediary nodes
-- **Relay Node**: A HOPR node that forwards messages on behalf of other nodes and receives payment for this service
-- **Path**: A sequence of relay nodes through which a message is routed from sender to recipient
-- **Packet**: The basic unit of data transmission in the HOPR protocol, containing encrypted payload and routing information
-- **Session**: An established communication channel between two nodes for exchanging multiple messages
-- **Proof of Relay**: A cryptographic proof that demonstrates a node has correctly relayed a message
-- **Channel**: A payment channel between two nodes that enables micropayments for relay services
-- **Mixer**: A component that introduces random delays to packets to break timing correlation attacks
+For all terminology used in this document, including both general mixnet concepts and HOPR-specific terms, refer to [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md).
 
 ## 4. Network Overview
 
-The HOPR network is a decentralized, peer-to-peer network that provides privacy-preserving communication services. The network architecture consists of several key components working together to ensure metadata privacy and incentivize participation.
+The HOPR network is a decentralized, peer-to-peer network that provides privacy-preserving communication. The network architecture consists of several key components working together to ensure metadata privacy and incentivize participation.
 
 ### 4.1 Network Architecture
 
@@ -53,13 +46,13 @@ The HOPR network is composed of:
 - **Entry Nodes**: Nodes that initiate communication sessions and send messages into the network
 - **Relay Nodes**: Intermediate nodes that forward messages along routing paths and receive payment for their services
 - **Exit Nodes**: Final relay nodes that deliver messages to their intended destinations
-- **Payment Infrastructure**: On-chain and off-chain payment systems that enable microtransactions between nodes
+- **Payment Infrastructure**: On-chain payment channels that enable microtransactions between nodes
 
 ### 4.2 Path Construction
 
 Messages in the HOPR network are routed through multi-hop paths to provide privacy protection:
 
-1. **Path Discovery**: Nodes discover available relay nodes and their payment requirements through automated mechanisms detailed in [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+1. **Path Discovery**: Nodes discover available relay nodes through automated mechanisms detailed in [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
 2. **Path Selection**: Senders choose routing paths based on privacy requirements, latency, and cost considerations
 3. **Onion Routing**: Messages are encrypted in multiple layers, with each relay node able to decrypt only the information necessary to forward the message to the next hop
 
@@ -94,9 +87,9 @@ The HOPR protocol is organized into several layers:
 ├─────────────────────────────────────┤
 │      Session Management Layer       │  ← Session establishment and data transfer
 ├─────────────────────────────────────┤
-│       Application Protocol          │  ← Message routing and protocol multiplexing
+│       HOPR Application Protocol     │  ← Message routing and protocol multiplexing
 ├─────────────────────────────────────┤
-│        Packet Protocol              │  ← Onion routing and encryption
+│        HOPR Packet Protocol         │  ← Onion routing and encryption
 ├─────────────────────────────────────┤
 │        Transport Layer              │  ← Network communication
 └─────────────────────────────────────┘
@@ -140,9 +133,9 @@ Session protocols provide higher-level communication primitives:
 
 The economic reward system ([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md)) incentivizes participation:
 
-- **Token Economics**: Native token rewards for relay services
+- **Token Economics**: Native token rewards for staked funds
 - **Payment Channels**: Efficient micropayment infrastructure
-- **Fair Distribution**: Ensures equitable reward distribution based on actual relay work
+- **Fair Distribution**: Ensures equitable reward distribution based amount of staked funds
 
 ### 5.3 Protocol Flow
 
@@ -164,7 +157,7 @@ The HOPR protocol is designed to support various applications and use cases:
 
 - **Application Protocol**: [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md) defines how higher-level protocols can utilize HOPR services
 - **Transport Independence**: Protocol can operate over different network transports (TCP, UDP, etc.)
-- **API Compatibility**: Provides familiar networking APIs to ease application integration
+- **API Compatibility**: Through Sessions familiar networking APIs are provided to ease application integration
 - **Extensibility**: Modular design allows for protocol extensions and improvements
 
 ## 6. References
