@@ -24,7 +24,7 @@ In today's digital landscape, privacy-preserving communication is increasingly i
 
 HOPR addresses these privacy challenges by implementing a decentralized mixnet that:
 
-- **Provides metadata privacy**: Unlike traditional networks that expose communication patterns, HOPR obscures sender-receiver relationships through traffic mixing and onion routing
+- **Provides metadata privacy**: Unlike traditional networks that expose communication patterns, HOPR obscures sender-receiver relationships through traffic mixing and onion routing [01, 02]
 - **Offers economic incentives**: Node operators receive payment for relaying traffic, creating a sustainable ecosystem for privacy infrastructure
 - **Ensures decentralization**: No single entity controls the network, preventing censorship and single points of failure
 - **Maintains accessibility**: Applications can integrate privacy features without requiring users to understand complex cryptographic concepts
@@ -54,7 +54,7 @@ Messages in the HOPR network are routed through multi-hop paths to provide priva
 
 1. **Path Discovery**: Nodes discover available relay nodes through automated mechanisms detailed in [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
 2. **Path Selection**: Senders choose routing paths based on privacy requirements, latency, and cost considerations
-3. **Onion Routing**: Messages are encrypted in multiple layers, with each relay node able to decrypt only the information necessary to forward the message to the next hop
+3. **Onion Routing**: Messages are encrypted in multiple layers, with each relay node able to decrypt only the information necessary to forward the message to the next hop [02]
 
 ### 4.3 Economic Incentives
 
@@ -62,16 +62,16 @@ The HOPR network uses economic incentives to ensure sustainable operation:
 
 - **Micropayments**: Relay nodes receive small payments for each message they forward
 - **Proof of Relay**: Cryptographic proofs ensure that relay nodes actually forward messages before receiving payment
-- **Payment Channels**: Direct payment channels between nodes enable efficient microtransactions without high blockchain fees
+- **Payment Channels**: Direct payment channels between nodes enable efficient microtransactions without high blockchain fees [04]
 
 ### 4.4 Privacy Properties
 
 The network architecture provides several privacy guarantees:
 
-- **Sender Anonymity**: Relay nodes cannot determine the original sender of a message
-- **Receiver Anonymity**: Intermediate nodes cannot identify the final recipient
-- **Unlinkability**: Observers cannot link multiple messages from the same sender or to the same receiver
-- **Traffic Analysis Resistance**: Random delays and packet mixing prevent timing correlation attacks
+- **Sender Anonymity**: Relay nodes cannot determine the original sender of a message [05]
+- **Receiver Anonymity**: Intermediate nodes cannot identify the final recipient [05]
+- **Unlinkability**: Observers cannot link multiple messages from the same sender or to the same receiver [05]
+- **Traffic Analysis Resistance**: Random delays and packet mixing prevent timing correlation attacks [06]
 
 ## 5. Protocol Overview
 
@@ -102,8 +102,8 @@ The HOPR protocol is organized into several layers:
 The HOPR Packet Protocol ([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) defines the fundamental packet format and processing rules:
 
 - **Onion Encryption**: Multi-layer encryption that allows each relay node to decrypt only the information needed to forward the packet
-- **Sphinx-based Design**: Based on the Sphinx packet format with extensions for incentivization
-- **Fixed Packet Size**: All packets have the same size to prevent traffic analysis based on packet size
+- **Sphinx-based Design**: Based on the Sphinx packet format with extensions for incentivization [03]
+- **Fixed Packet Size**: All packets have the same size to prevent traffic analysis based on packet size [06]
 
 #### 5.2.2 Proof of Relay
 
@@ -117,7 +117,7 @@ The Proof of Relay mechanism ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-o
 
 The HOPR Mixer ([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) provides traffic analysis resistance:
 
-- **Temporal Mixing**: Introduces random delays to break timing correlations
+- **Temporal Mixing**: Introduces random delays to break timing correlations [01, 06]
 - **Batching**: Groups packets together before forwarding to obscure traffic patterns
 - **Configurable Strategies**: Multiple mixing strategies for different privacy/latency trade-offs
 
@@ -134,7 +134,7 @@ Session protocols provide higher-level communication primitives:
 The economic reward system ([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md)) incentivizes participation:
 
 - **Token Economics**: Native token rewards for staked funds
-- **Payment Channels**: Efficient micropayment infrastructure
+- **Payment Channels**: Efficient micropayment infrastructure [04]
 - **Fair Distribution**: Ensures equitable reward distribution based amount of staked funds
 
 ### 5.3 Protocol Flow
@@ -162,4 +162,14 @@ The HOPR protocol is designed to support various applications and use cases:
 
 ## 6. References
 
-TODO: any references needed?
+[01] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf). _Communications of the ACM, 24_(2), 84-90.
+
+[02] Reed, M. G., Syverson, P. F., & Goldschlag, D. M. (1998). [Anonymous Connections and Onion Routing](https://www.onion-router.net/Publications/JSAC-1998.pdf). _IEEE Journal on Selected Areas in Communications, 16_(4), 482-494.
+
+[03] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
+
+[04] Poon, J., & Dryja, T. (2016). [The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments](https://lightning.network/lightning-network-paper.pdf). Lightning Network Whitepaper.
+
+[05] Pfitzmann, A., & Köhntopp, M. (2001). [Anonymity, Unobservability, and Pseudonymity—A Proposal for Terminology](https://www.freehaven.net/anonbib/cache/terminology.pdf). In _Designing Privacy Enhancing Technologies_ (pp. 1-9). Springer.
+
+[06] Raymond, J. F. (2001). [Traffic Analysis: Protocols, Attacks, Design Issues, and Open Problems](https://www.freehaven.net/anonbib/cache/raymond-thesis.pdf). In _Designing Privacy Enhancing Technologies_ (pp. 10-29). Springer.
