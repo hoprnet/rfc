@@ -27,7 +27,7 @@ The HOPR network supports multiple upper layer protocols that serve different pu
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",
 "MAY", and "OPTIONAL" in this document are to be interpreted as described
-in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119) when, and only when, they appear in all
+in [01] when, and only when, they appear in all
 capitals, as shown here.
 
 Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) might be also used.
@@ -90,4 +90,4 @@ It is OPTIONAL for any upper-layer protocol to react to these signals if they ar
 
 ## 7. References
 
-None.
+[01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.

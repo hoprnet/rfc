@@ -392,8 +392,4 @@ Future development SHOULD focus on:
 
 ## 12. References
 
-- [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) – Mixnet terminology
-- [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) – HOPR packet protocol
-- [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) – Proof of Relay
-- [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md) – Economic Reward System
-- [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) - Session Data Protocol
+None.

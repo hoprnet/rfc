@@ -44,7 +44,7 @@ The above terms are formally defined in the following sections.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",
 "MAY", and "OPTIONAL" in this document are to be interpreted as described
-in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
+in [01].
 
 ### 3.1. Cryptographic and security parameters
 
@@ -544,8 +544,8 @@ The current implementation of the Proof of Relay protocol (which is in correspon
 
 - Hash function `H` is Keccak256
 - Elliptic curve `E` is chosen as secp256k1
-- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC-9380](https://www.rfc-editor.org/info/rfc9380)
-- HC is instantiated via `hash_to_curve` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [RFC-9380](https://www.rfc-editor.org/info/rfc9380)
+- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [02]
+- HC is instantiated via `hash_to_curve` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [02]
 - The one-way encoding `ECPoint` is done as `Keccak256(P)` where `P` denotes secp256k1 point in uncompressed form. The output of the hash has the first 12 bytes removed, which leaves the length at 20 bytes.
 
 - **MIN_USED_BALANCE** = `1e-18` HOPR.
@@ -660,3 +660,7 @@ domainSeparator = keccak256(
 ```
 
 ## 10. References
+
+[01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
+
+[02] Faz-Hernandez, A., et al. (2023). [Hashing to Elliptic Curves](https://www.rfc-editor.org/rfc/rfc9380.html). _IETF RFC 9380_.

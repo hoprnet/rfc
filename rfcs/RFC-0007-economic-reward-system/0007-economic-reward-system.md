@@ -38,7 +38,7 @@ The economic reward system is a necessary component of the HOPR mixnet, as it in
 - **SessionToSocket**: Object managing a UDP session and socket for a peer.
 - **MessageFormat**: Class encoding message metadata and payload as bytes.
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [01].
 
 ## 4. System Overview
 
@@ -225,7 +225,7 @@ Finally, the system enforces strict eligibility checks before sending messages. 
 
 ## 12. References
 
-None.
+[01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
 
 ## 13. Changelog
 
