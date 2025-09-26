@@ -1,6 +1,15 @@
 \documentclass{article}
 \usepackage{svg}
 \usepackage{graphicx}
+\usepackage{fontspec}
+
+% Use local TTF font file
+\setmainfont{Comic-Sans-MS}[
+  Path = ./fonts/,
+  Extension = .ttf,
+  UprightFont = *,
+]
+
 \begin{document}
   \include{generated/0001-rfc-process/0001-rfc-process-pandoc.tex}
 \end{document}
