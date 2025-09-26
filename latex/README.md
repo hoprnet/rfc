@@ -11,7 +11,7 @@ Tested on macOS:
 ```
 brew install pandoc 
 brew install --cask mactex
-npm install --global mermaid-filter
+npm install --global mermaid-filter @mermaid-js/mermaid-cli
 ```
 
 For .md to .tex pandoc is used.

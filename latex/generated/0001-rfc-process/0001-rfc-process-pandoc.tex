@@ -24,7 +24,7 @@ Structure}\label{rfc-0001-rfc-life-cycle-process-and-structure}
   \textbf{Related Links:} none
 \end{itemize}
 
-\subsection{1. Abstract}\label{abstract}
+\subsection{1. Abstract}\label{1-abstract}
 
 This RFC defines the life cycle, contribution process, versioning
 system, governance model, and document structure for RFCs at HOPR. It
@@ -33,19 +33,18 @@ standards that MUST be followed to ensure consistency and clarity across
 all RFC submissions. The process ensures iterative development with
 feedback loops and transparent updates with pull requests (PR).
 
-\subsection{2. Motivation}\label{motivation}
+\subsection{2. Motivation}\label{2-motivation}
 
 HOPR project requires a clear and consistent process for managing
 technical proposals, documenting protocol architecture. A well-defined
 life cycle MUST be established to maintain coherence, ensure quality,
 and streamline future development.
 
-\subsection{3. Terminology}\label{terminology}
+\subsection{3. Terminology}\label{3-terminology}
 
-The key words ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
-NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
-``OPTIONAL'' in this document are to be interpreted as described in
-{[}01{]}.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in {[}01{]}.
 
 \textbf{Draft:} An RFC is considered a draft from the moment it is
 proposed for review. A draft MUST include a clear summary, context, and
@@ -53,16 +52,19 @@ initial technical details. Drafts MUST follow the v0.x.x versioning
 scheme, with each version being independently implementable. A draft
 version is assigned as soon as the first PR is created.
 
-\subsection{4. Specification}\label{specification}
+\subsection{4. Specification}\label{4-specification}
 
-\subsubsection{4.1. RFC Life Cycle Stages}\label{rfc-life-cycle-stages}
+\subsubsection{4.1. RFC Life Cycle
+Stages}\label{41-rfc-life-cycle-stages}
 
 \paragraph{\texorpdfstring{4.1.1. \textbf{Mermaid Diagram for RFC Life
 Cycle
-Stages}}{4.1.1. Mermaid Diagram for RFC Life Cycle Stages}}\label{mermaid-diagram-for-rfc-life-cycle-stages}
+Stages}}{4.1.1. Mermaid Diagram for RFC Life Cycle Stages}}\label{411-mermaid-diagram-for-rfc-life-cycle-stages}
+
+\pandocbounded{\includesvg[keepaspectratio]{mermaid_1.svg}}
 
 \paragraph{\texorpdfstring{4.1.2. \textbf{Stage
-Descriptions:}}{4.1.2. Stage Descriptions:}}\label{stage-descriptions}
+Descriptions:}}{4.1.2. Stage Descriptions:}}\label{412-stage-descriptions}
 
 \begin{itemize}
 \tightlist
@@ -107,7 +109,7 @@ Descriptions:}}{4.1.2. Stage Descriptions:}}\label{stage-descriptions}
   stage, reasons \textbf{MUST} be documented.
 \end{itemize}
 
-\subsubsection{4.2. File Structure}\label{file-structure}
+\subsubsection{4.2. File Structure}\label{42-file-structure}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -123,13 +125,13 @@ Descriptions:}}{4.1.2. Stage Descriptions:}}\label{stage-descriptions}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
-\subsubsection{4.3. Validation Rules}\label{validation-rules}
+\subsubsection{4.3. Validation Rules}\label{43-validation-rules}
 
 \begin{itemize}
 \tightlist
 \item
-  Directory \textbf{MUST} be prefixed with uppercased ``RFC'', followed
-  by its RFC number, and a succinct title all in lowercase joined by
+  Directory \textbf{MUST} be prefixed with uppercased "RFC", followed by
+  its RFC number, and a succinct title all in lowercase joined by
   hyphens. E.g. \texttt{RFC-0001-rfc-life-cycle-process}
 \item
   Main file \textbf{MUST} be prefixed with its RFC number and a succinct
@@ -142,12 +144,12 @@ Descriptions:}}{4.1.2. Stage Descriptions:}}\label{stage-descriptions}
 \end{itemize}
 
 \subsubsection{4.4. RFC Document
-Structure}\label{rfc-document-structure}
+Structure}\label{44-rfc-document-structure}
 
 All RFCs \textbf{MUST} follow a consistent document structure to ensure
 readability and maintainability.
 
-\paragraph{4.4.1. Metadata Preface}\label{metadata-preface}
+\paragraph{4.4.1. Metadata Preface}\label{441-metadata-preface}
 
 Every RFC \textbf{MUST} begin with the following metadata structure:
 
@@ -167,33 +169,35 @@ Every RFC \textbf{MUST} begin with the following metadata structure:
 \end{Highlighting}
 \end{Shaded}
 
-\paragraph{4.4.2. Reference Styles}\label{reference-styles}
+\paragraph{4.4.2. Reference Styles}\label{442-reference-styles}
 
 RFCs \textbf{MUST} use two distinct reference styles:
 
 \subparagraph{4.4.2.1. RFC-to-RFC
-References}\label{rfc-to-rfc-references}
+References}\label{4421-rfc-to-rfc-references}
 
 \begin{itemize}
 \tightlist
 \item
   RFC references to other HOPR RFCs \textbf{MUST} be listed in the
-  metadata's \textbf{Related Links:} field
+  metadata\textquotesingle s \textbf{Related Links:} field
 \item
   Format:
   \texttt{{[}RFC-XXXX{]}(../RFC-XXXX-{[}slug{]}/XXXX-{[}slug{]}.md)}
 \item
   Multiple references \textbf{SHALL} be separated by commas
 \item
-  If no RFC references exist, the field \textbf{MUST} contain ``none''
+  If no RFC references exist, the field \textbf{MUST} contain "none"
 \item
   Example:
   \texttt{{[}RFC-0002{]}(../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),\ {[}RFC-0004{]}(../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)}
 \end{itemize}
 
-\subparagraph{4.4.2.2. External References}\label{external-references}
+\subparagraph{4.4.2.2. External
+References}\label{4422-external-references}
 
 \begin{itemize}
+\tightlist
 \item
   External references \textbf{MUST} be listed in a dedicated
   \texttt{\#\#\ References} section at the end of the document
@@ -201,8 +205,8 @@ References}\label{rfc-to-rfc-references}
   References \textbf{MUST} use sequential numbering with zero-padding:
   {[}01{]}, {[}02{]}, etc.
 \item
-  In-text citations \textbf{MUST} use the numbered format: ``as
-  described in {[}01{]}''
+  In-text citations \textbf{MUST} use the numbered format: "as described
+  in {[}01{]}"
 \item
   Reference format \textbf{SHOULD} follow academic citation style:
 
@@ -217,7 +221,7 @@ References}\label{rfc-to-rfc-references}
 \end{verbatim}
 \end{itemize}
 
-\paragraph{4.4.3. Required Sections}\label{required-sections}
+\paragraph{4.4.3. Required Sections}\label{443-required-sections}
 
 All RFCs \textbf{MUST} include the following sections:
 
@@ -227,12 +231,13 @@ All RFCs \textbf{MUST} include the following sections:
 \item
   \textbf{Metadata Preface} (as defined in 4.4.1)
 \item
-  \textbf{Abstract} - Brief summary of the RFC's purpose and scope
+  \textbf{Abstract} - Brief summary of the RFC\textquotesingle s purpose
+  and scope
 \item
   \textbf{References} - External citations (if any)
 \end{enumerate}
 
-\subsection{5. Design Considerations}\label{design-considerations}
+\subsection{5. Design Considerations}\label{5-design-considerations}
 
 \begin{itemize}
 \tightlist
@@ -243,7 +248,7 @@ All RFCs \textbf{MUST} include the following sections:
   review, and errata handling.
 \end{itemize}
 
-\subsection{6. Compatibility}\label{compatibility}
+\subsection{6. Compatibility}\label{6-compatibility}
 
 \begin{itemize}
 \tightlist
@@ -257,7 +262,7 @@ All RFCs \textbf{MUST} include the following sections:
   increment (\texttt{v2.0.0}).
 \end{itemize}
 
-\subsection{7. Security Considerations}\label{security-considerations}
+\subsection{7. Security Considerations}\label{7-security-considerations}
 
 \begin{itemize}
 \tightlist
@@ -268,7 +273,7 @@ All RFCs \textbf{MUST} include the following sections:
   components.
 \end{itemize}
 
-\subsection{8. Drawbacks}\label{drawbacks}
+\subsection{8. Drawbacks}\label{8-drawbacks}
 
 \begin{itemize}
 \tightlist
@@ -276,15 +281,15 @@ All RFCs \textbf{MUST} include the following sections:
   Strict naming conventions \textbf{MAY} limit creative flexibility.
 \end{itemize}
 
-\subsection{9. Alternatives}\label{alternatives}
+\subsection{9. Alternatives}\label{9-alternatives}
 
 \begin{itemize}
 \tightlist
 \item
-  Collaborative document editing tools, e.g.~hackmd.
+  Collaborative document editing tools, e.g. hackmd.
 \end{itemize}
 
-\subsection{10. Unresolved Questions}\label{unresolved-questions}
+\subsection{10. Unresolved Questions}\label{10-unresolved-questions}
 
 \begin{itemize}
 \tightlist
@@ -296,7 +301,7 @@ All RFCs \textbf{MUST} include the following sections:
   Formal approval timeline for errata
 \end{itemize}
 
-\subsection{11. Future Work}\label{future-work}
+\subsection{11. Future Work}\label{11-future-work}
 
 \begin{itemize}
 \tightlist
@@ -308,7 +313,7 @@ All RFCs \textbf{MUST} include the following sections:
   Web interface for publishing RFCs
 \end{itemize}
 
-\subsection{12. References}\label{references}
+\subsection{12. References}\label{12-references}
 
 {[}01{]} Bradner, S. (1997).
 \href{https://datatracker.ietf.org/doc/html/rfc2119}{Key words for use
