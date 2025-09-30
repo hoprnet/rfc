@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate per‑RFC LaTeX + rendered Mermaid PNGs (bash version)
+# Generate per-RFC LaTeX + Mermaid PNGs (single-pass, no awk mermaid replacement)
 
 set -e
 set -u
@@ -11,16 +11,11 @@ if [ $# -lt 1 ]; then
 fi
 
 INPUT="$1"
+[ -f "$INPUT" ] || { echo "Error: File not found: $INPUT"; exit 1; }
 
-if [ ! -f "$INPUT" ]; then
-  echo "Error: File not found: $INPUT"
-  exit 1
-fi
+command -v mmdc >/dev/null || { echo "mmdc missing (npm i -g @mermaid-js/mermaid-cli)"; exit 1; }
+command -v pandoc >/dev/null || { echo "pandoc missing"; exit 1; }
 
-command -v mmdc    >/dev/null || { echo "mmdc missing (npm i -g @mermaid-js/mermaid-cli)"; exit 1; }
-command -v pandoc  >/dev/null || { echo "pandoc missing"; exit 1; }
-
-# realpath fallback (macOS)
 if command -v realpath >/dev/null 2>&1; then
   FULLPATH="$(realpath "$INPUT")"
 else
@@ -30,116 +25,76 @@ fi
 BASENAME="$(basename "$FULLPATH")"
 NAME="${BASENAME%.*}"
 SCRIPTDIR="$(cd "$(dirname "$0")" && pwd)"
-TEMPFOLDER="$SCRIPTDIR/generated/$NAME"
+OUTDIR="$SCRIPTDIR/generated/$NAME"
 
-rm -rf "$TEMPFOLDER"
-mkdir -p "$TEMPFOLDER"
+rm -rf "$OUTDIR"
+mkdir -p "$OUTDIR"
 
-echo "== Step 1: Extract & render Mermaid blocks =="
-
-cp "$FULLPATH" "$TEMPFOLDER/$NAME.md"
-
-MERMAID_INDEX=1
-TOTAL_FOUND=0
+MERMAID_IDX=1
 RENDERED=0
 
-# Read source and extract ```mermaid blocks
+SRC="$FULLPATH"
+DST_MD="$OUTDIR/$NAME.md"
+
+echo "== Extract + render (single pass) =="
+
+: > "$DST_MD"
+
+# Single pass: write normal lines, replace mermaid block immediately
 while IFS= read -r line; do
   if [ "$line" = '```mermaid' ]; then
-    TOTAL_FOUND=$((TOTAL_FOUND+1))
-    MERMAID_FILE="/tmp/mermaid_${MERMAID_INDEX}.mmd"
-    PNG_FILE="$TEMPFOLDER/mermaid_${MERMAID_INDEX}.png"
-    : > "$MERMAID_FILE"
-    # Capture until closing ```
+    MERM_FILE="/tmp/mermaid_${MERMAID_IDX}.mmd"
+    : > "$MERM_FILE"
+    # collect block
     while IFS= read -r inner; do
       [ "$inner" = '```' ] && break
-      printf '%s\n' "$inner" >> "$MERMAID_FILE"
+      printf '%s\n' "$inner" >> "$MERM_FILE"
     done
-    echo "Rendering block $MERMAID_INDEX -> $(basename "$PNG_FILE")"
-    if mmdc \
-      -i "$MERMAID_FILE" \
-      -o "$PNG_FILE" \
-      --outputFormat png \
-      --width 4800 \
-      --height 4800 \
-      --backgroundColor white \
-      --scale 4; then
+    PNG_FILE="$OUTDIR/mermaid_${MERMAID_IDX}.png"
+    echo "Rendering mermaid block $MERMAID_IDX -> $(basename "$PNG_FILE")"
+    if mmdc -i "$MERM_FILE" -o "$PNG_FILE" --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4; then
       RENDERED=$((RENDERED+1))
     else
-      echo "⚠️  Failed to render block $MERMAID_INDEX"
+      echo "⚠️  Render failed for block $MERMAID_IDX"
     fi
-    MERMAID_INDEX=$((MERMAID_INDEX+1))
+    # insert image reference
+    printf '![Mermaid Diagram %d](mermaid_%d.png)\n' "$MERMAID_IDX" "$MERMAID_IDX" >> "$DST_MD"
+    MERMAID_IDX=$((MERMAID_IDX+1))
+  else
+    printf '%s\n' "$line" >> "$DST_MD"
   fi
-done < "$FULLPATH"
+done < "$SRC"
 
-echo "Found $TOTAL_FOUND Mermaid block(s); rendered $RENDERED."
+echo "Rendered $RENDERED Mermaid diagram(s)."
 
-echo "== Step 2: Replace Mermaid blocks with PNG references =="
+echo "== Pandoc convert =="
+pandoc "$DST_MD" -f gfm -t latex -o "$OUTDIR/$NAME-pandoc.tex"
 
-# Replace each original ```mermaid block sequentially
-# Loop from 1 to (MERMAID_INDEX-1)
-i=1
-while [ $i -lt "$MERMAID_INDEX" ]; do
-  awk -v idx="$i" '
-    BEGIN { inblk=0 }
-    /^```mermaid$/ {
-      if(inblk==0){
-        print "![Mermaid Diagram " idx "](mermaid_" idx ".png)"
-        inblk=1
-        next
-      }
-    }
-    /^```$/ {
-      if(inblk==1){
-        inblk=0
-        next
-      }
-    }
-    inblk==0 { print }
-  ' "$TEMPFOLDER/$NAME.md" > "$TEMPFOLDER/$NAME.tmp" && mv "$TEMPFOLDER/$NAME.tmp" "$TEMPFOLDER/$NAME.md"
-  i=$((i+1))
-done
+echo "== Fix image paths + width =="
 
-echo "== Step 3: Convert markdown -> LaTeX with pandoc =="
-
-pandoc \
-  "$TEMPFOLDER/$NAME.md" \
-  -f gfm \
-  -t latex \
-  -o "$TEMPFOLDER/$NAME-pandoc.tex"
-
-echo "== Step 4: Fix image paths & enforce max width =="
-
-# Portable sed in-place (GNU vs BSD)
+# Portable sed in-place
 if sed --version >/dev/null 2>&1; then
-  SED_INPLACE=(-i)
+  SED_I=(-i)
 else
-  SED_INPLACE=(-i '')
+  SED_I=(-i '')
 fi
 
-# Replace any bare mermaid_X.png with proper relative path
-sed "${SED_INPLACE[@]}" "s|mermaid_\\([0-9][0-9]*\\)\\.png|generated/$NAME/mermaid_\\1.png|g" \
-  "$TEMPFOLDER/$NAME-pandoc.tex"
+sed "${SED_I[@]}" "s|mermaid_\\([0-9][0-9]*\\)\\.png|generated/$NAME/mermaid_\\1.png|g" "$OUTDIR/$NAME-pandoc.tex"
 
-# Ensure width=\maxwidth present
+# Ensure width=\maxwidth (only if includegraphics present)
+tmp="$OUTDIR/$NAME-pandoc.tmp"
 awk '
-  /\\includegraphics/ {
-    if ($0 !~ /width=\\maxwidth/) {
-      sub(/\\includegraphics\[/,"\\includegraphics[width=\\maxwidth,")
-    }
+/\\includegraphics/ {
+  if ($0 !~ /width=\\maxwidth/) {
+    sub(/\\includegraphics\[/,"\\includegraphics[width=\\maxwidth,")
   }
-  { print }
-' "$TEMPFOLDER/$NAME-pandoc.tex" > "$TEMPFOLDER/$NAME-pandoc.tmp" && mv "$TEMPFOLDER/$NAME-pandoc.tmp" "$TEMPFOLDER/$NAME-pandoc.tex"
+}
+{ print }
+' "$OUTDIR/$NAME-pandoc.tex" > "$tmp" && mv "$tmp" "$OUTDIR/$NAME-pandoc.tex"
 
-echo "== Step 5: Report =="
-
-echo "Generated directory: $TEMPFOLDER"
-ls -1 "$TEMPFOLDER" || true
-echo "Image includes in LaTeX:"
-grep -n "includegraphics" "$TEMPFOLDER/$NAME-pandoc.tex" || echo "None"
-echo "PNG files:"
-for p in "$TEMPFOLDER"/mermaid_*.png; do
-  [ -f "$p" ] && echo " - $(basename "$p") ($(wc -c < "$p") bytes)"
-done
-
-echo "Done: $TEMPFOLDER/$NAME-pandoc.tex"
+echo "== Summary =="
+echo "Markdown: $DST_MD"
+echo "LaTeX:    $OUTDIR/$NAME-pandoc.tex"
+echo "Images:"
+ls -1 "$OUTDIR"/mermaid_*.png 2>/dev/null || echo "None"
+echo "Done: $OUTDIR/$NAME-pandoc.tex"

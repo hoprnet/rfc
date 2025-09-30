@@ -86,27 +86,46 @@ fi
 BLOCK_START="% BEGIN GENERATED RFC INCLUDES"
 BLOCK_END="% END GENERATED RFC INCLUDES"
 
-# Insert or replace block using awk
-if ! grep -q "BEGIN GENERATED RFC INCLUDES" "$MAIN_TEX"; then
-  awk -v inc="$INCLUDE_LINES" -v bs="$BLOCK_START" -v be="$BLOCK_END" '
-    /\\begin{document}/ && !done {
-      print; print bs; print inc; print be; done=1; next
-    }
-    { print }' "$MAIN_TEX" > "$MAIN_TEX.tmp" && mv "$MAIN_TEX.tmp" "$MAIN_TEX"
+# Rebuild block text (each include already newline-terminated earlier)
+BLOCK_CONTENT="$BLOCK_START"$'\n'"$INCLUDE_LINES"$'\n'"$BLOCK_END"
+
+tmp_clean="$MAIN_TEX.tmp.clean"
+tmp_new="$MAIN_TEX.tmp.new"
+
+# 1. Strip any previously generated block
+if grep -q "BEGIN GENERATED RFC INCLUDES" "$MAIN_TEX"; then
+  # Remove from start marker through end marker (inclusive)
+  sed "/$BLOCK_START/,/$BLOCK_END/d" "$MAIN_TEX" > "$tmp_clean"
 else
-  awk -v inc="$INCLUDE_LINES" -v bs="$BLOCK_START" -v be="$BLOCK_END" '
-    /BEGIN GENERATED RFC INCLUDES/ { in=1; print bs; print inc; print be; next }
-    /END GENERATED RFC INCLUDES/ { in=0; next }
-    !in { print }' "$MAIN_TEX" > "$MAIN_TEX.tmp" && mv "$MAIN_TEX.tmp" "$MAIN_TEX"
+  cp "$MAIN_TEX" "$tmp_clean"
 fi
 
-echo "✅ main.tex updated with includes:"
-printf "%s\n" "$INCLUDE_LINES"
+# 2. Insert the new block immediately after the first \begin{document}
+if grep -q '\\begin{document}' "$tmp_clean"; then
+  lineNo="$(grep -n '\\begin{document}' "$tmp_clean" | head -1 | cut -d: -f1)"
+  {
+    # Up to and including \begin{document}
+    head -n "$lineNo" "$tmp_clean"
+    # Our generated block
+    printf '%s\n' "$BLOCK_CONTENT"
+    # Remainder of file (start AFTER that line)
+    # Use tail -n +N (works GNU & BSD) to start from next line
+    tail -n +"$((lineNo+1))" "$tmp_clean"
+  } > "$tmp_new"
+else
+  # Fallback: append block at end
+  cp "$tmp_clean" "$tmp_new"
+  printf '\n%s\n' "$BLOCK_CONTENT" >> "$tmp_new"
+fi
+
+mv "$tmp_new" "$MAIN_TEX"
+rm -f "$tmp_clean"
+
+echo "✅ main.tex updated with includes (no duplication)"
+printf '%s\n' "$INCLUDE_LINES"
 
 [ $FAIL_COUNT -eq 0 ] || exit 1
 
 echo "🖨  Building PDF..."
-# Run twice for references
-xelatex -interaction=nonstopmode -halt-on-error -shell-escape main.tex >/dev/null
 xelatex -interaction=nonstopmode -halt-on-error -shell-escape main.tex >/dev/null
 echo "✅ Done: main.pdf"
