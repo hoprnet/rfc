@@ -2,8 +2,13 @@ name: RFC Validation Pipeline
 on:
   push:
     branches: ["**"]
+    paths-ignore:
+      - 'latex/**'
   pull_request:
     branches: ["**"]
+    paths-ignore:
+      - 'latex/**'
+
 jobs:
   validate:
     runs-on: ubuntu-latest
