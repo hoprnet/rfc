@@ -21,22 +21,29 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
+          # Base TeX + pandoc
           sudo apt-get install -y \
             pandoc \
             texlive-xetex texlive-latex-extra texlive-fonts-recommended \
             texlive-fonts-extra texlive-luatex texlive-plain-generic \
-            fonts-dejavu fonts-liberation fonts-noto-color-emoji \
-            libasound2 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
-            libnss3 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
-            libxrandr2 libxss1 libgbm1 libgtk-3-0 libpangocairo-1.0-0 \
-            libpango-1.0-0 libxshmfence1 libx11-6 libx11-xcb1 libxcb1 \
-            libxcb-dri3-0 libxtst6 ca-certificates
+            fonts-dejavu fonts-liberation fonts-noto-color-emoji
+
+          # Chromium headless runtime libs (minimal)
+          sudo apt-get install -y \
+            libnss3 libxss1 libatk1.0-0 libatk-bridge2.0-0 \
+            libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libdrm2 libgbm1 libcups2 libxshmfence1 \
+            libgtk-3-0 libpangocairo-1.0-0 libpango-1.0-0 ca-certificates
+
+          # Handle Ubuntu 24.04 time64 rename (libasound2 -> libasound2t64)
+          sudo apt-get install -y --no-install-recommends libasound2 || \
+          sudo apt-get install -y --no-install-recommends libasound2t64 || true
+
           fc-cache -fv
 
       - name: Install Mermaid CLI
         run: |
           npm install -g @mermaid-js/mermaid-cli
-          # create puppeteer config to disable sandbox
           cat > puppeteer-config.json <<'JSON'
           {
             "args": ["--no-sandbox", "--disable-setuid-sandbox"]
