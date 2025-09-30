@@ -21,22 +21,44 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc \
+          sudo apt-get install -y \
+            pandoc \
             texlive-xetex texlive-latex-extra texlive-fonts-recommended \
             texlive-fonts-extra texlive-luatex texlive-plain-generic \
-            fonts-dejavu fonts-liberation
+            fonts-dejavu fonts-liberation fonts-noto-color-emoji \
+            libasound2 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+            libnss3 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libxss1 libgbm1 libgtk-3-0 libpangocairo-1.0-0 \
+            libpango-1.0-0 libxshmfence1 libx11-6 libx11-xcb1 libxcb1 \
+            libxcb-dri3-0 libxtst6 ca-certificates
           fc-cache -fv
 
       - name: Install Mermaid CLI
-        run: npm install -g @mermaid-js/mermaid-cli
+        run: |
+          npm install -g @mermaid-js/mermaid-cli
+          # create puppeteer config to disable sandbox
+          cat > puppeteer-config.json <<'JSON'
+          {
+            "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+          }
+          JSON
+      
+      - name: Test mermaid
+        run: |
+          echo 'graph TD; A-->B;' > test.mmd
+          mmdc -i test.mmd -o test.svg --puppeteerConfigFile puppeteer-config.json
+          ls -l test.svg
 
       - name: Make scripts executable
         run: chmod +x latex/generator-tex.sh latex/generator-pdf.sh || true
 
       - name: Generate TeX, PNGs and convert to PDF
         working-directory: latex
-        shell: bash
-        run: bash ./generator-pdf.sh
+        env:
+          PUPPETEER_CONFIG_FILE: ../puppeteer-config.json
+        run: |
+          export MMD_PUPPETEER_CONFIG_FILE="$PUPPETEER_CONFIG_FILE"
+          ./generator-pdf.sh
 
       - name: Collect PDF
         run: |
