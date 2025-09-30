@@ -40,6 +40,13 @@ echo "== Extract + render (single pass) =="
 
 : > "$DST_MD"
 
+
+cat > puppeteer-config.json <<'JSON'
+{
+  "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+}
+JSON
+
 # Single pass: write normal lines, replace mermaid block immediately
 while IFS= read -r line; do
   if [ "$line" = '```mermaid' ]; then
@@ -52,7 +59,7 @@ while IFS= read -r line; do
     done
     PNG_FILE="$OUTDIR/mermaid_${MERMAID_IDX}.png"
     echo "Rendering mermaid block $MERMAID_IDX -> $(basename "$PNG_FILE")"
-    if mmdc -i "$MERM_FILE" -o "$PNG_FILE" --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4; then
+    if mmdc -i "$MERM_FILE" -o "$PNG_FILE" --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4  --puppeteerConfigFile puppeteer-config.json; then
       RENDERED=$((RENDERED+1))
     else
       echo "⚠️  Render failed for block $MERMAID_IDX"

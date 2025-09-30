@@ -53,8 +53,8 @@ jobs:
       - name: Test mermaid
         run: |
           echo 'graph TD; A-->B;' > test.mmd
-          mmdc -i test.mmd -o test.svg --puppeteerConfigFile puppeteer-config.json
-          ls -l test.svg
+          mmdc -i test.mmd -o test.png --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4 --puppeteerConfigFile puppeteer-config.json
+          ls -l test.png
 
       - name: Make scripts executable
         run: chmod +x latex/generator-tex.sh latex/generator-pdf.sh || true
