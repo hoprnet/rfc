@@ -12,7 +12,13 @@ Tested on macOS:
 brew install pandoc 
 brew install --cask mactex
 npm install --global mermaid-filter @mermaid-js/mermaid-cli
+brew install inkscape
 ```
 
 For .md to .tex pandoc is used.
 https://pandoc.org/installing.html
+
+
+```
+xelatex -shell-escape main.tex
+```

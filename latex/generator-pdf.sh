@@ -1,26 +1,83 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
-echo "== Toolchain =="
-which pandoc || { echo "pandoc missing"; exit 1; }
-which mermaid-filter || { echo "mermaid-filter missing (npm i -g mermaid-filter)"; exit 1; }
-which mmdc || { echo "mmdc missing (npm i -g @mermaid-js/mermaid-cli)"; exit 1; }
+RFC_FOLDER="../rfcs"
+GENERATOR_SCRIPT="./generator-tex.sh"
+MAIN_TEX="main.tex"
 
-INPUT=../rfcs/RFC-0001-rfc-process/0001-rfc-process.md
-OUTDIR=./generated
-mkdir -p "$OUTDIR"
+echo "🔍 Scanning for RFC markdown files..."
 
-echo "== Checking code block attributes =="
-pandoc "$INPUT" -f gfm -t json | grep -A3 '"mermaid"' || echo "No mermaid blocks found in JSON."
+[ -d "$RFC_FOLDER" ] || { echo "❌ RFC folder not found: $RFC_FOLDER"; exit 1; }
+[ -f "$GENERATOR_SCRIPT" ] || { echo "❌ Generator script not found: $GENERATOR_SCRIPT"; exit 1; }
+[ -f "$MAIN_TEX" ] || { echo "❌ main.tex not found in $(pwd)"; exit 1; }
 
-echo "== Converting =="
-pandoc "$INPUT" \
-  -f gfm -t latex \
-  -F mermaid-filter \
-  --metadata mermaid_format=pdf \
-  --verbose \
-  -o "$OUTDIR/0001-rfc-process.tex"
+MD_FILES=($(find "$RFC_FOLDER" -name "*.md" -type f | sort))
+[ ${#MD_FILES[@]} -gt 0 ] || { echo "📭 No markdown files."; exit 0; }
 
-echo "== Result =="
-grep -n 'includegraphics' "$OUTDIR/0001-rfc-process.tex" || echo "No includegraphics produced."
+SUCCESS_COUNT=0
+FAIL_COUNT=0
+FAILED_FILES=()
 
-ls -1 "$OUTDIR" | grep -E 'mermaid|png|pdf' || echo "No diagram file emitted."
+for MD_FILE in "${MD_FILES[@]}"; do
+  echo "🔄 Processing: $MD_FILE"
+  if sh "$GENERATOR_SCRIPT" "$MD_FILE"; then
+    ((SUCCESS_COUNT++))
+  else
+    FAILED_FILES+=("$MD_FILE")
+    ((FAIL_COUNT++))
+  fi
+done
+
+echo "📈 Success: $SUCCESS_COUNT  Fail: $FAIL_COUNT"
+
+# Build include lines (only for successfully generated ones)
+INCLUDE_LINES=""
+for MD_FILE in "${MD_FILES[@]}"; do
+  base=$(basename "$MD_FILE")
+  name="${base%.*}"                # e.g. 0001-rfc-process
+  gen_dir="generated/$name"
+  tex_file="$gen_dir/${name}-pandoc.tex"
+  if [ -f "$tex_file" ]; then
+    INCLUDE_LINES+="\\include{$tex_file}"
+  fi
+done
+
+
+if [ -z "$INCLUDE_LINES" ]; then
+  echo "⚠️  No generated tex files to include. Skipping main.tex update."
+  exit 1
+fi
+
+# Ensure marker block exists (add if missing)
+if ! grep -q "BEGIN GENERATED RFC INCLUDES" "$MAIN_TEX"; then
+  awk -v inc="$INCLUDE_LINES" '
+    /\\begin{document}/ && !done {
+      print;
+      print "% BEGIN GENERATED RFC INCLUDES";
+      printf "%s", inc;
+      print "% END GENERATED RFC INCLUDES";
+      done=1;
+      next
+    }
+    { print }
+  ' "$MAIN_TEX" > "$MAIN_TEX.tmp" && mv "$MAIN_TEX.tmp" "$MAIN_TEX"
+else
+  # Replace existing block
+  # macOS sed
+  ESCAPED=$(printf "%s" "$INCLUDE_LINES" | sed 's/[&/\]/\\&/g')
+  sed -i '' "/BEGIN GENERATED RFC INCLUDES/,/END GENERATED RFC INCLUDES/c\\
+% BEGIN GENERATED RFC INCLUDES\\
+$ESCAPED% END GENERATED RFC INCLUDES" "$MAIN_TEX"
+fi
+
+echo "✅ main.tex updated with includes:"
+printf "%s" "$INCLUDE_LINES"
+
+# Exit status reflects failures
+[ $FAIL_COUNT -eq 0 ] || exit 1
+
+
+
+xelatex -shell-escape main.tex
+
+

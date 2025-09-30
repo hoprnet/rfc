@@ -27,7 +27,7 @@ TEMPFOLDER="$SCRIPTDIR/generated/$NAME"
 rm -rf "$TEMPFOLDER"
 mkdir -p "$TEMPFOLDER"
 
-echo "== Step 1: Extract and render mermaid blocks to SVG =="
+echo "== Step 1: Extract and render mermaid blocks to high-res PNG =="
 cp "$FULLPATH" "$TEMPFOLDER/$NAME.md"
 MERMAID_COUNTER=1
 
@@ -36,7 +36,7 @@ while IFS= read -r line; do
     echo "Found mermaid block $MERMAID_COUNTER"
     # Extract mermaid content until closing ```
     MERMAID_FILE="/tmp/mermaid_$MERMAID_COUNTER.mmd"
-    SVG_FILE="$TEMPFOLDER/mermaid_$MERMAID_COUNTER.svg"
+    PNG_FILE="$TEMPFOLDER/mermaid_$MERMAID_COUNTER.png"
     
     # Read mermaid content
     > "$MERMAID_FILE"  # Clear file
@@ -47,23 +47,28 @@ while IFS= read -r line; do
       echo "$mermaid_line" >> "$MERMAID_FILE"
     done
     
-    # Render to SVG
-    echo "Rendering mermaid block $MERMAID_COUNTER to SVG..."
-    mmdc -i "$MERMAID_FILE" -o "$SVG_FILE" --outputFormat svg || echo "Failed to render mermaid block $MERMAID_COUNTER"
+    # Render to high-resolution PNG
+    echo "Rendering mermaid block $MERMAID_COUNTER to high-res PNG..."
+    mmdc -i "$MERMAID_FILE" -o "$PNG_FILE" \
+         --outputFormat png \
+         --width 4800 \
+         --height 4800 \
+         --backgroundColor white \
+         --scale 4 || echo "Failed to render mermaid block $MERMAID_COUNTER"
     
     ((MERMAID_COUNTER++))
   fi
 done < "$FULLPATH"
 
-echo "== Step 2: Replace mermaid blocks with SVG references in markdown =="
+echo "== Step 2: Replace mermaid blocks with PNG references in markdown =="
 COUNTER=1
 while [ $COUNTER -lt $MERMAID_COUNTER ]; do
-  # Replace each mermaid block with an SVG image reference
+  # Replace each mermaid block with a PNG image reference
   awk -v counter="$COUNTER" '
     BEGIN { in_mermaid = 0; skip = 0 }
     /^```mermaid$/ { 
       if (!skip) {
-        print "![Mermaid Diagram " counter "](mermaid_" counter ".svg)"
+        print "![Mermaid Diagram " counter "](mermaid_" counter ".png)"
         in_mermaid = 1
         skip = 1
         next
@@ -87,20 +92,36 @@ pandoc \
   -t latex \
   -o "$TEMPFOLDER/$NAME-pandoc.tex"
 
-echo "== Step 4: Fix SVG paths in LaTeX for includesvg =="
-# Replace \includegraphics with \includesvg and fix paths
-sed -i '' 's/\\includegraphics{mermaid_\([0-9]*\)\.svg}/\\includesvg[width=0.8\\textwidth]{mermaid_\1}/' "$TEMPFOLDER/$NAME-pandoc.tex"
+echo "== Step 4: Fix PNG paths in LaTeX with full relative paths =="
+# Replace \includegraphics and fix paths to include the full relative path
+sed -i '' 's|\\pandocbounded{\\includegraphics\[keepaspectratio,alt={\([^}]*\)}\]{mermaid_\([0-9]*\)\.png}}|\\pandocbounded{\\includegraphics[keepaspectratio,width=\\maxwidth,alt={\1}]{generated/'$NAME'/mermaid_\2.png}}|g' "$TEMPFOLDER/$NAME-pandoc.tex"
+
+
+
 
 echo "== Outputs =="
 ls -1 "$TEMPFOLDER" || true
-echo "Generated SVG files:"
-ls -1 "$TEMPFOLDER"/*.svg 2>/dev/null || echo "No SVG files found"
+echo "Generated PNG files:"
+ls -1 "$TEMPFOLDER"/*.png 2>/dev/null || echo "No PNG files found"
 echo "Modified markdown file: $TEMPFOLDER/$NAME.md"
 echo "LaTeX file: $TEMPFOLDER/$NAME-pandoc.tex"
 
 echo "== LaTeX includes =="
-grep -n "includesvg\|includegraphics" "$TEMPFOLDER/$NAME-pandoc.tex" || echo "No include commands found"
+grep -n "includegraphics" "$TEMPFOLDER/$NAME-pandoc.tex" || echo "No include commands found"
 
-echo "== Modified markdown preview =="
-echo "First 10 lines around SVG references:"
-grep -n -A2 -B2 "Mermaid Diagram" "$TEMPFOLDER/$NAME.md" || echo "No SVG references found"
+echo "== File structure for LaTeX =="
+echo "Expected structure:"
+echo "latex/"
+echo "├── main.tex"
+echo "└── generated/"
+echo "    └── $NAME/"
+echo "        ├── mermaid_1.png"
+echo "        └── $NAME-pandoc.tex"
+
+echo "== Debug: Check if PNG files exist =="
+for png in "$TEMPFOLDER"/*.png; do
+  if [ -f "$png" ]; then
+    size=$(wc -c < "$png")
+    echo "✅ Found: $png (${size} bytes)"
+  fi
+done
