@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-rfc-pdf:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,16 +30,13 @@ jobs:
       - name: Install Mermaid CLI
         run: npm install -g @mermaid-js/mermaid-cli
 
-      - name: Optional clean
-        if: ${{ github.event.inputs.clean == 'true' }}
-        run: rm -rf latex/generated
-
       - name: Make scripts executable
         run: chmod +x latex/generator-tex.sh latex/generator-pdf.sh || true
 
       - name: Generate TeX, PNGs and convert to PDF
         working-directory: latex
-        run: ./generator-pdf.sh
+        shell: bash
+        run: bash ./generator-pdf.sh
 
       - name: Collect PDF
         run: |
