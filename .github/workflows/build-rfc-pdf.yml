@@ -1,0 +1,78 @@
+name: Build RFC PDF
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      clean:
+        description: "Clean generated directory before build"
+        required: false
+        default: "false"
+      run_twice:
+        description: "Run XeLaTeX twice (for TOC/refs)"
+        required: false
+        default: "true"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc \
+            texlive-xetex texlive-latex-extra texlive-fonts-recommended \
+            texlive-fonts-extra texlive-luatex texlive-plain-generic \
+            fonts-dejavu fonts-liberation
+          fc-cache -fv
+
+      - name: Install Mermaid CLI
+        run: npm install -g @mermaid-js/mermaid-cli
+
+      - name: Optional clean
+        if: ${{ github.event.inputs.clean == 'true' }}
+        run: rm -rf latex/generated
+
+      - name: Make scripts executable
+        working-directory: latex
+        run: chmod +x generator-tex.sh generator-pdf.sh || true
+
+      - name: Generate TeX & build
+        working-directory: latex
+        run: |
+          ./generator-pdf.sh
+          xelatex -interaction=nonstopmode -halt-on-error -shell-escape main.tex
+          if [ "${{ github.event.inputs.run_twice || 'true' }}" = "true" ]; then
+            xelatex -interaction=nonstopmode -halt-on-error -shell-escape main.tex
+          fi
+
+      - name: Collect PDF
+        run: |
+          mkdir -p artifacts
+          if [ -f latex/main.pdf ]; then
+            cp latex/main.pdf artifacts/main.pdf
+          else
+            echo "main.pdf not found"
+            exit 1
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rfc-pdfs
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Verify main PDF
+        run: test -f artifacts/RFCs.pdf
