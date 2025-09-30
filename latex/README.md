@@ -6,7 +6,7 @@ For the VS Code, it's good to use plugin https://marketplace.visualstudio.com/it
 
 Prep for generating
 
-Tested on macOS:
+macOS:
 
 ```
 brew install pandoc 
@@ -15,10 +15,9 @@ npm install --global mermaid-filter @mermaid-js/mermaid-cli
 brew install inkscape
 ```
 
-For .md to .tex pandoc is used.
-https://pandoc.org/installing.html
-
+Full all in one generator:
 
 ```
-xelatex -shell-escape main.tex
+cd latex
+bash ./generator-pdf.sh
 ```
