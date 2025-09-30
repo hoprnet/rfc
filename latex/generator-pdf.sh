@@ -1,14 +1,8 @@
-#!/usr/bin/env bash
-
-# Ensure bash (prevents /bin/sh invoking and [[ errors)
-if [ -z "${BASH_VERSION:-}" ]; then
-  echo "Please run with bash: bash $0 ..." >&2
-  exit 1
-fi
+#!/usr/bin/env zsh
 
 set -e
 set -u
-(set -o pipefail 2>/dev/null) && set -o pipefail
+set -o pipefail
 
 RFC_FOLDER="../rfcs"
 GENERATOR_SCRIPT="./generator-tex.sh"

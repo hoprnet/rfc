@@ -7,6 +7,9 @@ on:
 jobs:
   build-rfc-pdf:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: zsh {0}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,8 +38,7 @@ jobs:
 
       - name: Generate TeX, PNGs and convert to PDF
         working-directory: latex
-        shell: bash
-        run: bash ./generator-pdf.sh
+        run: ./generator-pdf.sh
 
       - name: Collect PDF
         run: |

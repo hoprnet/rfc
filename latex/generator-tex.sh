@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 set -e
 set -u
-(set -o pipefail 2>/dev/null) && set -o pipefail
+set -o pipefail
 
 if [ $# -lt 1 ]; then
   echo "Usage: $0 ../rfcs/RFC-0001-rfc-process/0001-rfc-process.md"
@@ -51,7 +51,7 @@ while IFS= read -r line; do
 
     # Render to high-resolution PNG
     echo "Rendering mermaid block $MERMAID_COUNTER to high-res PNG..."
-    if ! mmdc -i "$MERMAID_FILE" -o "$PNG_FILE" 
+    if ! mmdc -i "$MERMAID_FILE" -o "$PNG_FILE" \
          --outputFormat png \
          --width 4800 \
          --height 4800 \
