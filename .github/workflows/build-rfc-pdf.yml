@@ -1,19 +1,8 @@
 name: Build RFC PDF
 
 on:
-  push:
-    branches: [ main, master ]
   pull_request:
   workflow_dispatch:
-    inputs:
-      clean:
-        description: "Clean generated directory before build"
-        required: false
-        default: "false"
-      run_twice:
-        description: "Run XeLaTeX twice (for TOC/refs)"
-        required: false
-        default: "true"
 
 jobs:
   build:
@@ -44,12 +33,11 @@ jobs:
         run: rm -rf latex/generated
 
       - name: Make scripts executable
-        working-directory: latex
-        run: chmod +x generator-tex.sh generator-pdf.sh || true
+        run: chmod +x latex/generator-tex.sh latex/generator-pdf.sh || true
 
-      - name: Generate TeX & build
-        working-directory: latex
+      - name: Generate TeX, PNGs and convert to PDF
         run: |
+          cd latex |
           ./generator-pdf.sh
 
       - name: Collect PDF
