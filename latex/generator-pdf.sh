@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -euo pipefail
+
+set -e
+set -u
+(set -o pipefail 2>/dev/null) && set -o pipefail
 
 RFC_FOLDER="../rfcs"
 GENERATOR_SCRIPT="./generator-tex.sh"

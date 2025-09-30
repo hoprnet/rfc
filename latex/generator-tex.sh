@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# filepath: /Users/michal/dev/hoprnet/rfc/latex/generator-tex.sh
-set -eu pipefail
+
+set -e
+set -u
+(set -o pipefail 2>/dev/null) && set -o pipefail
 
 if [ $# -lt 1 ]; then
   echo "Usage: $0 ../rfcs/RFC-0001-rfc-process/0001-rfc-process.md"
