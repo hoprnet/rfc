@@ -3,7 +3,11 @@ set -euo pipefail
 
 RFC_FOLDER="../rfcs"
 GENERATOR_SCRIPT="./generator-tex.sh"
+BASE_MAIN_TEX="main_base.tex"
 MAIN_TEX="main.tex"
+
+# Prepare main.tex from base
+cp "$BASE_MAIN_TEX" "$MAIN_TEX"
 
 echo "🔍 Scanning for RFC markdown files..."
 
@@ -75,8 +79,6 @@ printf "%s" "$INCLUDE_LINES"
 
 # Exit status reflects failures
 [ $FAIL_COUNT -eq 0 ] || exit 1
-
-
 
 xelatex -shell-escape main.tex
 
