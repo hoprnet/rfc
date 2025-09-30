@@ -1,0 +1,418 @@
+\section{RFC-0006: HOPR Mixer}\label{rfc-0006-hopr-mixer}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{RFC Number:} 0006
+\item
+  \textbf{Title:} HOPR Mixer
+\item
+  \textbf{Status:} Implementation
+\item
+  \textbf{Author(s):} Tino Breddin (@tolbrino)
+\item
+  \textbf{Created:} 2025-08-14
+\item
+  \textbf{Updated:} 2025-09-04
+\item
+  \textbf{Version:} v0.1.0 (Draft)
+\item
+  \textbf{Supersedes:} N/A
+\item
+  \textbf{Related Links:}
+  \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002},
+  \href{../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md}{RFC-0004}
+\end{itemize}
+
+\subsection{1. Abstract}\label{1-abstract}
+
+This RFC describes the HOPR Mixer component, a critical element of the
+HOPR mixnet that introduces temporal mixing to break timing correlation
+between incoming and outgoing packets. The mixer applies random delays
+to packets, effectively destroying temporal patterns that could be used
+for traffic analysis. This specification details the
+mixer\textquotesingle s design, implementation requirements, and
+integration points to enable consistent implementations across different
+HOPR nodes.
+
+\subsection{2. Motivation}\label{2-motivation}
+
+In mixnets, simply forwarding packets through multiple hops is
+insufficient to prevent traffic analysis attacks. Adversaries can
+correlate packets by observing timing patterns, even if packet contents
+are encrypted and routes are obscured. Without temporal mixing, an
+observer monitoring network traffic can potentially link incoming and
+outgoing packets based on their timing relationships.
+
+The HOPR Mixer addresses this attack vector by:
+
+\begin{itemize}
+\tightlist
+\item
+  Breaking temporal correlations between packet arrival and departure
+  times
+\item
+  Providing configurable delay parameters to balance anonymity and
+  performance
+\item
+  Using an efficient queuing mechanism that maintains packet ordering
+  based on release times
+\item
+  All while supporting high-throughput scenarios without compromising
+  mixing effectiveness
+\end{itemize}
+
+\subsection{3. Terminology}\label{3-terminology}
+
+Terms defined in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002} are
+used. Additional mixer-specific terms include:
+
+\emph{mixing delay}: A random time interval added to a
+packet\textquotesingle s transit time through a node to prevent timing
+correlation attacks.
+
+\emph{release timestamp}: The calculated time when a delayed packet
+should be forwarded from the mixer.
+
+\emph{mixing buffer}: A priority queue that holds packets ordered by
+their release timestamps.
+
+\subsection{4. Specification}\label{4-specification}
+
+\subsubsection{4.1. Overview}\label{41-overview}
+
+The HOPR Mixer follows a flow-based design which is split into these
+steps:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Accepts packets from upstream components
+\item
+  Assigns random delays to each packet
+\item
+  Stores packets in a time-ordered buffer
+\item
+  Releases packets when their delay expires
+\end{enumerate}
+
+\subsubsection{4.2. Configuration
+Parameters}\label{42-configuration-parameters}
+
+The mixer accepts the following configuration parameters:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \emph{min\_delay}: Minimum delay applied to packets (default: 0ms)
+\item
+  \emph{delay\_range}: Range from minimum to maximum delay (default:
+  200ms)
+\end{enumerate}
+
+The actual delay for each packet is randomly selected from a chosen
+distribution over the interval
+\texttt{{[}min\_delay,\ min\_delay\ +\ delay\_range{]}}.
+
+\subsubsection{4.3. Core Components}\label{43-core-components}
+
+\paragraph{4.3.1. Delay Assignment}\label{431-delay-assignment}
+
+When a packet arrives, the mixer:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Generates a random delay using a cryptographically secure random
+  number generator
+\item
+  Calculates the release timestamp as
+  \texttt{current\_time\ +\ random\_delay}
+\item
+  Wraps the packet with its release timestamp
+\item
+  Puts the wrapped packet into a buffer ordered by the release timestamp
+\end{enumerate}
+
+Random delay generation:
+
+\begin{itemize}
+\tightlist
+\item
+  MUST use a CSPRNG with sufficient entropy
+\item
+  MUST be independent per packet (no reuse/correlation across packets)
+\item
+  SHOULD allow uniform distribution as the baseline; other distributions
+  MAY be added via configuration
+\end{itemize}
+
+Note: Uniform distribution is a simple baseline. More advanced
+strategies like Poisson mixing (as used in Loopix {[}01{]}) can provide
+stronger anonymity properties by making packet timings less
+distinguishable from cover traffic patterns.
+
+\paragraph{4.3.2. Mixing Buffer}\label{432-mixing-buffer}
+
+The mixer maintains packets in a data structure where:
+
+\begin{itemize}
+\tightlist
+\item
+  Packets are ordered by their release timestamps
+\item
+  The packet with the earliest release time is always at the top
+\item
+  Insertion and extraction operations have O(log n) complexity
+\item
+  If multiple packets share the same \texttt{release\_time}, the
+  ordering MUST be stable FIFO by insertion sequence
+\end{itemize}
+
+This ensures efficient processing even under high load conditions.
+
+\subsubsection{4.4. Operational Behavior}\label{44-operational-behavior}
+
+\paragraph{4.4.1. Packet Processing
+Flow}\label{441-packet-processing-flow}
+
+\begin{verbatim}
+1. Packet arrives at mixer via Sender
+2. Random delay is generated: delay ∈ [min_delay, min_delay + delay_range]
+3. Release timestamp calculated: release_time = now() + delay
+4. Packet wrapped with timestamp and inserted into buffer
+5. Receiver woken if sleeping
+5a. If the inserted packet has an earlier `release_time` than the current head, re-arm the timer to the new head
+6. When current_time ≥ release_time, packet is released to Receiver
+6a. Upon wake (including after system sleep), release all packets with `release_time` ≤ current_time before sleeping again
+\end{verbatim}
+
+\paragraph{4.4.2. Timer Management}\label{442-timer-management}
+
+The mixer requires a timer that is able to:
+
+\begin{itemize}
+\tightlist
+\item
+  Wake the mixer at the next packet\textquotesingle s
+  \texttt{release\_time}
+\item
+  Use minimal system calls and context switches
+\item
+  Handle concurrent access safely
+\item
+  Use a monotonic clock source (not wall-clock) for computing
+  \texttt{release\_time}
+\item
+  Handle system sleep/clock adjustments by releasing all overdue packets
+  immediately upon wake
+\end{itemize}
+
+NOTE: The need for a dedicated timer MAY be satisfied automatically when
+using a RTOS and its native waking mechanisms.
+
+\subsubsection{4.5. Special Cases}\label{45-special-cases}
+
+\paragraph{4.5.1. Zero Delay
+Configuration}\label{451-zero-delay-configuration}
+
+When both \texttt{min\_delay} and \texttt{delay\_range} are zero:
+
+\begin{itemize}
+\tightlist
+\item
+  Packets pass through without mixing
+\item
+  Original packet order is preserved
+\item
+  Useful for testing or non-anonymous operation modes
+\end{itemize}
+
+\subsection{5. Design Considerations}\label{5-design-considerations}
+
+\subsubsection{5.1. Performance
+Optimization}\label{51-performance-optimization}
+
+An implementation should prioritize:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Minimal allocations}: Pre-allocated buffer reduces memory
+  pressure
+\item
+  \textbf{Efficient data structures}: Binary heap provides O(log n)
+  operations
+\item
+  \textbf{Lock minimization}: Fine-grained locking for concurrent access
+\item
+  \textbf{Timer efficiency}: Single shared timer reduces system
+  overhead, including minimizing runtime system overhead by using a
+  single thread
+\end{itemize}
+
+\subsubsection{5.2. Abuse Resistance and Resource
+Limits}\label{52-abuse-resistance-and-resource-limits}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Timing attacks}: Random delays must use cryptographically
+  secure randomness
+\item
+  \textbf{Statistical analysis}: Uniform distribution is a simple
+  baseline; stronger timing strategies (e.g., exponential/Poisson as in
+  Loopix {[}01{]}) provide better resistance to pattern inference
+\item
+  \textbf{Queue bounds and DoS}: The mixer MUST use a bounded buffer
+  with backpressure. Implementations MUST define behavior when full
+  (e.g., drop-tail oldest/newest, randomized drop, or reject upstream
+  sends) and expose metrics/alerts to prevent memory exhaustion attacks.
+\end{itemize}
+
+\subsubsection{5.3. Monitoring and
+Metrics}\label{53-monitoring-and-metrics}
+
+The mixer should track:
+
+\begin{itemize}
+\tightlist
+\item
+  Current queue size
+\item
+  Average packet delay (over configurable window)
+\end{itemize}
+
+These metrics aid in:
+
+\begin{itemize}
+\tightlist
+\item
+  Performance tuning
+\item
+  Detecting abnormal traffic patterns
+\item
+  Capacity planning
+\end{itemize}
+
+\subsection{6. Security Considerations}\label{6-security-considerations}
+
+\subsubsection{6.1. Threat Model}\label{61-threat-model}
+
+The mixer defends against:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Timing correlation attacks}: Randomized delays make linking
+  input/output packets by timing significantly harder
+\item
+  \textbf{Statistical traffic analysis}: Random delays reduce pattern
+  predictability but do not eliminate all analysis
+\item
+  \textbf{Queue manipulation}: Authenticated packet handling prevents
+  injection attacks
+\end{itemize}
+
+\subsubsection{6.2. Limitations}\label{62-limitations}
+
+The mixer does not protect against:
+
+\begin{itemize}
+\item
+  low volume spread traffic that does not produce sufficient amount of
+  messages to be mixed within the delay window
+\item
+  \textbf{Global passive adversaries}: With unlimited observation
+  capability
+\item
+  \textbf{Active attacks}: Packet dropping or delaying by malicious
+  nodes
+\item
+  \textbf{Side channels}: CPU, memory, or network-level information
+  leaks
+\end{itemize}
+
+\subsection{7. Drawbacks}\label{7-drawbacks}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Increased latency}: Every packet experiences additional delay
+\item
+  \textbf{Memory usage}: Buffering packets requires memory proportional
+  to traffic volume and queue size
+\item
+  \textbf{Complexity}: Adds another component to the protocol stack
+  which even makes node-local debugging harder
+\item
+  \textbf{Simplistic nature}: The mixing does not account for the total
+  count of elements in the buffer, with increasing amounts of messages
+  in the mixer the generated delay can decrease without sacrificing the
+  mixing properties.
+\end{itemize}
+
+\subsection{8. Alternatives}\label{8-alternatives}
+
+Alternative mixing strategies considered:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Batch mixing}: Release packets in fixed-size batches (higher
+  latency)
+\item
+  \textbf{Threshold mixing}: Release when buffer reaches certain size
+  (variable latency)
+\item
+  \textbf{Stop-and-go mixing}: Fixed delays at each hop (predictable
+  patterns)
+\item
+  \textbf{Poisson mixing}: As implemented in Loopix {[}01{]}, uses
+  Poisson-distributed delays that make real traffic harder to
+  distinguish from cover traffic. This can provide stronger anonymity
+  properties but requires careful parameter tuning and integration with
+  cover traffic.
+\end{itemize}
+
+The current continuous mixing approach with uniform distribution is a
+simple baseline that balances latency and anonymity while being easier
+to implement and analyze.
+
+\subsection{9. Unresolved Questions}\label{9-unresolved-questions}
+
+\begin{itemize}
+\tightlist
+\item
+  Optimal delay parameters for different network conditions
+\item
+  Adaptive delay strategies based on traffic patterns
+\item
+  Integration with node-local cover traffic generation
+\item
+  Memory usage limits and robust overflow handling strategies
+\end{itemize}
+
+\subsection{10. Future Work}\label{10-future-work}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Poisson Mixing Implementation}: Implement Poisson mixing
+  (exponentially distributed per-packet delays derived from a Poisson
+  process) as described in Loopix {[}01{]} to provide stronger anonymity
+  properties when combined with cover traffic
+\item
+  Performance optimizations for hardware acceleration
+\end{itemize}
+
+\subsection{11. References}\label{11-references}
+
+{[}01{]} Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., \&
+Danezis, G. (2017). \href{https://arxiv.org/pdf/1703.00536.pdf}{The
+Loopix Anonymity System}. \emph{26th USENIX Security Symposium},
+1199-1216.
