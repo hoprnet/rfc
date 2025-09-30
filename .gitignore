@@ -7,6 +7,9 @@ latex/main.log
 latex/main.aux
 latex/main.out
 latex/main.tex
+latex/main/pdf
+latex/main.synctex.gz
+latex/main_base.tex.tmp
 latex/main_base.aux
 latex/main_base.log
 latex/main_base.out
