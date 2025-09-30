@@ -2,26 +2,26 @@
 
 - **RFC Number:** 0013
 - **Title:** Return path incentivization
-- **Status:** Raw | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded
-- **Author(s):** \<Name (GitHub Handle)\>
-- **Created:** \<YYYY-MM-DD\>
-- **Updated:** \<YYYY-MM-DD\>
-- **Version:** v0.x.x (Raw), v1.x.x (Finalized)
-- **Supersedes:** RFC-YYYY (if applicable)
-- **Related Links:** [Related RFCs or Documentation Links]
+- **Status:** Raw
+- **Author(s):** [Name (@GitHubHandle)]
+- **Created:** YYYY-MM-DD
+- **Updated:** YYYY-MM-DD
+- **Version:** v0.1.0 (Raw)
+- **Supersedes:** none
+- **Related Links:** none
 
 ## 1. Abstract
 
-Provide a brief and clear summary of the RFC, outlining its purpose, context, and scope.
+This RFC is a placeholder for future work on return path incentivization in the HOPR protocol. The specification is currently in development and will
+define mechanisms to incentivize relay nodes on return paths for bidirectional communication.
 
 ## 2. Motivation
 
-Explain the problem this RFC aims to solve.
-Discuss existing limitations, technical gaps, and why the proposed solution is necessary.
+_[This section to be completed during development]_
 
 ## 3. Terminology
 
-Define key terms, abbreviations, and domain-specific language used throughout the RFC.
+_[This section to be completed during development]_
 
 ## 4. Specification
 
@@ -71,8 +71,4 @@ Suggest potential areas for future exploration, enhancements, or iterations.
 
 ## 12. References
 
-Include all relevant references, such as:
-
-- Other RFCs
-- Research papers
-- External documentation
+None.

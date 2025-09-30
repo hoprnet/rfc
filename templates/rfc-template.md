@@ -16,8 +16,7 @@ Provide a brief and clear summary of the RFC, outlining its purpose, context, an
 
 ## 2. Motivation
 
-Explain the problem this RFC aims to solve.
-Discuss existing limitations, technical gaps, and why the proposed solution is necessary.
+Explain the problem this RFC aims to solve. Discuss existing limitations, technical gaps, and why the proposed solution is necessary.
 
 ## 3. Terminology
 

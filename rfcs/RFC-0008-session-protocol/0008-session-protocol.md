@@ -7,27 +7,42 @@
 - **Created:** 2025-08-15
 - **Updated:** 2025-09-05
 - **Version:** v0.1.0 (Draft)
-- **Supersedes:** N/A
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
+- **Supersedes:** none
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
+  [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md),
+  [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
 
 ## 1. Abstract
 
-This RFC specifies the HOPR Session Data Protocol, which provides reliable and unreliable data transmission capabilities over the HOPR mixnet. The protocol implements TCP-like [01] features including message segmentation, reassembly, acknowledgement, and retransmission while maintaining simplicity and efficiency. This protocol works in conjunction with the HOPR Session Start Protocol (see [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)) to provide complete session management capabilities for applications within the HOPR mixnet ecosystem.
+This RFC specifies the HOPR Session Data Protocol, which provides reliable and unreliable data transmission capabilities over the HOPR mixnet. The
+protocol implements TCP-like [01] features including message segmentation, reassembly, acknowledgement, and retransmission while maintaining
+simplicity and efficiency. This protocol works in conjunction with the HOPR Session Start Protocol (see
+[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)) to provide complete session management capabilities for applications
+within the HOPR mixnet ecosystem.
 
 ## 2. Motivation
 
-The HOPR mixnet uses HOPR packets [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) to send data between nodes. This fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to implement TCP [01] or UDP all over again.
-Since HOPR protocol is not IP-based, such implementation would require IP protocol emulation.
+The HOPR mixnet uses HOPR packets [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) to send data between nodes. This
+fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level
+features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to
+implement TCP [01] or UDP all over again. Since HOPR protocol is not IP-based, such implementation would require IP protocol emulation.
 
-The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session establishment and lifecycle management is handled by the HOPR Session Start Protocol [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md), while this protocol focuses exclusively on data transmission.
+The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session
+establishment and lifecycle management is handled by the HOPR Session Start Protocol
+[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md), while this protocol focuses exclusively on data transmission.
 
 ## 3. Terminology
 
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following
+session-specific terms:
+
 - **Frame**: A logical unit of data transmission in the Session Protocol. Frames can be of arbitrary length and are identified by a unique Frame ID.
 
-- **Segment**: A fixed-size fragment of a frame. Frames are split into segments for transmission, with each segment carrying metadata about its position within the frame.
+- **Segment**: A fixed-size fragment of a frame. Frames are split into segments for transmission, with each segment carrying metadata about its
+  position within the frame.
 
-- **Frame ID**: A 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed). Frame ID values are interpreted as big-endian unsigned integers.
+- **Frame ID**: A 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed). Frame ID values are interpreted as big-endian
+  unsigned integers.
 
 - **Sequence Number (SeqNum)**: An 8-bit unsigned integer indicating a segment's position within its frame (0-indexed).
 
@@ -43,7 +58,8 @@ The HOPR Session Data Protocol fills that gap by providing reliable and unreliab
 
 ### 4.1 Protocol Overview
 
-The HOPR Session Data Protocol operates at version 1 and consists of three message types that work together to provide reliable or unreliable data transmission:
+The HOPR Session Data Protocol operates at version 1 and consists of three message types that work together to provide reliable or unreliable data
+transmission:
 
 1. **Segment Messages**: Carry actual data fragments
 2. **Retransmission Request Messages**: Request missing segments
@@ -54,7 +70,8 @@ The protocol supports two operational modes:
 - **Unreliable Mode**: Fast, stateless operation similar to UDP [03]
 - **Reliable Mode**: Stateful operation with acknowledgements and retransmissions
 
-Session establishment and lifecycle management is handled by the HOPR Session Start Protocol. All multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures.
+Session establishment and lifecycle management is handled by the HOPR Session Start Protocol. All multi-byte integer fields use network byte order
+(big-endian) encoding to ensure consistent interpretation across different architectures.
 
 ### 4.2 Session Data Protocol Message Format
 
@@ -87,7 +104,8 @@ title "Common Structure"
 
 #### 4.2.2 Byte Order
 
-All multi-byte integer fields and values in the Session Data Protocol MUST be encoded and interpreted in network byte order (big-endian). This applies to:
+All multi-byte integer fields and values in the Session Data Protocol MUST be encoded and interpreted in network byte order (big-endian). This applies
+to:
 
 **Protocol Message Fields:**
 
@@ -182,7 +200,8 @@ The message contains a sequence of 5-byte entries:
 | 6   | Segment 6       | `1` = Missing, `0` = Received |
 | 7   | Segment 7       | `1` = Missing, `0` = Received |
 
-**Note:** This message MUST be used only for frames with up to 8 segments (due to bitmap size limitation). Reliable sessions are limited to 7 segments per frame. Unreliable sessions SHOULD not have this limitation.
+**Note:** This message MUST be used only for frames with up to 8 segments (due to bitmap size limitation). Reliable sessions are limited to 7 segments
+per frame. Unreliable sessions SHOULD not have this limitation.
 
 #### 4.4.3 Request Rules
 
@@ -279,7 +298,8 @@ stateDiagram-v2
 
 ### 4.9 Example Message Exchanges
 
-All numeric values in the examples below are shown in their logical representation. Frame IDs and other multi-byte integers are encoded in big-endian format on the wire.
+All numeric values in the examples below are shown in their logical representation. Frame IDs and other multi-byte integers are encoded in big-endian
+format on the wire.
 
 #### 4.9.1 Simple Frame Transmission (Unreliable Mode)
 

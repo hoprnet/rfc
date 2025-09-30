@@ -7,16 +7,21 @@
 - **Created:** 2025-08-20
 - **Updated:** 2025-09-05
 - **Version:** v0.1.0 (Draft)
-- **Supersedes:** N/A
-- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
+- **Supersedes:** none
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
+  [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
+  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
 
 ## 1. Abstract
 
-This RFC specifies the HOPR Session Start Protocol, a handshake protocol for establishing sessions between peers in the HOPR mixnet. The protocol manages session establishment, lifecycle, and capability negotiation using HOPR packets as transport. It provides a standardized method for initiating communication sessions, exchanging session parameters, and maintaining session state through keep-alive mechanisms.
+This RFC specifies the HOPR Session Start Protocol, a handshake protocol for establishing sessions between peers in the HOPR mixnet. The protocol
+manages session establishment, lifecycle, and capability negotiation using HOPR packets as transport. It provides a standardized method for initiating
+communication sessions, exchanging session parameters, and maintaining session state through keep-alive mechanisms.
 
 ## 2. Motivation
 
-The HOPR mixnet requires a standardized mechanism for establishing communication sessions between nodes. While the Session Data Protocol (see [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) handles data transmission, there needs to be a separate protocol for:
+The HOPR mixnet requires a standardized mechanism for establishing communication sessions between nodes. While the Session Data Protocol (see
+[RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) handles data transmission, there needs to be a separate protocol for:
 
 - Establishing sessions with capability negotiation
 - Exchanging session identifiers and targets
@@ -24,11 +29,16 @@ The HOPR mixnet requires a standardized mechanism for establishing communication
 - Providing error handling for session establishment failures
 - Maintaining session liveness through keep-alive mechanisms
 
-The Session Start Protocol fills this gap by providing a lightweight, transport-agnostic handshake mechanism specifically designed for the HOPR ecosystem.
+The Session Start Protocol fills this gap by providing a lightweight, transport-agnostic handshake mechanism specifically designed for the HOPR
+ecosystem.
 
 ## 3. Terminology
 
-- **Challenge**: A 64-bit random value used to correlate requests and responses in the handshake process. Challenge values are interpreted as big-endian unsigned integers.
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following session
+start protocol-specific terms:
+
+- **Challenge**: A 64-bit random value used to correlate requests and responses in the handshake process. Challenge values are interpreted as
+  big-endian unsigned integers.
 
 - **Session Target**: The destination or purpose of a session, typically an address or service identifier, encoded in CBOR format.
 
@@ -40,7 +50,8 @@ The Session Start Protocol fills this gap by providing a lightweight, transport-
 
 - **Exit Node**: The node that receives and responds to a session establishment request.
 
-- **CBOR (Concise Binary Object Representation)**: A binary data serialization format defined in RFC 7049 [01], used for encoding session identifiers and targets.
+- **CBOR (Concise Binary Object Representation)**: A binary data serialization format defined in RFC 7049 [01], used for encoding session identifiers
+  and targets.
 
 ## 4. Specification
 
@@ -53,7 +64,8 @@ The Session Start Protocol operates at version 2 and consists of four message ty
 3. **SessionError**: Reports session establishment failure
 4. **KeepAlive**: Maintains session liveness
 
-The protocol uses HOPR packets as the underlying transport mechanism and supports both successful and failed session establishment scenarios. All multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures.
+The protocol uses HOPR packets as the underlying transport mechanism and supports both successful and failed session establishment scenarios. All
+multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures.
 
 ### 4.2 Message Format
 
@@ -87,7 +99,8 @@ title "Common Message Format"
 
 #### 4.2.2 Byte Order
 
-All multi-byte integer fields and values in the Session Start Protocol MUST be encoded and interpreted in network byte order (big-endian). This applies to:
+All multi-byte integer fields and values in the Session Start Protocol MUST be encoded and interpreted in network byte order (big-endian). This
+applies to:
 
 **Protocol Message Fields:**
 
@@ -359,7 +372,8 @@ The protocol provides structured error reporting:
 
 ### 6.3 Integration with HOPR Session Data Protocol
 
-- HOPR Session Start Protocol establishes sessions for use by HOPR Session Data Protocol (see [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md))
+- HOPR Session Start Protocol establishes sessions for use by HOPR Session Data Protocol (see
+  [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md))
 - Session IDs from this protocol are used to identify data sessions
 - Protocol operates independently but provides foundation for data exchange
 
@@ -411,12 +425,13 @@ The protocol provides structured error reporting:
 
 ## 12. Appendix 1
 
-Within HOPR protocol a Session is identified uniquely via HOPR Session ID,
-this consists of a 10-byte pseudorandom bytes as prefix and 64-bit unsigned integer as suffix. The 64-bit suffix is encoded and interpreted as a big-endian unsigned integer.
+Within HOPR protocol a Session is identified uniquely via HOPR Session ID, this consists of a 10-byte pseudorandom bytes as prefix and 64-bit unsigned
+integer as suffix. The 64-bit suffix is encoded and interpreted as a big-endian unsigned integer.
 
 In human readable format, a HOPR Session ID has the following syntax:
 
 `0xabcdefabcdefabcdefab:123456`
 
-The prefix represents a fixed pseudonym prefix of in the HOPR Packet protocol (as in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)).
-The suffix represents an application tag that identifies Sessions within the reserved range in the Application protocol [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md).
+The prefix represents a fixed pseudonym prefix of in the HOPR Packet protocol (as in
+[RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)). The suffix represents an application tag that identifies Sessions within
+the reserved range in the Application protocol [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md).

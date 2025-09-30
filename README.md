@@ -4,17 +4,16 @@ Request for Comments (RFC) for HOPR protocol
 
 ## Overview
 
-Welcome to the HOPR RFC Repository (hopr-rfc), the central hub for managing, discussing, and finalizing
-Request for Comments (RFCs) related to the HOPR project.
-Each RFC resides in its own repository within this organization, promoting modularity and clear documentation.
+Welcome to the HOPR RFC Repository (hopr-rfc), the central hub for managing, discussing, and finalizing Request for Comments (RFCs) related to the
+HOPR project. Each RFC resides in its own repository within this organization, promoting modularity and clear documentation.
 
-RFCs define the core HOPR protocol, its interfaces, and related smart contract specifications.
-This repository serves as an index and guide for navigating all individual RFC repositories.
+RFCs define the core HOPR protocol, its interfaces, and related smart contract specifications. This repository serves as an index and guide for
+navigating all individual RFC repositories.
 
 ## Repository Structure
 
-Each RFC will have its own dedicated repository to ensure modularity, easy management, and independent versioning.
-This structure allows for storing associated assets such as images, diagrams, and relevant files within each RFC repository.
+Each RFC will have its own dedicated repository to ensure modularity, easy management, and independent versioning. This structure allows for storing
+associated assets such as images, diagrams, and relevant files within each RFC repository.
 
 ```plaintext
 /hopr-rfc
