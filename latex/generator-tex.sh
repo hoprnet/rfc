@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# filepath: /Users/michal/dev/hoprnet/rfc/latex/generator-svg-test3.sh
+# filepath: /Users/michal/dev/hoprnet/rfc/latex/generator-tex.sh
 set -euo pipefail
 
 if [ $# -lt 1 ]; then
@@ -37,25 +37,29 @@ while IFS= read -r line; do
     # Extract mermaid content until closing ```
     MERMAID_FILE="/tmp/mermaid_$MERMAID_COUNTER.mmd"
     PNG_FILE="$TEMPFOLDER/mermaid_$MERMAID_COUNTER.png"
-    
+
     # Read mermaid content
-    > "$MERMAID_FILE"  # Clear file
+    : > "$MERMAID_FILE"  # Clear file
     while IFS= read -r mermaid_line; do
       if [[ "$mermaid_line" == '```' ]]; then
         break
       fi
       echo "$mermaid_line" >> "$MERMAID_FILE"
     done
-    
+
     # Render to high-resolution PNG
     echo "Rendering mermaid block $MERMAID_COUNTER to high-res PNG..."
-    mmdc -i "$MERMAID_FILE" -o "$PNG_FILE" \
+    if ! mmdc -i "$MERMAID_FILE" -o "$PNG_FILE" 
          --outputFormat png \
          --width 4800 \
          --height 4800 \
          --backgroundColor white \
-         --scale 4 || echo "Failed to render mermaid block $MERMAID_COUNTER"
-    
+         --scale 4; then
+      echo "⚠️  Failed to render mermaid block $MERMAID_COUNTER, skipping..."
+      # Mark this block as failed to skip it in step 2
+      continue
+    fi
+
     ((MERMAID_COUNTER++))
   fi
 done < "$FULLPATH"

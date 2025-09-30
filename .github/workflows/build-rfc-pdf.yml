@@ -52,16 +52,12 @@ jobs:
         working-directory: latex
         run: |
           ./generator-pdf.sh
-          xelatex -interaction=nonstopmode -halt-on-error -shell-escape main.tex
-          if [ "${{ github.event.inputs.run_twice || 'true' }}" = "true" ]; then
-            xelatex -interaction=nonstopmode -halt-on-error -shell-escape main.tex
-          fi
 
       - name: Collect PDF
         run: |
           mkdir -p artifacts
           if [ -f latex/main.pdf ]; then
-            cp latex/main.pdf artifacts/main.pdf
+            cp latex/main.pdf artifacts/RFCs.pdf
           else
             echo "main.pdf not found"
             exit 1
