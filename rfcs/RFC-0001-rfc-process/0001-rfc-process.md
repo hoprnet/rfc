@@ -12,23 +12,31 @@
 
 ## 1. Abstract
 
-This RFC defines the life cycle, contribution process, versioning system, governance model, and document structure for RFCs at HOPR. It outlines
-stages, naming conventions, validation rules, and formatting standards that MUST be followed to ensure consistency and clarity across all RFC
-submissions. The process ensures iterative development with feedback loops and transparent updates with pull requests (PR).
+This RFC defines the lifecycle, contribution process, versioning system, governance model, and document structure for RFCs within the HOPR project. It
+specifies the stages an RFC progresses through, naming conventions, validation rules, and formatting standards that MUST be followed to ensure
+consistency and clarity across all RFC submissions. The process ensures iterative development with feedback loops, transparent updates via pull requests
+(PRs), and clear criteria for advancing through each stage.
 
 ## 2. Motivation
 
-HOPR project requires a clear and consistent process for managing technical proposals, documenting protocol architecture. A well-defined life cycle
-MUST be established to maintain coherence, ensure quality, and streamline future development.
+The HOPR project requires a clear and consistent process for managing technical proposals and documenting protocol architecture. A well-defined
+lifecycle MUST be established to maintain coherence, ensure quality, streamline development, and provide clear expectations for contributors. This
+process serves multiple purposes:
+
+- **Quality assurance**: ensuring that RFCs undergo appropriate review and refinement before implementation
+- **Transparency**: making the development process visible and accessible to all stakeholders
+- **Version control**: tracking changes and maintaining compatibility across protocol versions  
+- **Coordination**: enabling multiple contributors to work on related RFCs without conflicts or inconsistencies
 
 ## 3. Terminology
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01].
 
-**Draft:** An RFC is considered a draft from the moment it is proposed for review. A draft MUST include a clear summary, context, and initial
-technical details. Drafts MUST follow the v0.x.x versioning scheme, with each version being independently implementable. A draft version is assigned
-as soon as the first PR is created.
+_Draft_: an RFC is considered a draft from the moment it is proposed for review. A draft MUST include a clear summary, contextual background, and
+initial technical details sufficient for evaluation. Drafts MUST follow the v0.x.x versioning scheme, with each version being independently reviewable
+and, where appropriate, independently implementable. A draft version (v0.1.0) is assigned as soon as the first PR is created and the RFC number is
+allocated.
 
 ## 4. Specification
 
@@ -76,13 +84,13 @@ graph TD
 - **Review:** The RFC **MUST** undergo at least one review cycle. The draft **SHOULD** incorporate significant feedback and each iteration **MUST** be
   independently implementable.
 - **Draft:** The RFC moves into active development and refinement. Each update **SHALL** increment the version (`v0.x.x`) to indicate progress.
-- **Implementation:** Merging to the main branch signifies readiness for practical use, triggering the finalization process.
-- **Finalized:** The RFC is considered stable and complete, with version `v1.0.0` assigned. Only errata modifications are permitted afterward.
-- **Errata:** Minor technical corrections post-finalization **MUST** be documented and result in a patch version increment (`v1.0.x`). Errata are
-  technical corrections or factual updates made after an RFC has been finalized. They **MUST NOT** alter the intended functionality or introduce new
+- **Implementation:** Merging to the main branch signifies readiness for practical use, triggering the finalisation process.
+- **Finalised:** The RFC is considered stable and complete, with version `v1.0.0` assigned. Only errata modifications are permitted afterwards.
+- **Errata:** Minor technical corrections post-finalisation **MUST** be documented and result in a patch version increment (`v1.0.x`). Errata are
+  technical corrections or factual updates made after an RFC has been finalised. They **MUST NOT** alter the intended functionality or introduce new
   features.
 - **Superseded:** Significant updates requiring functionality changes **MUST** be documented in a new RFC, starting at `v2.0.0` or higher. The
-  original RFC must include information that it has been superseded, accompanied with a link to the new RFC that supersedes it.
+  original RFC must include information that it has been superseded, accompanied by a link to the new RFC that supersedes it.
 - **Rejected:** If an RFC does not progress past the discussion stage, reasons **MUST** be documented.
 
 ### 4.2. File Structure
@@ -177,7 +185,7 @@ All RFCs **MUST** include the following sections:
 
 ## 7. Security Considerations
 
-- Security review phase **MUST** be included before finalization.
+- Security review phase **MUST** be included before finalisation.
 - Errata **MUST** undergo security review if impacting critical components.
 
 ## 8. Drawbacks
@@ -186,7 +194,7 @@ All RFCs **MUST** include the following sections:
 
 ## 9. Alternatives
 
-- Collaborative document editing tools, e.g. hackmd.
+- Collaborative document editing tools, e.g. HackMD.
 
 ## 10. Unresolved Questions
 

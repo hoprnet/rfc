@@ -1,0 +1,694 @@
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.9.26)  13 OCT 2025 14:34
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**bubble-test
+(./bubble-test.tex
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2025-01-18>
+(/usr/local/texlive/2025/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2024/06/29 v1.4n Standard LaTeX document class
+(/usr/local/texlive/2025/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2024/06/29 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count192
+\c@section=\count193
+\c@subsection=\count194
+\c@subsubsection=\count195
+\c@paragraph=\count196
+\c@subparagraph=\count197
+\c@figure=\count198
+\c@table=\count199
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+\bibindent=\dimen141
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/fontspec/fontspec.sty (/usr/local/texlive/2025/texmf-dist/tex/latex/l3packages/xparse/xparse.sty (/usr/local/texlive/2025/texmf-dist/tex/latex/l3kernel/expl3.sty
+Package: expl3 2025-01-18 L3 programming layer (loader) 
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/l3backend/l3backend-xetex.def
+File: l3backend-xetex.def 2024-05-08 L3 backend support: XeTeX
+\g__graphics_track_int=\count266
+\l__pdf_internal_box=\box52
+\g__pdf_backend_annotation_int=\count267
+\g__pdf_backend_link_int=\count268
+))
+Package: xparse 2024-08-16 L3 Experimental document command parser
+)
+Package: fontspec 2024/05/11 v2.9e Font selection for XeLaTeX and LuaLaTeX
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/fontspec/fontspec-xetex.sty
+Package: fontspec-xetex 2024/05/11 v2.9e Font selection for XeLaTeX and LuaLaTeX
+\l__fontspec_script_int=\count269
+\l__fontspec_language_int=\count270
+\l__fontspec_strnum_int=\count271
+\l__fontspec_tmp_int=\count272
+\l__fontspec_tmpa_int=\count273
+\l__fontspec_tmpb_int=\count274
+\l__fontspec_tmpc_int=\count275
+\l__fontspec_em_int=\count276
+\l__fontspec_emdef_int=\count277
+\l__fontspec_strong_int=\count278
+\l__fontspec_strongdef_int=\count279
+\l__fontspec_tmpa_dim=\dimen142
+\l__fontspec_tmpb_dim=\dimen143
+\l__fontspec_tmpc_dim=\dimen144
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/base/fontenc.sty
+Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/fontspec/fontspec.cfg)))
+
+Package fontspec Info: 
+(fontspec)             Font family 'SourceCodePro-Regular(0)' created for font
+(fontspec)             'SourceCodePro-Regular' with options
+(fontspec)             [WordSpace={1,0,0},HyphenChar=None,PunctuationSpace=WordSpace,Path=./fonts/,Extension=.ttf].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->"[./fonts/SourceCodePro-Regular.ttf]/OT:script=latn;language=dflt;"
+
+
+Package fontspec Info: 
+(fontspec)             Font family 'SourceCodePro-Regular(1)' created for font
+(fontspec)             'SourceCodePro-Regular' with options
+(fontspec)             [Path=./fonts/,Extension=.ttf].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->"[./fonts/SourceCodePro-Regular.ttf]/OT:script=latn;language=dflt;"
+
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-cfg/color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: xetex.def on input line 274.
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-def/xetex.def
+File: xetex.def 2022/09/22 v5.0n Graphics/color driver for xetex
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/mathcolor.ltx)
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
+Package xcolor Info: Model `RGB' extended on input line 1365.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1367.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcolorbox.sty
+Package: tcolorbox 2024/10/22 version 6.4.1 text color boxes
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex
+\pgfutil@everybye=\toks17
+\pgfutil@tempdima=\dimen145
+\pgfutil@tempdimb=\dimen146
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
+\pgfutil@abb=\box53
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/pgf.revision.tex)
+Package: pgfrcs 2023-01-15 v3.1.10 (3.1.10)
+))
+Package: pgf 2023-01-15 v3.1.10 (3.1.10)
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/basiclayer/pgfcore.sty (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks18
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: xetex.def on input line 106.
+)
+\Gin@req@height=\dimen147
+\Gin@req@width=\dimen148
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.code.tex
+Package: pgfsys 2023-01-15 v3.1.10 (3.1.10)
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex
+\pgfkeys@pathtoks=\toks19
+\pgfkeys@temptoks=\toks20
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/utilities/pgfkeyslibraryfiltered.code.tex
+\pgfkeys@tmptoks=\toks21
+))
+\pgf@x=\dimen149
+\pgf@y=\dimen150
+\pgf@xa=\dimen151
+\pgf@ya=\dimen152
+\pgf@xb=\dimen153
+\pgf@yb=\dimen154
+\pgf@xc=\dimen155
+\pgf@yc=\dimen156
+\pgf@xd=\dimen157
+\pgf@yd=\dimen158
+\w@pgf@writea=\write3
+\r@pgf@reada=\read2
+\c@pgf@counta=\count280
+\c@pgf@countb=\count281
+\c@pgf@countc=\count282
+\c@pgf@countd=\count283
+\t@pgf@toka=\toks22
+\t@pgf@tokb=\toks23
+\t@pgf@tokc=\toks24
+\pgf@sys@id@count=\count284
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg
+File: pgf.cfg 2023-01-15 v3.1.10 (3.1.10)
+)
+Driver file for pgf: pgfsys-xetex.def
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-xetex.def
+File: pgfsys-xetex.def 2023-01-15 v3.1.10 (3.1.10)
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-dvipdfmx.def
+File: pgfsys-dvipdfmx.def 2023-01-15 v3.1.10 (3.1.10)
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-common-pdf.def
+File: pgfsys-common-pdf.def 2023-01-15 v3.1.10 (3.1.10)
+)
+\pgfsys@objnum=\count285
+))) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/systemlayer/pgfsyssoftpath.code.tex
+File: pgfsyssoftpath.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfsyssoftpath@smallbuffer@items=\count286
+\pgfsyssoftpath@bigbuffer@items=\count287
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.code.tex
+File: pgfsysprotocol.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcore.code.tex
+Package: pgfcore 2023-01-15 v3.1.10 (3.1.10)
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex
+\pgfmath@dimen=\dimen159
+\pgfmath@count=\count288
+\pgfmath@box=\box54
+\pgfmath@toks=\toks25
+\pgfmath@stack@operand=\toks26
+\pgfmath@stack@operation=\toks27
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.basic.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.trigonometric.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.random.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.comparison.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integerarithmetics.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
+\c@pgfmathroundto@lastzeros=\count289
+)) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfint.code.tex) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.code.tex
+File: pgfcorepoints.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@picminx=\dimen160
+\pgf@picmaxx=\dimen161
+\pgf@picminy=\dimen162
+\pgf@picmaxy=\dimen163
+\pgf@pathminx=\dimen164
+\pgf@pathmaxx=\dimen165
+\pgf@pathminy=\dimen166
+\pgf@pathmaxy=\dimen167
+\pgf@xx=\dimen168
+\pgf@xy=\dimen169
+\pgf@yx=\dimen170
+\pgf@yy=\dimen171
+\pgf@zx=\dimen172
+\pgf@zy=\dimen173
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconstruct.code.tex
+File: pgfcorepathconstruct.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@path@lastx=\dimen174
+\pgf@path@lasty=\dimen175
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathusage.code.tex
+File: pgfcorepathusage.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@shorten@end@additional=\dimen176
+\pgf@shorten@start@additional=\dimen177
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorescopes.code.tex
+File: pgfcorescopes.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfpic=\box55
+\pgf@hbox=\box56
+\pgf@layerbox@main=\box57
+\pgf@picture@serial@count=\count290
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregraphicstate.code.tex
+File: pgfcoregraphicstate.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgflinewidth=\dimen178
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransformations.code.tex
+File: pgfcoretransformations.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@pt@x=\dimen179
+\pgf@pt@y=\dimen180
+\pgf@pt@temp=\dimen181
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorequick.code.tex
+File: pgfcorequick.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreobjects.code.tex
+File: pgfcoreobjects.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathprocessing.code.tex
+File: pgfcorepathprocessing.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorearrows.code.tex
+File: pgfcorearrows.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfarrowsep=\dimen182
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreshade.code.tex
+File: pgfcoreshade.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@max=\dimen183
+\pgf@sys@shading@range@num=\count291
+\pgf@shadingcount=\count292
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreimage.code.tex
+File: pgfcoreimage.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreexternal.code.tex
+File: pgfcoreexternal.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfexternal@startupbox=\box58
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorelayers.code.tex
+File: pgfcorelayers.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransparency.code.tex
+File: pgfcoretransparency.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepatterns.code.tex
+File: pgfcorepatterns.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/basiclayer/pgfcorerdf.code.tex
+File: pgfcorerdf.code.tex 2023-01-15 v3.1.10 (3.1.10)
+))) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/modules/pgfmoduleshapes.code.tex
+File: pgfmoduleshapes.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfnodeparttextbox=\box59
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/modules/pgfmoduleplot.code.tex
+File: pgfmoduleplot.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-0-65.sty
+Package: pgfcomp-version-0-65 2023-01-15 v3.1.10 (3.1.10)
+\pgf@nodesepstart=\dimen184
+\pgf@nodesepend=\dimen185
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-1-18.sty
+Package: pgfcomp-version-1-18 2023-01-15 v3.1.10 (3.1.10)
+)) (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/utilities/pgffor.sty (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex)) (/usr/local/texlive/2025/texmf-dist/tex/latex/pgf/math/pgfmath.sty (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/utilities/pgffor.code.tex
+Package: pgffor 2023-01-15 v3.1.10 (3.1.10)
+\pgffor@iter=\dimen186
+\pgffor@skip=\dimen187
+\pgffor@stack=\toks28
+\pgffor@toks=\toks29
+)) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.code.tex
+Package: tikz 2023-01-15 v3.1.10 (3.1.10)
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothandlers.code.tex
+File: pgflibraryplothandlers.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@plot@mark@count=\count293
+\pgfplotmarksize=\dimen188
+)
+\tikz@lastx=\dimen189
+\tikz@lasty=\dimen190
+\tikz@lastxsaved=\dimen191
+\tikz@lastysaved=\dimen192
+\tikz@lastmovetox=\dimen193
+\tikz@lastmovetoy=\dimen194
+\tikzleveldistance=\dimen195
+\tikzsiblingdistance=\dimen196
+\tikz@figbox=\box60
+\tikz@figbox@bg=\box61
+\tikz@tempbox=\box62
+\tikz@tempbox@bg=\box63
+\tikztreelevel=\count294
+\tikznumberofchildren=\count295
+\tikznumberofcurrentchild=\count296
+\tikz@fig@count=\count297
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/modules/pgfmodulematrix.code.tex
+File: pgfmodulematrix.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfmatrixcurrentrow=\count298
+\pgfmatrixcurrentcolumn=\count299
+\pgf@matrix@numberofcolumns=\count300
+)
+\tikz@expandcount=\count301
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytopaths.code.tex
+File: tikzlibrarytopaths.code.tex 2023-01-15 v3.1.10 (3.1.10)
+))) (/usr/local/texlive/2025/texmf-dist/tex/latex/tools/verbatim.sty
+Package: verbatim 2024-01-22 v1.5x LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks30
+\verbatim@line=\toks31
+\verbatim@in@stream=\read3
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/environ/environ.sty
+Package: environ 2014/05/04 v0.3 A new way to define environments
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/trimspaces/trimspaces.sty
+Package: trimspaces 2009/09/17 v1.1 Trim spaces around a token list
+)
+\@envbody=\toks32
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/etoolbox/etoolbox.sty
+Package: etoolbox 2025/02/11 v2.5l e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count302
+)
+\tcb@titlebox=\box64
+\tcb@upperbox=\box65
+\tcb@lowerbox=\box66
+\tcb@phantombox=\box67
+\c@tcbbreakpart=\count303
+\c@tcblayer=\count304
+\c@tcolorbox@number=\count305
+\l__tcobox_tmpa_box=\box68
+\l__tcobox_tmpa_dim=\dimen197
+\tcb@temp=\box69
+\tcb@temp=\box70
+\tcb@temp=\box71
+\tcb@temp=\box72
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbraster.code.tex
+Library (tcolorbox): 'tcbraster.code.tex' version '6.4.1'
+\c@tcbrastercolumn=\count306
+\c@tcbrasterrow=\count307
+\c@tcbrasternum=\count308
+\c@tcbraster=\count309
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbskins.code.tex
+Library (tcolorbox): 'tcbskins.code.tex' version '6.4.1'
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tikzfill/tikzfill.image.sty
+Package: tikzfill.image 2023/08/08 v1.0.1 Image filling library for TikZ
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/tikzfill/tikzfill-common.sty
+Package: tikzfill-common 2023/08/08 v1.0.1 Auxiliary code for tikzfill
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/tikzfill/tikzlibraryfill.image.code.tex
+File: tikzlibraryfill.image.code.tex 2023/08/08 v1.0.1 Image filling library
+\l__tikzfill_img_box=\box73
+)) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbskinsjigsaw.code.tex
+Library (tcolorbox): 'tcbskinsjigsaw.code.tex' version '6.4.1'
+)) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbbreakable.code.tex
+Library (tcolorbox): 'tcbbreakable.code.tex' version '6.4.1'
+(/usr/local/texlive/2025/texmf-dist/tex/latex/pdfcol/pdfcol.sty
+Package: pdfcol 2022-09-21 v1.7 Handle new color stacks for pdfTeX (HO)
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
+Package: ltxcmds 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/infwarerr/infwarerr.sty
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/iftex/iftex.sty
+Package: iftex 2024/12/12 v1.0g TeX engine tests
+)
+Package pdfcol Info: Interface disabled because of missing PDF mode of pdfTeX.
+)
+Package pdfcol Info: pdfTeX's color stacks are not available.
+\tcb@testbox=\box74
+\tcb@totalupperbox=\box75
+\tcb@totallowerbox=\box76
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbhooks.code.tex
+Library (tcolorbox): 'tcbhooks.code.tex' version '6.4.1'
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbtheorems.code.tex
+Library (tcolorbox): 'tcbtheorems.code.tex' version '6.4.1'
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2024/11/05 v2.17t AMS math features
+\@mathmargin=\skip51
+
+For additional information on amsmath, use the `?' option.
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2021/08/26 v2.01 AMS text
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks33
+\ex@=\dimen198
+)) (/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen199
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsopn.sty
+Package: amsopn 2022/04/08 v2.04 operator names
+)
+\inf@bad=\count310
+LaTeX Info: Redefining \frac on input line 233.
+\uproot@=\count311
+\leftroot@=\count312
+LaTeX Info: Redefining \overline on input line 398.
+LaTeX Info: Redefining \colon on input line 409.
+\classnum@=\count313
+\DOTSCASE@=\count314
+LaTeX Info: Redefining \ldots on input line 495.
+LaTeX Info: Redefining \dots on input line 498.
+LaTeX Info: Redefining \cdots on input line 619.
+\Mathstrutbox@=\box77
+\strutbox@=\box78
+LaTeX Info: Redefining \big on input line 721.
+LaTeX Info: Redefining \Big on input line 722.
+LaTeX Info: Redefining \bigg on input line 723.
+LaTeX Info: Redefining \Bigg on input line 724.
+\big@size=\dimen256
+LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
+\macc@depth=\count315
+LaTeX Info: Redefining \bmod on input line 904.
+LaTeX Info: Redefining \pmod on input line 909.
+LaTeX Info: Redefining \smash on input line 939.
+LaTeX Info: Redefining \relbar on input line 969.
+LaTeX Info: Redefining \Relbar on input line 970.
+\c@MaxMatrixCols=\count316
+\dotsspace@=\muskip17
+\c@parentequation=\count317
+\dspbrk@lvl=\count318
+\tag@help=\toks34
+\row@=\count319
+\column@=\count320
+\maxfields@=\count321
+\andhelp@=\toks35
+\eqnshift@=\dimen257
+\alignsep@=\dimen258
+\tagshift@=\dimen259
+\tagwidth@=\dimen260
+\totwidth@=\dimen261
+\lineht@=\dimen262
+\@envbody=\toks36
+\multlinegap=\skip52
+\multlinetaggap=\skip53
+\mathdisplay@stack=\toks37
+LaTeX Info: Redefining \[ on input line 2953.
+LaTeX Info: Redefining \] on input line 2954.
+)) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbfitting.code.tex
+Library (tcolorbox): 'tcbfitting.code.tex' version '6.4.1'
+\tcbfitdim=\dimen263
+\tcb@lowerfitdim=\dimen264
+\tcb@upperfitdim=\dimen265
+\tcb@cur@hbadness=\count322
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcblistingsutf8.code.tex
+Library (tcolorbox): 'tcblistingsutf8.code.tex' version '6.4.1'
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcblistings.code.tex
+Library (tcolorbox): 'tcblistings.code.tex' version '6.4.1'
+(/usr/local/texlive/2025/texmf-dist/tex/latex/listings/listings.sty
+\lst@mode=\count323
+\lst@gtempboxa=\box79
+\lst@token=\toks38
+\lst@length=\count324
+\lst@currlwidth=\dimen266
+\lst@column=\count325
+\lst@pos=\count326
+\lst@lostspace=\dimen267
+\lst@width=\dimen268
+\lst@newlines=\count327
+\lst@lineno=\count328
+\lst@maxwidth=\dimen269
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/listings/lstpatch.sty
+File: lstpatch.sty 2024/09/23 1.10c (Carsten Heinz)
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2024/09/23 1.10c (Carsten Heinz)
+\c@lstnumber=\count329
+\lst@skipnumbers=\count330
+\lst@framebox=\box80
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/listings/listings.cfg
+File: listings.cfg 2024/09/23 1.10c listings configuration
+))
+Package: listings 2024/09/23 1.10c (Carsten Heinz)
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcblistingscore.code.tex
+Library (tcolorbox): 'tcblistingscore.code.tex' version '6.4.1'
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbprocessing.code.tex
+Library (tcolorbox): 'tcbprocessing.code.tex' version '6.4.1'
+)
+\c@tcblisting=\count331
+))
+Package tcolorbox Info: Library `listingsutf8' is compatible with pdftex only. Library `listings` is loaded instead. on input line 29.
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbexternal.code.tex
+Library (tcolorbox): 'tcbexternal.code.tex' version '6.4.1'
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbmagazine.code.tex
+Library (tcolorbox): 'tcbmagazine.code.tex' version '6.4.1'
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbvignette.code.tex
+Library (tcolorbox): 'tcbvignette.code.tex' version '6.4.1'
+(/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryfadings.code.tex
+File: tikzlibraryfadings.code.tex 2023-01-15 v3.1.10 (3.1.10)
+ (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/libraries/pgflibraryfadings.code.tex
+File: pgflibraryfadings.code.tex 2023-01-15 v3.1.10 (3.1.10)
+))) (/usr/local/texlive/2025/texmf-dist/tex/latex/tcolorbox/tcbposter.code.tex
+Library (tcolorbox): 'tcbposter.code.tex' version '6.4.1'
+))
+
+./bubble-test.tex:9: Package pgfkeys Error: I do not know the key '/tcb/library/varwidth' and I am going to ignore it. Perhaps you misspelled it.
+
+See the pgfkeys package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.9 \tcbuselibrary{breakable,skins,varwidth}
+                                            
+This error message was generated by an \errmessage
+command, so I can't give any explicit help.
+Pretend that you're Hercule Poirot: Examine all clues,
+and deduce the truth by order and method.
+
+./bubble-test.tex:10: Undefined control sequence.
+l.10 \tcolorbox{\codebubble
+                           }{
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+No file bubble-test.aux.
+\openout1 = `bubble-test.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+
+Package fontspec Info: 
+(fontspec)             Adjusting the maths setup (use [no-math] to avoid
+(fontspec)             this).
+
+\symlegacymaths=\mathgroup4
+LaTeX Font Info:    Overwriting symbol font `legacymaths' in version `bold'
+(Font)                  OT1/cmr/m/n --> OT1/cmr/bx/n on input line 30.
+LaTeX Font Info:    Redeclaring math accent \acute on input line 30.
+LaTeX Font Info:    Redeclaring math accent \grave on input line 30.
+LaTeX Font Info:    Redeclaring math accent \ddot on input line 30.
+LaTeX Font Info:    Redeclaring math accent \tilde on input line 30.
+LaTeX Font Info:    Redeclaring math accent \bar on input line 30.
+LaTeX Font Info:    Redeclaring math accent \breve on input line 30.
+LaTeX Font Info:    Redeclaring math accent \check on input line 30.
+LaTeX Font Info:    Redeclaring math accent \hat on input line 30.
+LaTeX Font Info:    Redeclaring math accent \dot on input line 30.
+LaTeX Font Info:    Redeclaring math accent \mathring on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Gamma on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Delta on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Theta on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Lambda on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Xi on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Pi on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Sigma on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Upsilon on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Phi on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Psi on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \Omega on input line 30.
+LaTeX Font Info:    Redeclaring math symbol \mathdollar on input line 30.
+LaTeX Font Info:    Redeclaring symbol font `operators' on input line 30.
+LaTeX Font Info:    Encoding `OT1' has changed to `TU' for symbol font
+(Font)              `operators' in the math version `normal' on input line 30.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
+(Font)                  OT1/cmr/m/n --> TU/lmr/m/n on input line 30.
+LaTeX Font Info:    Encoding `OT1' has changed to `TU' for symbol font
+(Font)              `operators' in the math version `bold' on input line 30.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
+(Font)                  OT1/cmr/bx/n --> TU/lmr/m/n on input line 30.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
+(Font)                  TU/lmr/m/n --> TU/lmr/m/n on input line 30.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
+(Font)                  OT1/cmr/m/it --> TU/lmr/m/it on input line 30.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
+(Font)                  OT1/cmr/bx/n --> TU/lmr/b/n on input line 30.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
+(Font)                  OT1/cmss/m/n --> TU/lmss/m/n on input line 30.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
+(Font)                  OT1/cmtt/m/n --> TU/SourceCodePro-Regular(0)/m/n on input line 30.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
+(Font)                  TU/lmr/m/n --> TU/lmr/b/n on input line 30.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
+(Font)                  OT1/cmr/bx/it --> TU/lmr/b/it on input line 30.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
+(Font)                  OT1/cmss/bx/n --> TU/lmss/b/n on input line 30.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
+(Font)                  OT1/cmtt/m/n --> TU/SourceCodePro-Regular(0)/b/n on input line 30.
+\c@lstlisting=\count332
+
+Underfull \hbox (badness 1178) in paragraph at lines 11--31
+[]\TU/lmr/m/n/10 enhanced, breakable, parbox=true, varwidth boxed, varwidth up-
+ []
+
+
+Underfull \hbox (badness 1748) in paragraph at lines 11--31
+\TU/lmr/m/n/10 per, tcbox raise base, colback=bubbleback, colframe=bubbleback,
+ []
+
+./bubble-test.tex:36: Undefined control sequence.
+l.36 This is a test: \codebubble
+                                {Der Dieselskandal war im September 2015 bek...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./bubble-test.tex:36: Missing $ inserted.
+<inserted text> 
+                $
+l.36 ...mber 2015 bekannt geworden. ABC very/long_
+                                                  code-string.with+lots:of=b...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+./bubble-test.tex:36: Extra }, or forgotten $.
+l.36 ...very/long_code-string.with+lots:of=breaks}
+                                                  
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+./bubble-test.tex:37: Missing $ inserted.
+<inserted text> 
+                $
+l.37 \end{document}
+                   
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+./bubble-test.tex:37: LaTeX Error: \begin{tcb@savebox} on input line 10 ended by \end{document}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.37 \end{document}
+                   
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+(./bubble-test.aux)
+ ***********
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2025-01-18>
+ ***********
+
+./bubble-test.tex:37: You can't use `\end' in internal vertical mode.
+\enddocument ...cument/end}\deadcycles \z@ \@@end 
+                                                  
+l.37 \end{document}
+                   
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+
+./bubble-test.tex:37: LaTeX Error: \begin{tcb@savebox} on input line 10 ended by \end{document}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.37 \end{document}
+                   
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+./bubble-test.tex:37: Missing } inserted.
+<inserted text> 
+                }
+l.37 \end{document}
+                   
+I've inserted something that you may have forgotten.
+(See the <inserted text> above.)
+With luck, this will get me unwedged. But if you
+really didn't forget anything, try typing `2' now; then
+my insertion and my current dilemma will both disappear.
+
+)
+! Emergency stop.
+<*> bubble-test
+               
+*** (job aborted, no legal \end found)
+
+ 
+Here is how much of TeX's memory you used:
+ 21345 strings out of 473832
+ 510351 string characters out of 5729481
+ 954979 words of memory out of 5000000
+ 44102 multiletter control sequences out of 15000+600000
+ 559363 words of font info for 47 fonts, out of 8000000 for 9000
+ 1348 hyphenation exceptions out of 8191
+ 116i,5n,121p,579b,671s stack positions out of 10000i,1000n,20000p,200000b,200000s
+No pages of output.

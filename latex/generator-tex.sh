@@ -59,7 +59,7 @@ while IFS= read -r line; do
     done
     PNG_FILE="$OUTDIR/mermaid_${MERMAID_IDX}.png"
     echo "Rendering mermaid block $MERMAID_IDX -> $(basename "$PNG_FILE")"
-    if mmdc -i "$MERM_FILE" -o "$PNG_FILE" --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4  --puppeteerConfigFile puppeteer-config.json; then
+    if mmdc -i "$MERM_FILE" -o "$PNG_FILE" --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 1  --puppeteerConfigFile puppeteer-config.json; then
       RENDERED=$((RENDERED+1))
     else
       echo "⚠️  Render failed for block $MERMAID_IDX"
@@ -75,7 +75,7 @@ done < "$SRC"
 echo "Rendered $RENDERED Mermaid diagram(s)."
 
 echo "== Pandoc convert =="
-pandoc "$DST_MD" -f gfm -t latex -o "$OUTDIR/$NAME-pandoc.tex"
+pandoc "$DST_MD" --lua-filter=../latex/bubble.lua -f markdown -t latex -o "$OUTDIR/$NAME-pandoc.tex"
 
 echo "== Fix image paths + width =="
 

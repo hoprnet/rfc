@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# Safety
 set -e
 set -u
 (set -o pipefail 2>/dev/null) && set -o pipefail
@@ -33,46 +32,42 @@ printf ' - %s\n' "${MD_FILES[@]}"
 SUCCESS_COUNT=0
 FAIL_COUNT=0
 FAILED_FILES=()
-
-# Optional debug: set DEBUG=1 env to trace
-if [ "${DEBUG:-0}" = "1" ]; then
-  echo "🔧 Debug tracing enabled"
-  set -x
-fi
+INCLUDE_LINES=""
 
 for MD_FILE in "${MD_FILES[@]}"; do
   echo "============================================================"
   echo "🔄 START: $MD_FILE"
 
-  # Run generator explicitly; capture exit code
-  bash "$GENERATOR_SCRIPT" "$MD_FILE"
-  rc=$?
-
-  echo "↪ Exit code: $rc"
-
-  if [ $rc -eq 0 ]; then
-    SUCCESS_COUNT=$((SUCCESS_COUNT+1))
-    echo "✅ OK: $MD_FILE"
-  else
-    FAIL_COUNT=$((FAIL_COUNT+1))
-    FAILED_FILES+=("$MD_FILE")
-    echo "❌ FAIL ($rc): $MD_FILE"
-  fi
-  echo "🔄 END:   $MD_FILE"
-done
-
-echo "📈 Success: $SUCCESS_COUNT  Fail: $FAIL_COUNT"
-
-# Build include lines (newline per file)
-INCLUDE_LINES=""
-for MD_FILE in "${MD_FILES[@]}"; do
   base=$(basename "$MD_FILE")
   name="${base%.*}"
   gen_dir="generated/$name"
   tex_file="$gen_dir/${name}-pandoc.tex"
+  mkdir -p "$gen_dir"
+
+  # Generate .tex file
+  pandoc "$MD_FILE" --lua-filter=../latex/bubble.lua -f markdown -t latex -o "$tex_file"
+
+  # Extract metadata from Markdown
+  rfc_title=$(grep -m1 '^# ' "$MD_FILE" | sed 's/^# *//;s/:.*//')
+  rfc_author=$(grep -m1 '^-\*\*Author(s):\*\*' "$MD_FILE" | sed 's/.*: *//')
+  rfc_number=$(grep -m1 '^-\*\*RFC Number:\*\*' "$MD_FILE" | sed 's/.*: *//')
+  rfc_number="RFC-$rfc_number"
+
+  # Prepend metadata macro to .tex file (macOS/BSD sed syntax)
+  sed -i '' "1i\\
+\\setrfcmeta{$rfc_title}{$rfc_author}{$rfc_number}
+" "$tex_file"
+
+  # Build include line
   if [ -f "$tex_file" ]; then
     INCLUDE_LINES+=$(printf '\\include{%s}\n' "$tex_file")
+    SUCCESS_COUNT=$((SUCCESS_COUNT+1))
+  else
+    FAILED_FILES+=("$MD_FILE")
+    FAIL_COUNT=$((FAIL_COUNT+1))
   fi
+
+  echo "🔄 END:   $MD_FILE"
 done
 
 # Trim trailing newline
@@ -85,8 +80,6 @@ fi
 
 BLOCK_START="% BEGIN GENERATED RFC INCLUDES"
 BLOCK_END="% END GENERATED RFC INCLUDES"
-
-# Rebuild block text (each include already newline-terminated earlier)
 BLOCK_CONTENT="$BLOCK_START"$'\n'"$INCLUDE_LINES"$'\n'"$BLOCK_END"
 
 tmp_clean="$MAIN_TEX.tmp.clean"
@@ -109,7 +102,6 @@ if grep -q '\\begin{document}' "$tmp_clean"; then
     # Our generated block
     printf '%s\n' "$BLOCK_CONTENT"
     # Remainder of file (start AFTER that line)
-    # Use tail -n +N (works GNU & BSD) to start from next line
     tail -n +"$((lineNo+1))" "$tmp_clean"
   } > "$tmp_new"
 else
