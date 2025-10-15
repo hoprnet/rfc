@@ -12,48 +12,60 @@
 
 ## 1. Abstract
 
-<!-- Provide a brief and clear summary of the RFC, outlining its purpose, context, and scope. -->
+This RFC describes the mechanisms of the HOPR economic reward system, specifically how the eligible peer set is constructed and how rewards are
+calculated and distributed among peers. The system ensures fair and sustainable incentivisation of node operators whilst preventing gaming and
+maintaining network decentralisation.
 
-This RFC describes mechanisms around the economic reward system such as how the eligible peer set is constructed and how the rewards per peer are
-calculated
+The reward system operates by collecting data from multiple sources (blockchain, subgraphs, node APIs), filtering for eligible peers based on stake and
+connectivity requirements, applying an economic model to calculate reward allocations, and distributing rewards through the HOPR network itself.
 
 ## 2. Motivation
 
-<!-- Explain the problem this RFC aims to solve.
-Discuss existing limitations, technical gaps, and why the proposed solution is necessary. -->
-
-The rewards calculation can be seen as an opaque procedure selecting who receives which amount. This RFC aims to raise the veil and clarify the
+The rewards calculation can be seen as an opaque procedure selecting who receives which amount. This RFC aims to lift the veil and clarify the
 reasoning behind it.
 
-The economic reward system is a necessary component of the HOPR mixnet, as it incentivize node runners to keep their node running, in order to have a
-network topology as stable as possible. It must be a fair logic, to never favour or disadvantage a subset of node runners, that encourages
-sustainability without compromising decentralization. It must also incentivize node runners to be connected to other nodes in the network with
-channels. Isolated nodes are way less useful to the network than well intricately connected nodes.
+The economic reward system is a necessary component of the HOPR mixnet, as it incentivises node runners to keep their nodes running in order to have a
+network topology that is as stable as possible. It must employ fair logic that never favours or disadvantages a subset of node runners, and that encourages
+sustainability without compromising decentralisation. It must also incentivise node runners to be connected to other nodes in the network via
+channels. Isolated nodes are far less useful to the network than well-connected nodes.
 
 ## 3. Terminology
 
-Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document uses the following economic
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following economic
 system-specific terms:
 
-- **Subgraph**: Off-chain data indexer (e.g., The Graph) for blockchain data (NFT holders, registered nodes, allocations, EOA balances).
-- **API**: HOPR node HTTP API for live network data (topology, channel balances).
-- **EOA (Externally Owned Account)**: Blockchain account controlled by a private key.
-- **Safe**: Smart contract wallet (e.g., Gnosis Safe) for holding tokens.
-- **CT Node**: Node running the CT application.
-- **NFT Holder**: Address holding a specific NFT.
-- **SessionToSocket**: Object managing a UDP session and socket for a peer.
-- **MessageFormat**: Class encoding message metadata and payload as bytes.
+- _Subgraph_: an off-chain data indexer (such as The Graph protocol) that indexes blockchain events and provides queryable access to on-chain data
+  including NFT holders, registered nodes, allocations, and EOA balances.
+- _API_: the HOPR node HTTP API that provides real-time network data including topology information, peer connectivity, and channel balances.
+- _EOA (Externally Owned Account)_: a blockchain account directly controlled by a private key (as opposed to a smart contract account). EOAs can
+  initiate transactions and hold token balances.
+- _Safe_: a smart contract wallet (specifically Gnosis Safe) used for holding tokens with multi-signature security. Node operators typically use Safes
+  to manage their staked funds.
+- _CT node_: a node running the Cover Traffic (CT) application, which is used by the HOPR Association to distribute rewards. CT nodes are excluded from
+  receiving rewards to prevent self-dealing.
+- _NFT Holder_: an address holding a specific NFT that grants preferential treatment in the reward system (lower staking thresholds).
+- _SessionToSocket_: an implementation object that manages a UDP session and socket for communicating with a specific peer.
+- _MessageFormat_: a class responsible for encoding message metadata and payload as bytes for transmission over the network.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01].
 
 ## 4. System Overview
 
-The HOPR CT system is designed to distribute rewards to eligible peers based on their participation and stake in the network. The process is composed
-of several key stages. First, the system collects and enriches peer data from a variety of sources, including both on-chain and off-chain information.
-Next, it applies a series of eligibility filters to determine which peers qualify for rewards. For those that are eligible, an economic model is used
-to calculate the number of reward units (messages) each peer should receive. Finally, the system manages the technical process of sending these
-messages to peers using UDP sessions, ensuring that the distribution is both fair and technically robust.
+The HOPR Cover Traffic (CT) system distributes rewards to eligible peers based on their participation and stake in the network. The reward distribution
+process consists of several key stages:
+
+1. **Data collection and enrichment**: gathering peer data from multiple sources (blockchain, subgraphs, node APIs) and enriching each peer's profile
+   with on-chain and off-chain information
+2. **Eligibility filtering**: applying a series of filters to determine which peers qualify for rewards based on stake, connectivity, and participation
+   criteria
+3. **Economic model application**: calculating the reward allocation (measured in message count) for each eligible peer using an economic model that
+   considers stake amounts, network connectivity, and contribution metrics
+4. **Message distribution**: managing the technical process of sending reward messages to eligible peers via UDP sessions, ensuring fair and robust
+   distribution
+
+This multi-stage process ensures that rewards are distributed fairly, transparently, and in proportion to each peer's contribution to network stability
+and performance.
 
 The following flowchart summarizes the overall process:
 
@@ -77,8 +89,8 @@ flowchart TD
 Data is gathered from multiple sources to build a comprehensive view of the network and its participants. The HOPR node API provides a list of
 currently visible peers and the network topology, including open payment channels and their balances. Subgraphs supply information about registered
 nodes and their associated Safes. Direct RPC calls are used to provide specific allocations to targeted accounts (which may increase a peer's
-effective stake) and to retrieve those accounts' EOA balances. Finally, a static list of NFT owners is used to allow rewards distribution to people
-holding a special “OG NFT”. This combination of sources ensures that both the live state of the network and relevant historical or off-chain data are
+effective stake) and to retrieve those accounts' EOA balances. Finally, a static list of NFT owners is used to allow reward distribution to individuals
+holding a special "OG NFT". This combination of sources ensures that both the live state of the network and relevant historical or off-chain data are
 considered in the reward process.
 
 ### 5.2 Data Enrichment
@@ -86,7 +98,7 @@ considered in the reward process.
 Once collected, the data is used to enrich each peer object. Registered node information is used to associate each peer with a Gnosis Safe and other
 node metadata. Allocations and EOA balances are incorporated to adjust the peer's effective stake and balance, reflecting both on-chain and off-chain
 holdings. The network topology data is used to determine the peer's channel balance, which is important for both eligibility and reward calculation.
-It is important to note that NFT holder status and CT node status are not directly added to the peer object during enrichment; instead, these are
+It is important to note that NFT holder status and CT node status are not directly added to the peer object during enrichment. Instead, these are
 checked during the eligibility filtering phase.
 
 The following diagram illustrates the data enrichment process:
@@ -111,11 +123,11 @@ flowchart LR
     Topology --> Peer
 ```
 
-## 6. Peer Eligibility Filtering
+## 6. Peer eligibility filtering
 
 The eligibility filtering process is designed to ensure that only peers who are meaningfully participating in the network and contributing resources
 are considered for rewards. The first filter checks that the peer's safe allowance meets a minimum threshold, ensuring that only active and funded
-peers are included. Next, the system excludes any peer that is also a CT node, to prevent self-rewarding. The NFT/stake requirement is then applied:
+peers are included. Next, the system excludes any peer that is also a CT node to prevent self-rewarding. The NFT/stake requirement is then applied:
 if a peer is not an NFT holder, they must meet a higher minimum stake threshold, while NFT holders may be subject to a lower threshold. Finally, all
 peers must meet a minimum stake requirement, regardless of NFT status. Only those who pass all these checks are considered eligible for rewards.
 
@@ -143,7 +155,7 @@ flowchart TD
 For each eligible peer, the system applies an economic model—such as a sigmoid or legacy model—to determine the number of messages (reward units) they
 should receive over the course of a year. The model takes into account the peer's individual stake, the total network stake, the network's capacity,
 and historical activity metrics such as message relay counts. The output of this model is the yearly message count for each peer, which directly
-determines their share of the rewards.
+determines their share of rewards.
 
 The following diagram shows the economic model application:
 
@@ -164,7 +176,7 @@ The timing between messages sent to each eligible peer is carefully calculated t
 delay between two messages is computed as the total number of seconds in a non-leap year divided by the peer's yearly message count. To allow for
 efficient batching and aggregation, the system introduces two session parameters: `aggregated_packets` and `batch_size`. The actual sleep time between
 message batches is the product of the base delay, the number of aggregated packets, and the batch size. This approach allows the system to send bursts
-of messages followed by a pause, balancing throughput and network load. The values of these parameters can be tuned to optimize performance and
+of messages followed by a pause, balancing throughput and network load. The values of these parameters can be tuned to optimise performance and
 reliability.
 
 The `aggregated_packets` parameter specifies how many messages are grouped together and sent in a single relay operation, while `batch_size`
@@ -182,7 +194,7 @@ Messages themselves are constructed using the `MessageFormat` class, which encod
 indices—into a raw byte string. The message is padded to the required packet size and sent through the UDP socket to the destination node's address
 and port. The system can optionally wait for a response to measure round-trip time, which is useful for monitoring and diagnostics.
 
-Batching multiple message sendings are handled according to the session parameters described earlier. Multiple messages can be sent in a batch, and
+The batching of multiple message sendings is handled according to the session parameters described earlier. Multiple messages can be sent in a batch, and
 after each batch, the system waits for the calculated delay before sending the next batch. This approach ensures that message delivery is both
 efficient and aligned with the reward allocation determined by the economic model.
 
@@ -200,7 +212,7 @@ flowchart TD
 
 Security and monitoring are integral to the HOPR CT reward distribution process. To ensure transparency and facilitate troubleshooting, all delays and
 message counts are tracked using Prometheus metrics. This allows operators and developers to monitor the system's performance in real time, detect
-anomalies, and analyze historical trends.
+anomalies, and analyse historical trends.
 
 Resource management is also a key concern. The system is designed to manage sessions and sockets carefully, ensuring that resources are allocated and
 released appropriately. Sockets are closed when sessions end, and sessions are only maintained for as long as they are needed. This approach helps
