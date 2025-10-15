@@ -1,11 +1,37 @@
 function Code(el)
   local text = el.text
-  -- Escape LaTeX special characters except backslash
+  
+  -- Check if text contains newlines
+  if text:find('\n') then
+    -- Multi-line code: use environment
+    -- Escape LaTeX special characters for environment content
+    text = text:gsub("([#$&%%{}])", "\\%1")
+    text = text:gsub("_", "\\_")
+    text = text:gsub("%^", "\\textasciicircum{}")
+    text = text:gsub("~", "\\textasciitilde{}")
+    
+    return pandoc.RawInline('latex', '\\begin{codebubble}\n' .. text .. '\n\\end{codebubble}')
+  else
+    -- Single-line code: use command
+    -- Escape LaTeX special characters for command argument
+    text = text:gsub("([#$&%%{}])", "\\%1")
+    text = text:gsub("_", "\\_")
+    text = text:gsub("%^", "\\textasciicircum{}")
+    text = text:gsub("~", "\\textasciitilde{}")
+    
+    return pandoc.RawInline('latex', '\\codebubble{' .. text .. '}')
+  end
+end
+
+function CodeBlock(el)
+  local text = el.text
+  
+  -- For code blocks, always use environment
+  -- Escape LaTeX special characters
   text = text:gsub("([#$&%%{}])", "\\%1")
   text = text:gsub("_", "\\_")
   text = text:gsub("%^", "\\textasciicircum{}")
   text = text:gsub("~", "\\textasciitilde{}")
-  -- Now add break hints (do NOT escape the backslash!)
-  text = text:gsub("([|/_%-%.%+:%=])", "%1\\hspace{0pt}")
-  return pandoc.RawInline('latex', '\\begin{codebubble}' .. text .. '\\end{codebubble}')
+
+  return pandoc.RawBlock('latex', '\\begin{codebubbleenv}\n' .. text .. '\n\\end{codebubbleenv}')
 end

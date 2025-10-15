@@ -89,6 +89,24 @@ fi
 
 sed "${SED_I[@]}" "s|mermaid_\\([0-9][0-9]*\\)\\.png|generated/$NAME/mermaid_\\1.png|g" "$OUTDIR/$NAME-pandoc.tex"
 
+
+echo "== Extract metadata =="
+echo "Extracting metadata from $FULLPATH"
+# Extract metadata from Markdown
+rfc_title=$(grep -m1 '^- \*\*Title:\*\*' "$FULLPATH" | sed 's/^- \*\*Title:\*\* *//' || echo "UNDEFINED")
+rfc_author=$(grep -m1 '^- \*\*Author(s):\*\*' "$FULLPATH" | sed 's/^- \*\*Author(s):\*\* *//' || echo "UNDEFINED")
+rfc_number=$(grep -m1 '^- \*\*RFC Number:\*\*' "$FULLPATH" | sed 's/^- \*\*RFC Number:\*\* *//' || echo "UNDEFINED")
+rfc_number="RFC-$rfc_number"
+
+echo "Title:  $rfc_title"
+echo "Author: $rfc_author"
+echo "Number: $rfc_number"
+
+# Prepend metadata macro to .tex file (macOS/BSD sed syntax)
+sed -i '' "1i\\
+\\\setrfcmeta{$rfc_title}{$rfc_author}{$rfc_number}
+" "$OUTDIR/$NAME-pandoc.tex"
+
 # Ensure width=\maxwidth (only if includegraphics present)
 tmp="$OUTDIR/$NAME-pandoc.tmp"
 awk '

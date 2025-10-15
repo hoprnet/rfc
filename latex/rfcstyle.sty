@@ -32,17 +32,13 @@
 \RaggedRight
 \setlength{\RaggedRightParindent}{0pt}
 
-% --- Codebubble element ---
-\newtcbox{\codebubble}{
+% --- Codebubble with intelligent line breaking ---
+\newtcbox{\codeboxraw}{
   enhanced,
-  breakable,
-  parbox=true,
-  % varwidth boxed,
-  % varwidth upper,
-  tcbox raise base,
+  on line,
+  boxrule=0pt,
   colback=bubbleback,
   colframe=bubbleback,
-  boxrule=0pt,
   arc=4pt,
   left=4pt,
   right=4pt,
@@ -50,9 +46,80 @@
   bottom=2pt,
   boxsep=0pt,
   fontupper=\sourcecodepro\small\color{rfcbody},
-  before upper=\strut,
-  after upper=\strut
+  tcbox raise base
 }
+
+% --- Codebubble with intelligent line breaking ---
+\newtcbox{\codeboxraw}{
+  enhanced,
+  on line,
+  boxrule=0pt,
+  colback=bubbleback,
+  colframe=bubbleback,
+  arc=4pt,
+  left=4pt,
+  right=4pt,
+  top=2pt,
+  bottom=2pt,
+  boxsep=0pt,
+  fontupper=\sourcecodepro\small\color{rfcbody},
+  tcbox raise base
+}
+
+% --- Codebubble with intelligent line breaking ---
+\newtcbox{\codeboxraw}{
+  enhanced,
+  on line,
+  boxrule=0pt,
+  colback=bubbleback,
+  colframe=bubbleback,
+  arc=4pt,
+  left=4pt,
+  right=4pt,
+  top=2pt,
+  bottom=2pt,
+  boxsep=0pt,
+  fontupper=\sourcecodepro\small\color{rfcbody},
+  tcbox raise base
+}
+
+% Enhanced codebubble with proper margin and line break handling
+\newcommand{\codebubble}[1]{%
+  \begingroup
+  % Set up measurement
+  \settowidth{\dimen0}{\codeboxraw{#1}}%
+  
+  % Check if codebubble is too wide for any single line
+  \ifdim\dimen0>80mm
+    % Force to new line if too wide
+    \par\noindent\makebox[80mm][l]{\codeboxraw{#1}}\par
+  \else
+    % Use discretionary break to handle line overflow gracefully
+    \discretionary{}{\par\noindent\codeboxraw{#1}}{\codeboxraw{#1}}%
+  \fi
+  \endgroup
+}
+
+% --- Codebubble environment (for multi-line code) ---
+\newtcolorbox{codebubbleblock}{
+  enhanced,
+  colback=bubbleback,
+  colframe=bubbleback,
+  boxrule=0pt,
+  arc=4pt,
+  left=4pt,
+  right=4pt,
+  top=4pt,
+  bottom=4pt,
+  fontupper=\sourcecodepro\small\color{rfcbody},
+  breakable,
+  text and listing
+}
+
+% Create environment that preserves line breaks
+\newenvironment{codebubbleenv}
+  {\VerbatimEnvironment\begin{codebubbleblock}\begin{Verbatim}}
+  {\end{Verbatim}\end{codebubbleblock}}
 
 % --- Section styling with HOPR branding ---
 \titleformat{\section}
@@ -83,6 +150,41 @@
 \fancyhead[LE,RO]{\color{rfcbody}\sourcecodepro\small\rfcnumbermeta}
 \fancyfoot[RE,LO]{\color{rfcbody}\sourcecodepro\small\rfcauthormeta}
 \fancyfoot[LE,RO]{\color{rfcbody}\sourcecodepro\small\thepage}
+
+
+% Syntax highlighting commands (keeping existing definitions)
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+
 
 % --- Enhanced list settings ---
 \setlist[itemize]{nosep, left=1em, itemsep=2pt}
@@ -193,3 +295,5 @@
 \setlength{\parskip}{8pt plus 2pt minus 1pt}
 \setlength{\parindent}{0pt}
 \renewcommand{\baselinestretch}{1.15}
+
+
