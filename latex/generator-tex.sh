@@ -63,6 +63,7 @@ while IFS= read -r line; do
       RENDERED=$((RENDERED+1))
     else
       echo "⚠️  Render failed for block $MERMAID_IDX"
+      exit 1
     fi
     # insert image reference
     printf '![Mermaid Diagram %d](mermaid_%d.png)\n' "$MERMAID_IDX" "$MERMAID_IDX" >> "$DST_MD"
@@ -75,7 +76,7 @@ done < "$SRC"
 echo "Rendered $RENDERED Mermaid diagram(s)."
 
 echo "== Pandoc convert =="
-pandoc "$DST_MD" -f gfm -t latex -o "$OUTDIR/$NAME-pandoc.tex"
+pandoc "$DST_MD" --lua-filter=./filters/bubble.lua -f markdown -t latex -o "$OUTDIR/$NAME-pandoc.tex"
 
 echo "== Fix image paths + width =="
 

@@ -10,6 +10,20 @@
 \usepackage{array}        % column formatting
 \usepackage{multirow}     % multi-row cells (optional)
 
+% --- Core packages ---
+\usepackage{fontspec}
+\usepackage{xcolor}
+
+% --- Font setup (must come before rfcstyle) ---
+\setmainfont{SFUIText-Regular}[Path=./fonts/,Extension=.ttf]
+\setmonofont{SourceCodePro-Regular}[Path=./fonts/,Extension=.ttf]
+\newfontfamily\sourcecodepro{SourceCodePro-Regular}[Path=./fonts/,Extension=.ttf]
+
+% --- Colors (must come before rfcstyle) ---
+\definecolor{rfcbody}{HTML}{2C4190}
+\definecolor{bubbleback}{HTML}{CECFE6}
+\definecolor{rfcblue}{HTML}{2A4D9B}
+
 % Define pandoc commands
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
@@ -21,6 +35,9 @@
 
 % Define Highlighting environment for syntax highlighting
 \newenvironment{Highlighting}{\begin{Shaded}}{\end{Shaded}}
+
+% --- Load custom style ---
+\usepackage{rfcstyle}
 
 % Syntax highlighting commands (keeping existing definitions)
 \newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}

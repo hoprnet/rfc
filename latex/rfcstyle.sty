@@ -1,0 +1,195 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{rfcstyle}[2025/01/01 v1.0 HOPR RFC Style Package]
+
+% --- Required packages ---
+\RequirePackage{geometry}
+\RequirePackage{fancyhdr}
+\RequirePackage{xcolor}
+\RequirePackage{titlesec}
+\RequirePackage{graphicx}
+\RequirePackage{hyperref}
+\RequirePackage{enumitem}
+\RequirePackage{ragged2e}
+\RequirePackage[most]{tcolorbox}
+% \tcbuselibrary{breakable,skins}
+
+% --- Page geometry (HOPR custom paper format) ---
+\geometry{
+  paperwidth=148mm,
+  paperheight=222mm,
+  top=2.27cm,
+  bottom=4.27cm,
+  inner=1.8cm,
+  outer=1.1cm
+}
+
+% --- Colors (MUST be defined before using them) ---
+\definecolor{rfcbody}{HTML}{2C4190}
+\definecolor{bubbleback}{HTML}{CECFE6}
+\definecolor{rfcblue}{HTML}{2A4D9B}
+
+% --- Text alignment: Left-aligned, not justified ---
+\RaggedRight
+\setlength{\RaggedRightParindent}{0pt}
+
+% --- Codebubble element ---
+\newtcbox{\codebubble}{
+  enhanced,
+  breakable,
+  parbox=true,
+  % varwidth boxed,
+  % varwidth upper,
+  tcbox raise base,
+  colback=bubbleback,
+  colframe=bubbleback,
+  boxrule=0pt,
+  arc=4pt,
+  left=4pt,
+  right=4pt,
+  top=2pt,
+  bottom=2pt,
+  boxsep=0pt,
+  fontupper=\sourcecodepro\small\color{rfcbody},
+  before upper=\strut,
+  after upper=\strut
+}
+
+% --- Section styling with HOPR branding ---
+\titleformat{\section}
+  {\color{rfcblue}\sourcecodepro\Large\bfseries\RaggedRight}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\color{rfcblue}\sourcecodepro\large\bfseries\RaggedRight}
+  {\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
+  {\thesubsubsection}{1em}{}
+\titleformat{\paragraph}
+  {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
+  {\theparagraph}{1em}{}
+\titleformat{\subparagraph}
+  {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
+  {\thesubparagraph}{1em}{}
+
+\renewcommand{\normalsize}{\fontsize{9}{11}\selectfont}
+\renewcommand{\small}{\fontsize{7}{10}\selectfont}
+
+\newcommand{\setrfcmeta}[3]{%
+  \def\rfctitlemeta{#1}%
+  \def\rfcauthormeta{#2}%
+  \def\rfcnumbermeta{#3}%
+}
+\fancyhead[CE,CO]{\color{rfcbody}\sourcecodepro\small\rfctitlemeta}
+\fancyhead[LE,RO]{\color{rfcbody}\sourcecodepro\small\rfcnumbermeta}
+\fancyfoot[RE,LO]{\color{rfcbody}\sourcecodepro\small\rfcauthormeta}
+\fancyfoot[LE,RO]{\color{rfcbody}\sourcecodepro\small\thepage}
+
+% --- Enhanced list settings ---
+\setlist[itemize]{nosep, left=1em, itemsep=2pt}
+\setlist[enumerate]{nosep, left=1em, itemsep=2pt}
+\setlist[description]{nosep, left=1em, itemsep=2pt}
+
+% --- Code block environment with proper styling ---
+\newenvironment{codeblock}
+  {\begin{quote}\sourcecodepro\small\color{rfcbody}\begin{verbatim}}
+  {\end{verbatim}\end{quote}}
+
+% --- Support for block quotes ---
+\newenvironment{mdquote}
+  {\begin{quote}\itshape\color{rfcbody}\RaggedRight}
+  {\end{quote}}
+
+% --- Table styling ---
+\RequirePackage{longtable}
+\RequirePackage{booktabs}
+\RequirePackage{array}
+
+% --- Enhanced hyperlink styling ---
+\hypersetup{
+  colorlinks=true,
+  linkcolor=rfcblue,
+  filecolor=rfcblue,
+  urlcolor=rfcblue,
+  citecolor=rfcblue,
+  pdftitle={HOPR RFC Collection},
+  pdfauthor={HOPR Team},
+  pdfsubject={Technical Specifications for HOPR Decentralized Privacy Network},
+  pdfkeywords={HOPR, RFC, Mixnet, Privacy, Decentralization, Blockchain, Ethereum}
+}
+
+% --- Enhanced table of contents styling ---
+\RequirePackage{tocloft}
+\renewcommand{\cftsecfont}{\sourcecodepro\bfseries\color{rfcblue}}
+\renewcommand{\cftsubsecfont}{\sourcecodepro\color{rfcblue}}
+\renewcommand{\cftsubsubsecfont}{\sourcecodepro\color{rfcbody}}
+
+% --- Caption styling ---
+\RequirePackage{caption}
+\captionsetup{
+  font={small,sf,color=rfcbody},
+  labelfont={bf,color=rfcblue},
+  format=hang,
+  margin=10pt
+}
+
+% --- Enhanced figure and table environments ---
+\RequirePackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+\restylefloat{table}
+
+% --- Math support for technical content ---
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mathtools}
+
+% --- Enhanced verbatim for technical specifications ---
+\RequirePackage{fancyvrb}
+\fvset{
+  fontsize=\small,
+  baselinestretch=1.0,
+  formatcom=\color{rfcbody}
+}
+
+% --- Definition list environment ---
+\newenvironment{definitions}
+  {\begin{description}[style=nextline,leftmargin=2em,font=\sourcecodepro\bfseries\color{rfcblue}]}
+  {\end{description}}
+
+% --- Warning/Note boxes ---
+\RequirePackage{mdframed}
+\newmdenv[
+  backgroundcolor=bubbleback,
+  linecolor=rfcblue,
+  linewidth=2pt,
+  leftmargin=0pt,
+  rightmargin=0pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  innertopmargin=10pt,
+  innerbottommargin=10pt,
+  roundcorner=5pt
+]{rfcnote}
+
+\newmdenv[
+  backgroundcolor=red!10,
+  linecolor=red,
+  linewidth=2pt,
+  leftmargin=0pt,
+  rightmargin=0pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  innertopmargin=10pt,
+  innerbottommargin=10pt,
+  roundcorner=5pt
+]{rfcwarning}
+
+% --- Acronym support ---
+\RequirePackage{acronym}
+\renewcommand*{\acsfont}[1]{\sourcecodepro\small{#1}}
+\renewcommand*{\acfsfont}[1]{\sourcecodepro\small{#1}}
+
+% --- Enhanced spacing for left-aligned text ---
+\setlength{\parskip}{8pt plus 2pt minus 1pt}
+\setlength{\parindent}{0pt}
+\renewcommand{\baselinestretch}{1.15}
