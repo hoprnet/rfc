@@ -73,8 +73,10 @@
 
 % Create environment that preserves line breaks
 \newenvironment{codebubbleenv}
-  {\VerbatimEnvironment\begin{codebubbleblock}\begin{Verbatim}}{\end{Verbatim}
-\end{codebubbleblock}}
+  {\VerbatimEnvironment
+   \begin{codebubbleblock}%
+   \begin{Verbatim}[breaklines=true,breakanywhere=true]}
+  {\end{Verbatim}\end{codebubbleblock}}
 
 % --- Section styling with HOPR branding ---
 \titleformat{\section}
