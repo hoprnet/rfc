@@ -14,10 +14,13 @@ function Code(el)
   else
     -- Single-line code: use command
     -- Escape LaTeX special characters for command argument
+    -- return pandoc.RawInline('latex', ''..text..'');
+
     text = text:gsub("([#$&%%{}])", "\\%1")
     text = text:gsub("_", "\\_")
     text = text:gsub("%^", "\\textasciicircum{}")
     text = text:gsub("~", "\\textasciitilde{}")
+    
     
     return pandoc.RawInline('latex', '\\codebubble{' .. text .. '}')
   end

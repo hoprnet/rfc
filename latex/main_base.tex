@@ -17,7 +17,12 @@
 % --- Font setup (must come before rfcstyle) ---
 \setmainfont{SFUIText-Regular}[Path=./fonts/,Extension=.ttf]
 \setmonofont{SourceCodePro-Regular}[Path=./fonts/,Extension=.ttf]
+
+% Define sourcecodepro with proper protection
+\makeatletter
 \newfontfamily\sourcecodepro{SourceCodePro-Regular}[Path=./fonts/,Extension=.ttf]
+\protected\def\sourcecodepro{\fontfamily{SourceCodePro-TLF}\selectfont}
+\makeatother
 
 % --- Colors (must come before rfcstyle) ---
 \definecolor{rfcbody}{HTML}{2C4190}

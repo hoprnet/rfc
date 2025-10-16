@@ -49,56 +49,30 @@
   tcbox raise base
 }
 
-% --- Codebubble with intelligent line breaking ---
-\newtcbox{\codeboxraw}{
-  enhanced,
-  on line,
-  boxrule=0pt,
-  colback=bubbleback,
-  colframe=bubbleback,
-  arc=4pt,
-  left=4pt,
-  right=4pt,
-  top=2pt,
-  bottom=2pt,
-  boxsep=0pt,
-  fontupper=\sourcecodepro\small\color{rfcbody},
-  tcbox raise base
-}
-
-% --- Codebubble with intelligent line breaking ---
-\newtcbox{\codeboxraw}{
-  enhanced,
-  on line,
-  boxrule=0pt,
-  colback=bubbleback,
-  colframe=bubbleback,
-  arc=4pt,
-  left=4pt,
-  right=4pt,
-  top=2pt,
-  bottom=2pt,
-  boxsep=0pt,
-  fontupper=\sourcecodepro\small\color{rfcbody},
-  tcbox raise base
-}
-
-% Enhanced codebubble with proper margin and line break handling
-\newcommand{\codebubble}[1]{%
+% Fixed codebubble command with proper position tracking
+\newcommand{\codeboxraw{}[1]{%
+  \leavevmode% Ensure we're in horizontal mode
   \begingroup
-  % Set up measurement
-  \settowidth{\dimen0}{\codeboxraw{#1}}%
-  
-  % Check if codebubble is too wide for any single line
-  \ifdim\dimen0>80mm
-    % Force to new line if too wide
-    \par\noindent\makebox[80mm][l]{\codeboxraw{#1}}\par
-  \else
-    % Use discretionary break to handle line overflow gracefully
-    \discretionary{}{\par\noindent\codeboxraw{#1}}{\codeboxraw{#1}}%
-  \fi
+  % Set maximum tolerance for breaking at any position
+  \tolerance=10000
+  \emergencystretch=10em
+  \hbadness=10000
+  \hfuzz=5pt
+  \pretolerance=10000
+  % Enable breaking after every character
+  \def\makeultrabreakable##1{%
+    \ifx\relax##1\relax
+    \else
+      ##1\penalty0\hspace{0pt}%
+      \expandafter\makeultrabreakable
+    \fi
+  }
+  % Apply HOPR RFC styling with ultra-breakable formatting - INLINE ONLY
+  \sourcecodepro\small\color{rfcbody}\makeultrabreakable#1\relax%
   \endgroup
 }
+
+
 
 % --- Codebubble environment (for multi-line code) ---
 \newtcolorbox{codebubbleblock}{
@@ -118,8 +92,8 @@
 
 % Create environment that preserves line breaks
 \newenvironment{codebubbleenv}
-  {\VerbatimEnvironment\begin{codebubbleblock}\begin{Verbatim}}
-  {\end{Verbatim}\end{codebubbleblock}}
+  {\VerbatimEnvironment\begin{codebubbleblock}\begin{Verbatim}}{\end{Verbatim}
+\end{codebubbleblock}}
 
 % --- Section styling with HOPR branding ---
 \titleformat{\section}
