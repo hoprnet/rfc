@@ -32,25 +32,8 @@
 \RaggedRight
 \setlength{\RaggedRightParindent}{0pt}
 
-% --- Codebubble with intelligent line breaking ---
-\newtcbox{\codeboxraw}{
-  enhanced,
-  on line,
-  boxrule=0pt,
-  colback=bubbleback,
-  colframe=bubbleback,
-  arc=4pt,
-  left=4pt,
-  right=4pt,
-  top=2pt,
-  bottom=2pt,
-  boxsep=0pt,
-  fontupper=\sourcecodepro\small\color{rfcbody},
-  tcbox raise base
-}
-
 % Fixed codebubble command with proper position tracking
-\newcommand{\codeboxraw{}[1]{%
+\newcommand{\codebubble}[1]{%
   \leavevmode% Ensure we're in horizontal mode
   \begingroup
   % Set maximum tolerance for breaking at any position
@@ -68,11 +51,9 @@
     \fi
   }
   % Apply HOPR RFC styling with ultra-breakable formatting - INLINE ONLY
-  \sourcecodepro\small\color{rfcbody}\makeultrabreakable#1\relax%
+  \sourcecodepro\color{rfcbody}\makeultrabreakable{#1}\relax%
   \endgroup
 }
-
-
 
 % --- Codebubble environment (for multi-line code) ---
 \newtcolorbox{codebubbleblock}{
@@ -269,5 +250,3 @@
 \setlength{\parskip}{8pt plus 2pt minus 1pt}
 \setlength{\parindent}{0pt}
 \renewcommand{\baselinestretch}{1.15}
-
-
