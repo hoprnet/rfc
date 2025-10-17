@@ -20,7 +20,7 @@
 % Define sourcecodepro with proper protection
 \makeatletter
 \newfontfamily\sourcecodepro{SourceCodePro-Regular}[Path=./fonts/,Extension=.ttf]
-\protected\def\sourcecodepro{\fontfamily{SourceCodePro-TLF}\selectfont}
+% \protected\def\sourcecodepro{\fontfamily{SourceCodePro-TLF}\selectfont}
 \makeatother
 
 % --- Colors (must come before rfcstyle) ---
@@ -63,6 +63,8 @@
 }
 % Apply both limits while preserving aspect ratio
 \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio,draft=false}
+
+\setlength{\fboxrule}{0pt}       % ensure no frame if \fbox/\frame used
 \makeatother
 
 % Set default figure placement
