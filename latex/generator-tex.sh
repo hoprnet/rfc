@@ -96,15 +96,19 @@ echo "Extracting metadata from $FULLPATH"
 rfc_title=$(grep -m1 '^- \*\*Title:\*\*' "$FULLPATH" | sed 's/^- \*\*Title:\*\* *//' || echo "UNDEFINED")
 rfc_author=$(grep -m1 '^- \*\*Author(s):\*\*' "$FULLPATH" | sed 's/^- \*\*Author(s):\*\* *//' || echo "UNDEFINED")
 rfc_number=$(grep -m1 '^- \*\*RFC Number:\*\*' "$FULLPATH" | sed 's/^- \*\*RFC Number:\*\* *//' || echo "UNDEFINED")
-rfc_number="RFC-$rfc_number"
+rfc_date=$(grep -m1 '^- \*\*Updated:\*\*' "$FULLPATH" | sed 's/^- \*\*Updated:\*\* *//' || echo "UNDEFINED")
 
 echo "Title:  $rfc_title"
 echo "Author: $rfc_author"
 echo "Number: $rfc_number"
+echo "Date:   $rfc_date"
 
 # Prepend metadata macro to .tex file (macOS/BSD sed syntax)
 sed -i '' "1i\\
-\\\setrfcmeta{$rfc_title}{$rfc_author}{$rfc_number}
+\\\rfcnumber{${rfc_number}}\\
+\\\rfctitle{${rfc_title}}\\
+\\\rfcdate{${rfc_date}}\\
+\\\rfcauthor{${rfc_author}}\\
 " "$OUTDIR/$NAME-pandoc.tex"
 
 # Ensure width=\maxwidth (only if includegraphics present)

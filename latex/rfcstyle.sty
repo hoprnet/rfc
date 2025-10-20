@@ -110,15 +110,29 @@
 \renewcommand{\normalsize}{\fontsize{9}{11}\selectfont}
 \renewcommand{\small}{\fontsize{7}{10}\selectfont}
 
-\newcommand{\setrfcmeta}[3]{%
-  \def\rfctitlemeta{#1}%
-  \def\rfcauthormeta{#2}%
-  \def\rfcnumbermeta{#3}%
+
+% --- Header/Footer setup ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[LE,RO]{\thepage}
+
+% --- Custom commands for header/footer ---
+\newcommand{\rfcnumber}[1]{\fancyhead[LE,RO]{RFC-#1}}
+\newcommand{\rfctitle}[1]{\fancyhead[CE,CO]{#1}}
+\newcommand{\rfcdate}[1]{\fancyhead[RE,LO]{#1}}
+\newcommand{\rfcauthor}[1]{\fancyfoot[RE,LO]{#1}}
+% \newcommand{\rfccategory}[1]{\fancyfoot[CE,CO]{#1}}
+
+% --- Metadata block environment ---
+\newenvironment{metadata}{
+  \vspace{0.5em}
+  \begin{ttfamily}\small
+  \begin{tabular}{@{}ll}
+}{
+  \end{tabular}
+  \end{ttfamily}
+  \vspace{1em}
 }
-\fancyhead[CE,CO]{\color{rfcbody}\sourcecodepro\small\rfctitlemeta}
-\fancyhead[LE,RO]{\color{rfcbody}\sourcecodepro\small\rfcnumbermeta}
-\fancyfoot[RE,LO]{\color{rfcbody}\sourcecodepro\small\rfcauthormeta}
-\fancyfoot[LE,RO]{\color{rfcbody}\sourcecodepro\small\thepage}
 
 
 % Syntax highlighting commands (keeping existing definitions)
