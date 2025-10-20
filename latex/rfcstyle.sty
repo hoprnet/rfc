@@ -32,29 +32,40 @@
 \RaggedRight
 \setlength{\RaggedRightParindent}{0pt}
 
-
-% Fixed codebubble command with proper position tracking
-\newcommand{\codebubble}[1]{%
-  \leavevmode% Ensure we're in horizontal mode
+% Global helper (simple per‑character break; remove if not needed)
+\newcommand{\makeultrabreakable}[1]{%
   \begingroup
-  % Set maximum tolerance for breaking at any position
-  \tolerance=10000
+  \tolerance=10000 
   \emergencystretch=10em
-  \hbadness=10000
-  \hfuzz=5pt
-  \pretolerance=10000
-  % Enable breaking after every character
-  \def\makeultrabreakable##1{%
+  \def\dochar##1{%
     \ifx\relax##1\relax
-    \else
-      ##1\penalty0\hspace{0pt}%
-      \expandafter\makeultrabreakable
-    \fi
-  }
-  % Apply HOPR RFC styling with ultra-breakable formatting - INLINE ONLY
-  \sourcecodepro\color{rfcbody}\makeultrabreakable{#1}\relax%
+    \else ##1\penalty0\hspace{0pt}\expandafter\dochar \fi
+  }%
+  \dochar#1\relax
   \endgroup
 }
+
+\DeclareRobustCommand{\codebubble}[1]{%
+  \begingroup
+  \sourcecodepro\color{rfcbody}%
+  \makeultrabreakable{#1}%
+  \endgroup
+}
+
+% % Fixed codebubble command with proper position tracking
+% \newcommand{\codebubble}[1]{%
+%   \leavevmode% Ensure we're in horizontal mode
+%   \begingroup
+%   % Set maximum tolerance for breaking at any position
+%   \tolerance=10000
+%   \emergencystretch=10em
+%   \hbadness=10000
+%   \hfuzz=5pt
+%   \pretolerance=10000
+%   % Apply HOPR RFC styling with ultra-breakable formatting - INLINE ONLY
+%   \sourcecodepro\color{rfcbody}\makeultrabreakable{#1}\relax%
+%   \endgroup
+% }
 
 % --- Codebubble environment (for multi-line code) ---
 \newtcolorbox{codebubbleblock}{
@@ -143,6 +154,9 @@
 \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
 \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
 
+% Fallbacks for Pandoc-generated angle bracket commands
+\providecommand{\textgreater}{>}
+\providecommand{\textless}{<}
 
 % --- Enhanced list settings ---
 \setlist[itemize]{nosep, left=1em, itemsep=2pt}
