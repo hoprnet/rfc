@@ -104,7 +104,7 @@ echo "Number: $rfc_number"
 echo "Date:   $rfc_date"
 
 # Prepend metadata macro to .tex file (macOS/BSD sed syntax)
-sed -i '' "1i\\
+sed "${SED_I[@]}" "1i\\
 \\\rfcnumber{${rfc_number}}\\
 \\\rfctitle{${rfc_title}}\\
 \\\rfcdate{${rfc_date}}\\
