@@ -13,24 +13,25 @@
 
 ## 1. Abstract
 
-This RFC describes the HOPR mixer component, a critical element of the HOPR mixnet that introduces temporal mixing to break timing correlations between
-incoming and outgoing packets. By applying random delays to packets, the mixer effectively destroys temporal patterns that could otherwise be exploited
-for traffic analysis attacks. This specification details the mixer's design, implementation requirements, and integration points to enable consistent
-implementations across different HOPR nodes whilst balancing anonymity protection against latency and throughput requirements.
+This RFC describes the HOPR mixer component, a critical element of the HOPR mixnet that introduces temporal mixing to break timing correlations
+between incoming and outgoing packets. By applying random delays to packets, the mixer effectively destroys temporal patterns that could otherwise be
+exploited for traffic analysis attacks. This specification details the mixer's design, implementation requirements, and integration points to enable
+consistent implementations across different HOPR nodes whilst balancing anonymity protection against latency and throughput requirements.
 
 ## 2. Motivation
 
-In mixnets, simply forwarding packets through multiple hops is insufficient to prevent traffic analysis attacks. Even with encrypted packet contents and
-obscured routing paths, adversaries can correlate packets by observing timing patterns. An observer monitoring network traffic at multiple points can
-potentially link incoming and outgoing packets based on their arrival and departure times. This technique is known as timing correlation or an intersection attack.
+In mixnets, simply forwarding packets through multiple hops is insufficient to prevent traffic analysis attacks. Even with encrypted packet contents
+and obscured routing paths, adversaries can correlate packets by observing timing patterns. An observer monitoring network traffic at multiple points
+can potentially link incoming and outgoing packets based on their arrival and departure times. This technique is known as timing correlation or an
+intersection attack.
 
-Without temporal mixing, an adversary who observes a packet arriving at node A at time `t₁` and a packet leaving node A at time `t₂ ≈ t₁` can infer with
-high probability that these packets are the same, thus tracking packets through the network and potentially deanonymising communications.
+Without temporal mixing, an adversary who observes a packet arriving at node A at time `t₁` and a packet leaving node A at time `t₂ ≈ t₁` can infer
+with high probability that these packets are the same, thus tracking packets through the network and potentially deanonymising communications.
 
 The HOPR mixer addresses this attack vector by:
 
-- **Breaking temporal correlations**: introducing random delays between packet arrival and departure times, making timing-based correlation significantly
-  more difficult
+- **Breaking temporal correlations**: introducing random delays between packet arrival and departure times, making timing-based correlation
+  significantly more difficult
 - **Configurable privacy-latency trade-offs**: providing tunable delay parameters to balance anonymity protection against performance requirements
 - **Efficient implementation**: using a priority queue that maintains packet ordering by release time, enabling `O(log n)` operations
 - **High-throughput support**: maintaining mixing effectiveness even under high packet rates
@@ -85,8 +86,9 @@ To generate a satisfactory random delay, the following conditions MUST be met:
 - SHOULD use uniform distribution as the baseline; other distributions (e.g., exponential, Poisson) MAY be supported via configuration
 - MUST NOT leak information about delay values through timing side channels
 
-Different mixing strategies produce different results. A uniform distribution will provide a simple baseline that is easy to implement and analyse. More advanced strategies like Poisson mixing (as used in Loopix [01]) can provide stronger anonymity properties by making packet timings less distinguishable from cover traffic
-patterns, but require careful parameter tuning and integration with cover traffic generation.
+Different mixing strategies produce different results. A uniform distribution will provide a simple baseline that is easy to implement and analyse.
+More advanced strategies like Poisson mixing (as used in Loopix [01]) can provide stronger anonymity properties by making packet timings less
+distinguishable from cover traffic patterns, but require careful parameter tuning and integration with cover traffic generation.
 
 #### 4.3.2. Mixing buffer
 
@@ -99,7 +101,7 @@ The mixer maintains packets in a data structure where:
 
 This ensures efficient processing even under high-load conditions.
 
-### 4.4. Operational Behavior
+### 4.4. Operational Behaviour
 
 #### 4.4.1. Packet processing flow
 
@@ -140,7 +142,7 @@ When both `min_delay` and `delay_range` are zero:
 
 ## 5. Design Considerations
 
-### 5.1. Performance Optimization
+### 5.1. Performance Optimisation
 
 An implementation should prioritise:
 
@@ -154,7 +156,7 @@ An implementation should prioritise:
 - **Timing attacks**: Random delays must use cryptographically secure randomness
 - **Statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies (e.g., exponential/Poisson as in Loopix [01])
   provide better resistance to pattern inference
-- **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behavior when full (e.g., drop-tail
+- **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behaviour when full (e.g., drop-tail
   oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
 
 ### 5.3. Monitoring and Metrics
@@ -221,7 +223,7 @@ implement and analyse.
 
 - **Poisson Mixing Implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as
   described in Loopix [01] to provide stronger anonymity properties when combined with cover traffic
-- Performance optimizations for hardware acceleration
+- Performance optimisations for hardware acceleration
 
 ## 11. References
 

@@ -27,7 +27,8 @@ between reliability and latency for their use case.
 
 The HOPR mixnet uses HOPR packets ([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) to transport data between nodes. This
 fundamental packet-sending mechanism operates as a fire-and-forget transport similar to UDP [03], providing no guarantees of delivery, ordering, or
-message boundaries. Whilst this simplicity is appropriate for the packet layer, application developers typically require higher-level features such as:
+message boundaries. Whilst this simplicity is appropriate for the packet layer, application developers typically require higher-level features such
+as:
 
 - **Reliable delivery**: ensuring that messages are delivered or that the sender is notified of failures
 - **Message ordering**: receiving messages in the order they were sent
@@ -37,8 +38,8 @@ message boundaries. Whilst this simplicity is appropriate for the packet layer, 
 To ease adoption, HOPR nodes must provide a way for applications to use these features without reimplementing TCP [01] or UDP [02] from scratch. Since
 the HOPR protocol is not IP-based, implementing these protocols directly would require complex IP protocol emulation.
 
-The HOPR session data protocol fills this gap by providing both reliable and unreliable data transmission modes directly over the HOPR packet transport.
-Session establishment and lifecycle management are handled by the HOPR session start protocol
+The HOPR session data protocol fills this gap by providing both reliable and unreliable data transmission modes directly over the HOPR packet
+transport. Session establishment and lifecycle management are handled by the HOPR session start protocol
 ([RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)), whilst this protocol focuses exclusively on efficient data
 transmission once a session is established.
 
@@ -53,8 +54,8 @@ session-protocol-specific terms:
 - _segment_: a fixed-size fragment of a frame. Frames larger than the packet MTU are split into segments for transmission, with each segment carrying
   metadata about its position within the frame to enable reassembly.
 
-- _frame ID_: a 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed, starting from 1). Frame ID values are interpreted
-  as big-endian unsigned integers and increment sequentially with each new frame.
+- _frame ID_: a 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed, starting from 1). Frame ID values are
+  interpreted as big-endian unsigned integers and increment sequentially with each new frame.
 
 - _Sequence Number (SeqNum)_: an 8-bit unsigned integer indicating a segment's position within its frame (0-indexed, starting from 0). This enables
   correct reassembly of frames from segments.
@@ -68,8 +69,8 @@ session-protocol-specific terms:
 - _MTU (Maximum Transmission Unit)_: the maximum size of a single HOPR protocol message payload, denoted as `C` throughout this specification. This is
   determined by the packet format defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md).
 
-- _terminating segment_: a special segment with the termination flag set that signals the graceful end of a session. Terminating segments carry no data
-  payload.
+- _terminating segment_: a special segment with the termination flag set that signals the graceful end of a session. Terminating segments carry no
+  data payload.
 
 ## 4. Specification
 

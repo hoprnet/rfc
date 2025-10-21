@@ -2,22 +2,8 @@
   "version": "0.2",
   "language": "en-GB",
   "dictionaries": ["en-GB"],
-  "ignorePaths": [
-    "node_modules/**",
-    "**/assets/**",
-    "**/.git/**",
-    "**/hoprnet/**",
-    "flake.lock",
-    "*.png",
-    "*.jpg",
-    "*.svg"
-  ],
-  "ignoreRegExpList": [
-    "/```[\\s\\S]*?```/gm",
-    "/`[^`]*`/g",
-    "/\\[[^\\]]*\\]\\([^)]*\\)/g",
-    "/https?:\\/\\/[^\\s]+/g"
-  ],
+  "ignorePaths": ["node_modules/**", "**/assets/**", "**/.git/**", "**/hoprnet/**", "flake.lock", "*.png", "*.jpg", "*.svg"],
+  "ignoreRegExpList": ["/```[\\s\\S]*?```/gm", "/`[^`]*`/g", "/\\[[^\\]]*\\]\\([^)]*\\)/g", "/https?:\\/\\/[^\\s]+/g"],
   "words": [
     "HOPR",
     "HOPRnet",
@@ -112,7 +98,17 @@
     "jeandemeusy",
     "Piotrowska",
     "Elahi",
-    "Meiser"
+    "Meiser",
+    "incentivising",
+    "incentivisation",
+    "incentivises",
+    "QUIC",
+    "PRNG",
+    "ChaCha",
+    "deanonymising",
+    "deprioritise",
+    "trustlessness",
+    "fulfil"
   ],
   "flagWords": [
     "finalize",
