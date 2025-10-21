@@ -134,7 +134,7 @@ graph TD;
     D --> E;
 ```
 
-Fig. 1: Network topology for BFA-inspired network probing
+_Fig. 1: Network topology for BFA-inspired network probing_
 
 The probing traffic from node A would follow the BFA pattern of establishing telemetry from the immediate vicinity of A using 1-hop probing traffic:
 
@@ -169,7 +169,7 @@ graph TD;
     F --> E;
 ```
 
-Fig. 2: Network topology for DFA-inspired network probing
+_Fig. 2: Network topology for DFA-inspired network probing_
 
 The probing traffic from node A would follow the DFA pattern of establishing telemetry to the furthest interesting point in the network using n-hop probing traffic with `n` generated randomly within the allowed range:
 

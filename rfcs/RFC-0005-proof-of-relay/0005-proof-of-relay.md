@@ -113,7 +113,7 @@ Channels transition through three distinct lifecycle states:
 
 These states can be represented using the `ChannelStatus` enumeration:
 
-```rust
+```
 ChannelStatus { OPEN, PENDING_TO_CLOSE, CLOSED }
 ```
 
@@ -221,7 +221,7 @@ ECDSASignature {
 The ECDSA signature of the ticket MUST be computed over the [EIP‑712](https://eips.ethereum.org/EIPS/eip-712) hash `H_ticket` of the `ticket`
 typed-data using `domainSeparator` (`dst`):
 
-```text
+```
 H_1 = H(channel_id || amount || index || index_offset || channel_epoch || encoded_win_prob || challenge)
 H_2 = H(0xfcb7796f00000000000000000000000000000000000000000000000000000000 || H_1)`
 H_ticket = H(0x1901 || dst || H_2)

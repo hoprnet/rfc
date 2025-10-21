@@ -72,7 +72,7 @@ flowchart TD
     G --> H[Open Sessions for Eligible Peers]
     H --> I[Send Messages through Sessions]
     I --> J[End]
-```mermaid
+```
 
 ## 5. Data Collection and Enrichment
 
@@ -113,7 +113,7 @@ flowchart LR
     Alloc --> Peer
     EOA --> Peer
     Topology --> Peer
-```mermaid
+```
 
 ## 6. Peer eligibility filtering
 
@@ -140,7 +140,7 @@ flowchart TD
     E -- Yes --> F
     F -- No --> X
     F -- Yes --> Y[Eligible]
-```mermaid
+```
 
 ## 7. Economic Model Application
 
@@ -160,7 +160,7 @@ graph TD
     EligiblePeer --> Model
     Params --> Model
     Model --> Output
-```mermaid
+```
 
 ## 8. Message Timing and Delay Calculation
 
@@ -186,7 +186,9 @@ Messages themselves are constructed using the `MessageFormat` class, which encod
 indices—into a raw byte string. The message is padded to the required packet size and sent through the UDP socket to the destination node's address
 and port. The system can optionally wait for a response to measure round-trip time, which is useful for monitoring and diagnostics.
 
-The batching of multiple message sendings is handled according to the session parameters described earlier. Multiple messages can be sent in a batch, and after each batch, the system waits for the calculated delay before sending the next batch. This approach ensures that message delivery is both efficient and aligned with the reward allocation determined by the economic model.
+The batching of multiple message sendings is handled according to the session parameters described earlier. Multiple messages can be sent in a batch, and
+after each batch, the system waits for the calculated delay before sending the next batch. This approach ensures that message delivery is both
+efficient and aligned with the reward allocation determined by the economic model.
 
 The following flowchart summarizes the message sending process:
 
@@ -196,7 +198,7 @@ flowchart TD
     M --> T[Batch Message Sent]
     T --> R[Optional Response]
     R --> C[Session Closed]
-```mermaid
+```
 
 ## 10. Security and Monitoring
 

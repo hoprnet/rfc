@@ -105,7 +105,7 @@ This ensures efficient processing even under high-load conditions.
 
 Packet processing SHOULD use the following flow:
 
-```plaintext
+```
 1. Packet arrives at mixer via sender
 2. Random delay is generated: delay ∈ [min_delay, min_delay + delay_range]
 3. Release timestamp calculated: release_time = now() + delay

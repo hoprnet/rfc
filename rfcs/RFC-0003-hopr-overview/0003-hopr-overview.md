@@ -98,7 +98,7 @@ The HOPR protocol stack consists of multiple layers that work together to provid
 
 The HOPR protocol is organized into five layers, arranged as follows:
 
-```text
+```
 ┌─────────────────────────────────────┐
 │        Application Layer            │
 ├─────────────────────────────────────┤

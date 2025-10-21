@@ -68,7 +68,7 @@ graph TD
     F --> G
     F --> H
     A --> I
-```mermaid
+```
 
 #### 4.1.2. **Stage Descriptions:**
 
@@ -98,7 +98,7 @@ RFC-0001-rfc-life-cycle-process/
 │   └── 0001-v1.0.1-erratum.md
 └── assets/
     └── life-cycle-overview.png
-```text
+```
 
 ---
 
@@ -130,7 +130,7 @@ Every RFC MUST begin with the following metadata structure:
 - **Version:** vX.X.X (Status)
 - **Supersedes:** RFC-YYYY (if applicable) | N/A
 - **Related Links:** [RFC-XXXX](../RFC-XXXX-[slug]/XXXX-[slug].md) | none
-```markdown
+```
 
 #### 4.4.2. Reference Styles
 
