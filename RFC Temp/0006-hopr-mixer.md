@@ -13,7 +13,7 @@
 
 ## 1. Abstract
 
-This RFC describes the HOPR mixer component, a critical element of the HOPR mixnet that introduces temporal mixing to break timing correlations between
+This RFC describes the HOPR Mixer component, a critical element of the HOPR mixnet that introduces temporal mixing to break timing correlations between
 incoming and outgoing packets. By applying random delays to packets, the mixer effectively destroys temporal patterns that could otherwise be exploited
 for traffic analysis attacks. This specification details the mixer's design, implementation requirements, and integration points to enable consistent
 implementations across different HOPR nodes whilst balancing anonymity protection against latency and throughput requirements.
@@ -22,9 +22,9 @@ implementations across different HOPR nodes whilst balancing anonymity protectio
 
 In mixnets, simply forwarding packets through multiple hops is insufficient to prevent traffic analysis attacks. Even with encrypted packet contents and
 obscured routing paths, adversaries can correlate packets by observing timing patterns. An observer monitoring network traffic at multiple points can
-potentially link incoming and outgoing packets based on their arrival and departure times. This technique is known as timing correlation or an intersection attack.
+potentially link incoming and outgoing packets based on their arrival and departure times—a technique known as timing correlation or intersection attacks.
 
-Without temporal mixing, an adversary who observes a packet arriving at node A at time `t₁` and a packet leaving node A at time `t₂ ≈ t₁` can infer with
+Without temporal mixing, an adversary who observes a packet arriving at node A at time t₁ and a packet leaving node A at time t₂ ≈ t₁ can infer with
 high probability that these packets are the same, thus tracking packets through the network and potentially deanonymising communications.
 
 The HOPR mixer addresses this attack vector by:
@@ -32,7 +32,7 @@ The HOPR mixer addresses this attack vector by:
 - **Breaking temporal correlations**: introducing random delays between packet arrival and departure times, making timing-based correlation significantly
   more difficult
 - **Configurable privacy-latency trade-offs**: providing tunable delay parameters to balance anonymity protection against performance requirements
-- **Efficient implementation**: using a priority queue that maintains packet ordering by release time, enabling `O(log n)` operations
+- **Efficient implementation**: using a priority queue that maintains packet ordering by release time, enabling O(log n) operations
 - **High-throughput support**: maintaining mixing effectiveness even under high packet rates
 
 ## 3. Terminology
@@ -60,8 +60,8 @@ The HOPR mixer follows a flow-based design that is split into these steps:
 
 The mixer accepts the following configuration parameters that control the delay distribution:
 
-1. `min_delay`: minimum delay applied to packets (default: 0 ms). This establishes the lower bound of the delay interval.
-2. `delay_range`: the range from minimum to maximum delay (default: 200 ms). The maximum delay is `min_delay` + `delay_range`.
+1. _min_delay_: minimum delay applied to packets (default: 0 ms). This establishes the lower bound of the delay interval.
+2. _delay_range_: the range from minimum to maximum delay (default: 200 ms). The maximum delay is min_delay + delay_range.
 
 The actual delay for each packet is randomly selected from a probability distribution over the interval `[min_delay, min_delay + delay_range]`. The
 default implementation uses a uniform distribution, but implementations MAY support additional distributions (e.g., exponential, Poisson) for enhanced
@@ -78,14 +78,15 @@ When a packet arrives at the mixer, the following operations are performed:
 3. The packet is wrapped with its release timestamp metadata
 4. The wrapped packet is inserted into the mixing buffer, ordered by release timestamp
 
-To generate a satisfactory random delay, the following conditions MUST be met:
+**Random delay generation requirements:**
 
 - MUST use a CSPRNG with sufficient entropy (at least 128 bits of entropy)
-- MUST generate independent delays per packet, with no correlation or reuse across packets
+- MUST generate independent delays per packet—no correlation or reuse across packets
 - SHOULD use uniform distribution as the baseline; other distributions (e.g., exponential, Poisson) MAY be supported via configuration
 - MUST NOT leak information about delay values through timing side channels
 
-Different mixing strategies produce different results. A uniform distribution will provide a simple baseline that is easy to implement and analyse. More advanced strategies like Poisson mixing (as used in Loopix [01]) can provide stronger anonymity properties by making packet timings less distinguishable from cover traffic
+**Note on mixing strategies:** Uniform distribution provides a simple baseline that is easy to implement and analyse. More advanced strategies like
+Poisson mixing (as used in Loopix [01]) can provide stronger anonymity properties by making packet timings less distinguishable from cover traffic
 patterns, but require careful parameter tuning and integration with cover traffic generation.
 
 #### 4.3.2. Mixing buffer
@@ -94,7 +95,7 @@ The mixer maintains packets in a data structure where:
 
 - Packets are ordered by their release timestamps
 - The packet with the earliest release time is always at the top
-- Insertion and extraction operations have `O(log n)` complexity
+- Insertion and extraction operations have O(log n) complexity
 - If multiple packets share the same `release_time`, the ordering MUST be stable FIFO by insertion sequence
 
 This ensures efficient processing even under high-load conditions.
@@ -103,9 +104,7 @@ This ensures efficient processing even under high-load conditions.
 
 #### 4.4.1. Packet processing flow
 
-Packet processing SHOULD use the following flow:
-
-```plaintext
+```
 1. Packet arrives at mixer via sender
 2. Random delay is generated: delay ∈ [min_delay, min_delay + delay_range]
 3. Release timestamp calculated: release_time = now() + delay
@@ -145,7 +144,7 @@ When both `min_delay` and `delay_range` are zero:
 An implementation should prioritise:
 
 - **Minimal allocations**: Pre-allocated buffer reduces memory pressure
-- **Efficient data structures**: Binary heap provides `O(log n)` operations
+- **Efficient data structures**: Binary heap provides O(log n) operations
 - **Lock minimisation**: Fine-grained locking for concurrent access
 - **Timer efficiency**: Single shared timer reduces system overhead, including minimising runtime system overhead by using a single thread
 
@@ -184,8 +183,9 @@ The mixer defends against:
 
 The mixer does not protect against:
 
-- **Low-volume spread traffic** that does not produce a sufficient number of messages to be mixed within the delay window
-- **Global passive adversaries** with unlimited observation capability
+- Low-volume spread traffic that does not produce a sufficient number of messages to be mixed within the delay window
+
+- **Global passive adversaries**: With unlimited observation capability
 - **Active attacks**: packet dropping or delaying by malicious nodes
 - **Side channels**: CPU, memory, or network-level information leaks
 
@@ -219,7 +219,8 @@ implement and analyse.
 
 ## 10. Future Work
 
-- **Poisson Mixing Implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as described in Loopix [01] to provide stronger anonymity properties when combined with cover traffic
+- **Poisson Mixing Implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as
+  described in Loopix [01] to provide stronger anonymity properties when combined with cover traffic
 - Performance optimizations for hardware acceleration
 
 ## 11. References

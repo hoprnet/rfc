@@ -12,19 +12,27 @@
 
 ## 1. Abstract
 
-This RFC describes the mechanisms of the HOPR economic reward system, specifically how the eligible peer set is constructed and how rewards are calculated and distributed among peers. The system ensures fair and sustainable incentivisation of node operators whilst preventing gaming and maintaining network decentralisation.
+This RFC describes the mechanisms of the HOPR economic reward system, specifically how the eligible peer set is constructed and how rewards are
+calculated and distributed among peers. The system ensures fair and sustainable incentivisation of node operators whilst preventing gaming and
+maintaining network decentralisation.
 
-The reward system operates by collecting data from multiple sources (blockchain, subgraphs, node APIs), filtering for eligible peers based on stake and connectivity requirements, applying an economic model to calculate reward allocations, and distributing rewards through the HOPR network itself.
+The reward system operates by collecting data from multiple sources (blockchain, subgraphs, node APIs), filtering for eligible peers based on stake and
+connectivity requirements, applying an economic model to calculate reward allocations, and distributing rewards through the HOPR network itself.
 
 ## 2. Motivation
 
-The rewards calculation can be seen as an opaque procedure selecting who receives which amount. This RFC aims to lift the veil and clarify the reasoning behind it.
+The rewards calculation can be seen as an opaque procedure selecting who receives which amount. This RFC aims to lift the veil and clarify the
+reasoning behind it.
 
-The economic reward system is a necessary component of the HOPR mixnet, as it incentivises node runners to keep their nodes running in order to have a network topology that is as stable as possible. It must employ fair logic that never favours or disadvantages a subset of node runners, and that encourages sustainability without compromising decentralisation. It must also incentivise node runners to be connected to other nodes in the network via channels. Isolated nodes are far less useful to the network than well-connected nodes.
+The economic reward system is a necessary component of the HOPR mixnet, as it incentivises node runners to keep their nodes running in order to have a
+network topology that is as stable as possible. It must employ fair logic that never favours or disadvantages a subset of node runners, and that encourages
+sustainability without compromising decentralisation. It must also incentivise node runners to be connected to other nodes in the network via
+channels. Isolated nodes are far less useful to the network than well-connected nodes.
 
 ## 3. Terminology
 
-Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following economic system-specific terms:
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following economic
+system-specific terms:
 
 - _Subgraph_: an off-chain data indexer (such as The Graph protocol) that indexes blockchain events and provides queryable access to on-chain data
   including NFT holders, registered nodes, allocations, and EOA balances.
@@ -72,7 +80,7 @@ flowchart TD
     G --> H[Open Sessions for Eligible Peers]
     H --> I[Send Messages through Sessions]
     I --> J[End]
-```mermaid
+```
 
 ## 5. Data Collection and Enrichment
 
@@ -113,7 +121,7 @@ flowchart LR
     Alloc --> Peer
     EOA --> Peer
     Topology --> Peer
-```mermaid
+```
 
 ## 6. Peer eligibility filtering
 
@@ -140,7 +148,7 @@ flowchart TD
     E -- Yes --> F
     F -- No --> X
     F -- Yes --> Y[Eligible]
-```mermaid
+```
 
 ## 7. Economic Model Application
 
@@ -160,7 +168,7 @@ graph TD
     EligiblePeer --> Model
     Params --> Model
     Model --> Output
-```mermaid
+```
 
 ## 8. Message Timing and Delay Calculation
 
@@ -198,7 +206,7 @@ flowchart TD
     M --> T[Batch Message Sent]
     T --> R[Optional Response]
     R --> C[Session Closed]
-```mermaid
+```
 
 ## 10. Security and Monitoring
 

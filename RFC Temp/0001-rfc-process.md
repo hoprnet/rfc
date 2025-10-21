@@ -12,11 +12,16 @@
 
 ## 1. Abstract
 
-This RFC defines the lifecycle, contribution process, versioning system, governance model, and document structure for RFCs within the HOPR project. It specifies the stages RFCs progress through, along with the naming conventions, validation rules, and formatting standards that MUST be followed to ensure consistency and clarity across all RFC submissions. The process ensures iterative development with feedback loops, transparent updates via pull requests (PRs), and clear criteria for advancing through each stage.
+This RFC defines the lifecycle, contribution process, versioning system, governance model, and document structure for RFCs within the HOPR project. It
+specifies the stages RFCs progress through, along with the naming conventions, validation rules, and formatting standards that MUST be followed to ensure
+consistency and clarity across all RFC submissions. The process ensures iterative development with feedback loops, transparent updates via pull requests
+(PRs), and clear criteria for advancing through each stage.
 
 ## 2. Motivation
 
-The HOPR project requires a clear and consistent process for managing technical proposals and documenting protocol architecture. A well-defined lifecycle MUST be established and upheld to maintain coherence, ensure quality, streamline development, and provide clear expectations for contributors. This process serves multiple purposes:
+The HOPR project requires a clear and consistent process for managing technical proposals and documenting protocol architecture. A well-defined
+lifecycle MUST be established and upheld to maintain coherence, ensure quality, streamline development, and provide clear expectations for contributors. This
+process serves multiple purposes:
 
 - **Quality assurance**: ensuring that RFCs undergo appropriate review and refinement before implementation
 - **Transparency**: making the development process visible and accessible to all stakeholders
@@ -68,7 +73,7 @@ graph TD
     F --> G
     F --> H
     A --> I
-```mermaid
+```
 
 #### 4.1.2. **Stage Descriptions:**
 
@@ -98,7 +103,7 @@ RFC-0001-rfc-life-cycle-process/
 │   └── 0001-v1.0.1-erratum.md
 └── assets/
     └── life-cycle-overview.png
-```text
+```
 
 ---
 
@@ -130,7 +135,7 @@ Every RFC MUST begin with the following metadata structure:
 - **Version:** vX.X.X (Status)
 - **Supersedes:** RFC-YYYY (if applicable) | N/A
 - **Related Links:** [RFC-XXXX](../RFC-XXXX-[slug]/XXXX-[slug].md) | none
-```markdown
+```
 
 #### 4.4.2. Reference Styles
 

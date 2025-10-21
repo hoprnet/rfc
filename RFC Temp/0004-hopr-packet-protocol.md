@@ -552,7 +552,7 @@ In the next step, the `encrypted_payload` is decrypted:
 1. Generate `Kprp` = KDF("HASH_KEY_PRP", `SharedSecret_i`)
 2. Transform the `encrypted_payload` using PRP:
 
-```rust
+```
 new_payload = PRP(Kprp, encrypted_payload)
 ```
 

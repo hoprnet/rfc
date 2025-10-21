@@ -15,33 +15,44 @@
 
 ## 1. Abstract
 
-This RFC provides an introductory overview of the HOPR network (also referred to as HOPRnet) and its associated protocol stack. HOPR is a decentralised and incentivised mix network that enables privacy-preserving communication by routing messages through multiple relay nodes using onion routing.
+This RFC provides an introductory overview of the HOPR network (also referred to as HOPRnet) and its protocol stack. HOPR is a decentralised,
+incentivised mixnet that enables privacy-preserving communication by routing messages through multiple relay nodes using onion routing.
 
-HOPR's key innovation is the proof-of-relay mechanism, which addresses the challenge of establishing economically sustainable anonymous communication networks. By combining cryptographic proofs with economic incentives, HOPR enables scalable privacy infrastructure that becomes stronger with increased adoption, in contrast to volunteer-based networks that struggle with sustainability and performance issues.
+HOPR's key innovation is the proof-of-relay mechanism, which addresses the challenge of creating economically sustainable anonymous communication
+networks. By combining cryptographic proofs with economic incentives, HOPR enables scalable privacy infrastructure that becomes stronger with increased
+adoption, unlike volunteer-based networks that struggle with sustainability and performance issues.
 
-This document serves as the primary entry point for understanding the HOPR network as outlined in these RFCs. It introduces the network architecture and protocol stack at a conceptual level and provides references to additional RFCs that define specific implementation details. The intended audience includes researchers, developers, and infrastructure operators seeking to understand or implement privacy-preserving communication systems based on the HOPR protocol.
+This document serves as the primary entry point for understanding the HOPR ecosystem. It provides high-level architectural explanations and introduces
+the core protocol components, whilst referencing individual RFCs for detailed implementation specifications. It is designed for researchers, developers,
+and infrastructure providers who seek to understand or implement privacy-preserving communication solutions.
 
 ## 2. Motivation
 
-In the contemporary digital environment, privacy-preserving communication has become essential for safeguarding user data, supporting freedom of expression, and maintaining confidentiality in both personal and professional contexts. Conventional internet protocols provide inadequate protection for privacy, as metadata and traffic patterns can be analysed to infer sensitive information about users and their communications.
+In today's digital landscape, privacy-preserving communication is increasingly important for protecting user data, enabling free speech, and
+maintaining confidentiality in business and personal communications. Traditional internet protocols provide insufficient privacy protection because
+metadata and traffic patterns can be analyzed to reveal sensitive information about users and their communications.
 
-The HOPR protocol addresses these privacy challenges by implementing a decentralized mix network that:
+HOPR addresses these privacy challenges by implementing a decentralized mixnet that:
 
-- **Provides metadata privacy**: Unlike traditional communication networks that expose communication patterns, HOPR obscures sender-receiver relationships through traffic mixing and onion routing [01, 02]
-- **Offers economic incentives**: Node operators are compensated for relaying traffic, thereby creating an economically sustainable privacy infrastructure
-- **Ensures decentralization**: No single entity controls the network, mitigating the risks of censorship and eliminating single points of failure
-- **Maintains accessibility**: Applications can integrate HOPR's privacy capabilities without requiring users to understand complex cryptographic concepts
+- **Provides metadata privacy**: Unlike traditional networks that expose communication patterns, HOPR obscures sender-receiver relationships through
+  traffic mixing and onion routing [01, 02]
+- **Offers economic incentives**: node operators receive payment for relaying traffic, creating a sustainable ecosystem for privacy infrastructure
+- **Ensures decentralization**: No single entity controls the network, preventing censorship and single points of failure
+- **Maintains accessibility**: Applications can integrate privacy features without requiring users to understand complex cryptographic concepts
 
-The HOPR protocol is designed to be transport-agnostic, enabling operation over standard internet infrastructures while preserving robust privacy guarantees. By combining established cryptographic primitives with novel incentive mechanisms, HOPR offers a practical and scalable solution for privacy-preserving communication.
+The HOPR protocol is designed to be transport-agnostic, allowing it to operate over standard internet infrastructures while providing strong privacy
+guarantees. By combining proven cryptographic techniques with novel incentive mechanisms, HOPR creates a practical solution for privacy-preserving
+communications at scale.
 
 ## 3. Terminology
 
-All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in
-[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted across the HOPR RFC series.
+For all terminology used in this document, including both general mixnet concepts and HOPR-specific terms, refer to
+[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md).
 
 ## 4. Network Overview
 
-The HOPR network is a decentralised, peer-to-peer mix network that provides privacy-preserving communication through multi-hop routing. The network architecture consists of several key components that work together to ensure metadata privacy whilst incentivising participation through economic rewards.
+The HOPR network is a decentralised, peer-to-peer mixnet that provides privacy-preserving communication through multi-hop routing. The network
+architecture consists of several key components that work together to ensure metadata privacy whilst incentivising participation through economic rewards.
 
 ### 4.1 Network Architecture
 
@@ -50,29 +61,34 @@ The HOPR network comprises different node roles based on their function in messa
 - **Entry nodes**: nodes that initiate communication sessions and inject messages into the network
 - **Relay nodes**: intermediate nodes that forward messages along routing paths and receive payment for their relay services
 - **Exit nodes**: final relay nodes in a path that deliver messages to their intended destinations  
-- **Payment infrastructure**: on-chain payment channels that enable efficient microtransactions between nodes without requiring a blockchain transaction for each payment
+- **Payment infrastructure**: on-chain payment channels that enable efficient microtransactions between nodes without requiring a blockchain transaction
+  for each payment
 
-Every HOPR node can simultaneously act as an entry node, relay node, and exit node depending on the context of different message flows. The distinction between these roles is functional rather than structural, being dependent on a node's position within a specific routing path.
+Every HOPR node can simultaneously act as an entry node, relay node, and exit node depending on the context of different message flows. The distinction
+between these roles is functional rather than structural. A node's role at any given time will depend on that node's position within a specific routing path.
 
 ### 4.2 Path Construction
 
-Messages in the HOPR network are routed through multi-hop paths to provide privacy protection. Path construction involves three phases:
+Messages in the HOPR network are routed through multi-hop paths to provide privacy protection. Path construction consists of three phases:
 
 1. **Path discovery**: nodes discover available relay nodes through automated probing mechanisms detailed in
-   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md). This process identifies which nodes are reachable, reliable, and have open payment channels.
-2. **Path selection**: senders choose routing paths based on multiple criteria, including privacy requirements, expected latency, relay costs, and node reliability. The selection algorithm balances these trade-offs according to application needs.
-3. **Onion routing**: messages are encrypted in multiple layers using the Sphinx packet format [02, 03], with each relay node able to decrypt only one layer to reveal the next hop whilst keeping the sender, final destination, and full path hidden.
+   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md). This process identifies which nodes are reachable, reliable, and
+   have open payment channels.
+2. **Path selection**: senders choose routing paths based on multiple criteria, including privacy requirements, expected latency, relay costs, and node
+   reliability. The selection algorithm balances these trade-offs according to application needs.
+3. **Onion routing**: messages are encrypted in multiple layers using a modified version of the Sphinx packet format [02, 03], with each relay node able to decrypt only one layer to reveal the next hop whilst keeping the sender, final destination, and full path hidden.
 
 ### 4.3 Economic Incentives
 
 The HOPR network employs economic incentives to ensure sustainable operation and encourage node participation:
 
-- **Micropayments**: relay nodes receive small probabilistic payments for each message they forward. Payments are made through tickets that have a winning probability, enabling efficient micropayments without excessive on-chain transactions.
-- **Proof of relay**: cryptographic proofs ensure that relay nodes actually forward messages before receiving payment. This mechanism is detailed in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) and prevents nodes from claiming payment without providing service.
-- **Payment channels**: unidirectional payment channels between nodes enable efficient microtransactions without high blockchain fees [04]. Channels are
-  established on-chain but allow many off-chain payments, settling only periodically or when channels close.
+- **Micropayments**: relay nodes receive small probabilistic payments for each message they forward. Payments are made through tickets that have a
+  winning probability, enabling efficient micropayments without excessive on-chain transactions.
+- **Proof of relay**: cryptographic proofs ensure that relay nodes actually forward messages before receiving payment. This mechanism is detailed in
+  [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) and prevents nodes from claiming payment without providing service.
+- **Payment channels**: unidirectional payment channels between nodes enable efficient microtransactions without requiring each transaction to be written to a blockchain [04]. Channels are established on-chain but each allows for many off-chain payments, settling only periodically or when the channel closes.
 - **Staking rewards**: nodes that stake tokens and maintain open payment channels receive additional rewards as described in
-  [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md), creating incentives for network participation beyond per-message
+  [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md). This creates incentives for network participation beyond per-message
   payments.
 
 ### 4.4 Privacy Properties
@@ -84,21 +100,23 @@ The network architecture provides several key privacy guarantees through its lay
 - **Receiver anonymity**: intermediate nodes cannot identify the final recipient of a message. Only the exit node knows the final destination, but not
   the original sender [05].
 - **Unlinkability**: observers cannot link multiple messages from the same sender or to the same receiver [05]. Different messages may take different
-  paths, and the encryption prevents correlation.
+  paths, and the encryption scheme prevents correlation.
 - **Traffic analysis resistance**: random delays introduced by the mixer component ([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and packet
   mixing prevent timing correlation attacks [06]. This ensures that an observer cannot correlate incoming and outgoing packets based on timing patterns.
 
-These properties hold even against an adversary who controls a subset of the network nodes, as long as at least one honest node exists in each routing path.
+These properties hold even against an adversary who controls a large subset of the network nodes, provided at least one honest node exists in each routing
+path.
 
 ## 5. Protocol Overview
 
-The HOPR protocol stack consists of multiple layers that work together to provide privacy-preserving communication with economic incentives. This section provides a high-level overview of the protocol components and their interactions.
+The HOPR protocol stack consists of multiple layers that work together to provide privacy-preserving communication with economic incentives. This
+section provides a high-level overview of the protocol components and their interactions.
 
 ### 5.1 Protocol Architecture
 
 The HOPR protocol is organized into five layers, arranged as follows:
 
-```text
+```
 ┌─────────────────────────────────────┐
 │        Application Layer            │
 ├─────────────────────────────────────┤
@@ -124,20 +142,26 @@ From top to bottom, these layers provide the following functionalities:
 
 #### 5.2.1 HOPR Packet Protocol
 
-The HOPR packet protocol ([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) defines the fundamental packet format and processing rules that enable onion routing:
+The HOPR packet protocol ([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) defines the fundamental packet format and
+processing rules that enable onion routing:
 
-- **Onion encryption**: multi-layer encryption ensures that each relay node can decrypt only one layer to reveal the next hop's address, maintaining sender and destination anonymity throughout the routing process.
-- **Sphinx-based design**: based on the Sphinx packet format [03] with extensions for incentivisation. Sphinx provides compact headers and strong cryptographic guarantees about packet unlinkability.
-- **Fixed packet size**: all packets have identical size (including header, payload, and proof-of-relay information) to prevent traffic analysis based on packet size [06]. To achieve this, variable-length messages are padded to the maximum size.
+- **Onion encryption**: multi-layer encryption ensures that each relay node can decrypt only one layer to reveal the next hop's address, maintaining
+  sender and destination anonymity throughout the routing process.
+- **Sphinx-based design**: the HOPR packet format is based on the Sphinx packet format [03] with extensions for incentivisation. Sphinx provides compact headers and strong cryptographic guarantees about packet unlinkability.
+- **Fixed packet size**: all packets have identical size (including header, payload, and proof-of-relay information) to prevent traffic analysis based on
+  packet size [06]. To achieve this, variable-length messages are padded to the maximum size.
 - **Single-use reply blocks (SURBs)**: SURBs enable recipients to send reply messages back to anonymous senders without knowing their identity, supporting bidirectional communication whilst preserving anonymity.
 
 #### 5.2.2 Proof of Relay
 
-The proof of relay mechanism ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)) ensures that relay nodes actually forward packets before receiving payment:
+The proof of relay mechanism ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)) ensures that relay nodes actually forward packets before
+receiving payment:
 
-- **Cryptographic proofs**: each packet contains cryptographic challenges that can only be solved by a node that successfully delivers a packet to the next hop. The solution serves as mathematical proof that the relay service was performed.
-- **Payment integration**: proofs are cryptographically bound to payment tickets. Relay nodes can only claim payment by presenting valid proofs, ensuring that compensation is tied to actual work performed.
-- **Fraud prevention**: the mechanism detects and prevents nodes from claiming payment without providing relay services. Invalid proofs are rejected,
+- **Cryptographic proofs**: each packet contains cryptographic challenges that can only be solved by a node that successfully delivers the packet to the
+  next hop. The solution serves as mathematical proof that the relay service was performed.
+- **Payment integration**: proofs are cryptographically bound to payment tickets. Relay nodes can only claim payment by presenting valid proofs,
+  ensuring that compensation is tied to actual work performed.
+- **Fraud prevention**: the mechanism detects and prevents attempts to claim payment without providing relay services. Invalid proofs are rejected,
   and repeated fraud attempts can result in channel closure and stake slashing.
 
 #### 5.2.3 Traffic Mixing
