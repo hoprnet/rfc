@@ -99,7 +99,7 @@ The mixer maintains packets in a data structure where:
 
 This ensures efficient processing even under high-load conditions.
 
-### 4.4. Operational Behavior
+### 4.4. Operational Behaviour
 
 #### 4.4.1. Packet processing flow
 
@@ -140,7 +140,7 @@ When both `min_delay` and `delay_range` are zero:
 
 ## 5. Design Considerations
 
-### 5.1. Performance Optimization
+### 5.1. Performance Optimisation
 
 An implementation should prioritise:
 
@@ -154,7 +154,7 @@ An implementation should prioritise:
 - **Timing attacks**: Random delays must use cryptographically secure randomness
 - **Statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies (e.g., exponential/Poisson as in Loopix [01])
   provide better resistance to pattern inference
-- **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behavior when full (e.g., drop-tail
+- **Queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behaviour when full (e.g., drop-tail
   oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
 
 ### 5.3. Monitoring and Metrics

@@ -55,6 +55,15 @@
 
               # Commit message formatting
               commitizen.enable = true;
+
+              # Spell checking
+              cspell = {
+                enable = true;
+                name = "cspell";
+                entry = "${pkgs.nodePackages.cspell}/bin/cspell --no-progress";
+                files = "\\.md$";
+                types = [ "text" ];
+              };
             };
             tools = pkgs;
             excludes = [
@@ -69,6 +78,9 @@
                 # Task runner and formatting
                 just
                 config.treefmt.build.wrapper
+
+                # Spell checking
+                nodePackages.cspell
               ]
               ++ (pkgs.lib.attrValues config.treefmt.build.programs);
           };
@@ -77,14 +89,12 @@
           treefmt = {
             inherit (config.flake-root) projectRootFile;
 
-            programs.prettier = {
+            programs.deno = {
               enable = true;
-              settings = {
-                printWidth = 150;
-                proseWrap = "always";
-                tabWidth = 2;
-                useTabs = false;
-              };
+              includes = [
+                "*.md"
+                "*.json"
+              ];
             };
 
             settings.global.excludes = [
@@ -92,12 +102,6 @@
               ".editorconfig"
               ".gitattributes"
               "LICENSE"
-            ];
-            settings.formatter.prettier.includes = [
-              "*.md"
-              "*.json"
-            ];
-            settings.formatter.prettier.excludes = [
               "*.yml"
               "*.yaml"
             ];
