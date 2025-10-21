@@ -13,55 +13,72 @@
 
 ## 1. Abstract
 
-This RFC describes the wire format of a HOPR packet and its encoding and decoding protocol. The HOPR packet format is heavily based on the Sphinx
-packet format [01], as it aims to fulfil the similiar set of goals: to provide anonymous indistinguishable packets, hiding the path length and
-unlinkability of messages. Moreover, the HOPR packet format adds additional information to the header, which allows incentivization of individual
-relay nodes via Proof of Relay.
+This RFC describes the wire format of a HOPR packet and its encoding and decoding protocols. The HOPR packet format is heavily based on the Sphinx
+packet format [01], as it aims to fulfil a similar set of goals: providing anonymous, indistinguishable packets that hide path length and ensure
+unlinkability of messages. The HOPR packet format extends Sphinx by adding information to support incentivisation of individual relay nodes through
+the Proof of Relay mechanism.
 
-The Proof of Relay (PoR) is described in the separate [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md).
+The Proof of Relay (PoR) mechanism is described in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md). This RFC focuses on the packet
+structure and cryptographic operations required for packet creation, forwarding, and processing.
 
 ## 2. Introduction
 
-The HOPR packet format is the fundamental building block of the HOPR protocol, allowing to build the HOPR mixnet. The format is designed to create
-indistinguishable packets sent between source and destination using a set of relays over a path
-[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), thereby achieving unlinkability of messages between sender and destination. In HOPR
-protocol, the relays SHOULD also perform packet mixing, as described in [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md). The format is built
-using the Sphinx packet format [01] but adds additional information for each hop to allow incentivization of the hops (except the last one) for the
-relaying duties. The incentivization of the last hop is exempt from the HOPR packet format itself and is subject to a separate
-[RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md).
+The HOPR packet format is the fundamental building block of the HOPR protocol, enabling the construction of the HOPR mix network. The format is
+designed to create indistinguishable packets sent between source and destination through a set of relay nodes, as defined in
+[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), thereby achieving unlinkability of messages between sender and destination.
 
-The HOPR packet format does not require a reliable underlying transport or in-order delivery. The packet payloads are encrypted, however, payload
-authenticity and integrity is not assured and MAY be ensured by the overlay protocol. In addition, the packet format is aimed to minimize overhead and
-maximize payload capacity.
+In the HOPR protocol, relay nodes SHOULD perform packet mixing as described in [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md) to provide
+additional protection against timing analysis. The packet format is built on the Sphinx packet format [01] but adds per-hop information to enable
+incentivisation of relay nodes (except the last hop) for their relay services. Incentivisation of the final hop is handled separately through the
+economic reward system described in [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md).
+
+The HOPR packet format does not require a reliable underlying transport or in-order delivery, making it suitable for deployment over UDP or other
+connectionless protocols. Packet payloads are encrypted; however, payload authenticity and integrity are not guaranteed by this layer and MAY be
+provided by overlay protocols such as the session protocol ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)). The packet format is
+optimised to minimise overhead and maximise payload capacity within the fixed packet size constraint.
 
 The HOPR packet consists of two primary parts:
 
-- _Meta packet_ (also called the _Sphinx packet_) that carries the necessary routing information for the selected path and the encrypted payload. This
-  will be described in the following sections.
+1. **Meta packet** (also called the **Sphinx packet**): carries the routing information for the selected path and the encrypted payload. The meta
+   packet includes:
 
-- _Ticket_, which contains payout (incentivization) information for the next hop on the path. The structure of Tickets is described in the separate
-  [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md).
+   - An `Alpha` value (ephemeral public key) for establishing shared secrets
+   - A `Header` containing routing information and per-hop instructions
+   - An encrypted payload (`EncPayload`) containing the actual message data
 
-**This document describes version 1.0.0 of the HOPR Packet format and protocol.**
+   The meta packet structure and processing are described in detail in sections 3 and 5 of this RFC.
+
+2. **Ticket**: contains payment and proof-of-relay information for the next hop on the path. The ticket structure enables probabilistic micropayments
+   to incentivise relay nodes. Tickets are described in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md).
+
+These two parts are concatenated to form the complete HOPR packet, which has a fixed size regardless of the actual payload length to prevent traffic
+analysis based on packet size. This fixed sized is achieved by padding payloads which fall below the maximum size in bytes.
+
+**This document describes version 1.0.0 of the HOPR packet format and protocol.**
 
 ### 2.1. Conventions and terminology
 
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [02] when, and only when, they appear in all capitals, as shown here.
 
-Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used, as well as some following additional terms:
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used throughout this document. Additionally, the following
+packet-protocol-specific terms are defined:
 
-_peer public/private key_ (also _pubkey_ or _privkey_): part of a cryptographic key-pair owned by a peer.
+_peer public/private key_ (also _pubkey_ or _privkey_): part of a cryptographic key pair owned by a peer. The public key is used to establish shared
+secrets for onion encryption, whilst the private key is kept secret and used to decrypt packets destined for that peer.
 
-_extended path_: a forward or return path which in addition contains the destination or sender respectively.
+_extended path_: a forward or return path that includes the final destination or original sender respectively. For a forward path of `N` hops, the
+extended path contains `N` relay nodes plus the destination node (`N+1` nodes total). For a return path, it contains `N` relay nodes plus the original
+sender.
 
-_pseudonym_: a randomly generated identifier of the sender. The pseudonym MAY be prefixed with a static prefix. The length such static prefix MUST NOT
-exceed half of the entire pseudonym's size. The pseudonym used in the forward message MUST be the same as the pseudonym used in the reply message.
+_pseudonym_: a randomly generated identifier of the sender used to enable reply messages. The pseudonym MAY be prefixed with a static prefix to allow
+the sender to be identified across multiple messages whilst maintaining anonymity. The length of any static prefix MUST NOT exceed half of the entire
+pseudonym's size. The pseudonym used in the forward message MUST be identical to the pseudonym used in any reply message to enable proper routing.
 
-_public key identifier_: a reasonably short identifier of each peer's public key. The size of such an identifier SHOULD be strictly smaller than the
-size of the corresponding public key.
+_public key identifier_: a compact identifier of each peer's public key. The size of such an identifier SHOULD be strictly smaller than the size of
+the corresponding public key to reduce header overhead. Implementations MAY use truncated hashes of public keys as identifiers.
 
-_|x|_: denotes the binary representation length of `x` in bytes.
+_|x|_: denotes the binary representation length of `x` in bytes. This notation is used throughout the specification to indicate field sizes.
 
 ### 2.2. Global packet format parameters
 
@@ -70,10 +87,10 @@ The HOPR packet format requires certain cryptographic primitives in place, namel
 - an Elliptic Curve (EC) group where the Elliptic Curve Diffie-Hellman Problem (ECDLP) is hard. The peer public keys correspond to points on the
   chosen EC. The peer private keys correspond to scalars of the corresponding finite field.
 - Pseudo-Random Permutation (PRP), commonly represented by a symmetric cipher
-- Pseudo-Random Generator (PRG), commonly represented by a stream cipher or a block cipher in a stream-mode.
+- Pseudo-Random Generator (PRG), commonly represented by a stream cipher or a block cipher in stream mode
 - One-time authenticator `OA(K, M)` where K denotes a one-time key and M is the message being authenticated
-- a Key Derivation Function (KDF) allowing to:
-  - generate secret key material from a high-entropy pre-key K, context string C, and a salt S: `KDF(C, K, S)`. KDF will perform the necessary
+- a Key Derivation Function (KDF) allowing:
+  - generation of secret key material from a high-entropy pre-key K, context string C, and a salt S: `KDF(C, K, S)`. KDF will perform the necessary
     expansion to match the size required by the output. The Salt `S` argument is optional and MAY be omitted.
   - if the above is applied to an EC point as `K`, the point MUST be in its compressed form.
 - Hash to Field (Scalar) operation `HS(S,T)` which computes a field element of the elliptic curve from
@@ -86,9 +103,9 @@ The global value of `PacketMax` is the maximum size of the data in bytes allowed
 
 ## 3. Forward packet creation
 
-The REQUIRED inputs for the packet creation are as follows:
+The REQUIRED inputs for packet creation are as follows:
 
-- User's Packet payload (as a sequence of bytes)
+- User's packet payload (as a sequence of bytes)
 - Sender pseudonym (as a sequence of bytes)
 - forward path and an OPTIONAL list of one or more return paths
 
@@ -96,23 +113,23 @@ The input MAY also contain:
 
 - unique bidirectional map between peer pubkeys and public key identifiers (_mapper_)
 
-Note that the mapper MAY only contain public key identifiers mappings of pubkeys from forward and return paths.
+Note that the mapper MAY only contain public key identifier mappings of pubkeys from forward and return paths.
 
-The packet payload MUST be between 0 to `PacketMax` bytes-long.
+The packet payload MUST be between 0 and `PacketMax` bytes in length.
 
-The Sender pseudonym MUST be randomly generated for each packet header but MAY contain a static prefix.
+The sender pseudonym MUST be randomly generated for each packet header but MAY contain a static prefix.
 
 The forward and return paths MAY be represented by public keys of individual hops. Alternatively, the paths MAY be represented by public key
 identifiers and mapped using the mapper as needed.
 
 The size of the forward and return paths (number of hops) MUST be between 0 and 3.
 
-### 3.1. Partial Ticket creation
+### 3.1. Partial ticket creation
 
-The creation of the HOPR packet starts with the creation of the partial Ticket structure as defined in
-[RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md). If Ticket creation fails at this point, the packet creation process MUST be terminated.
+The creation of the HOPR packet starts with the creation of the partial ticket structure as defined in
+[RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md). If ticket creation fails at this point, the packet creation process MUST be terminated.
 
-The Ticket is created almost completely, apart from the Challenge field, which can be populated only after the Proof of Relay values have been fully
+The ticket is created almost completely, apart from the Challenge field, which can be populated only after the Proof of Relay values have been fully
 created for the packet.
 
 ### 3.2. Generating the Shared secrets
@@ -139,7 +156,7 @@ For path of length `N`, the list length of the Shared secrets is `N+1`.
 In some instantiations, an invalid elliptic curve point may be encountered anywhere during step 3. In such case the computation MUST fail with an
 error. The process then MAY restart from step 1.
 
-After `KDF_expand``, the `B_i` MAY be additionally transformed so that it conforms to a valid field scalar. Shall that operation fail, the computation
+After `KDF_expand`, the `B_i` MAY be additionally transformed so that it conforms to a valid field scalar. Should that operation fail, the computation
 MUST fail with an error and the process then MAY restart from step 1.
 
 The returned `Alpha` value MAY be encoded to an equivalent representation (such as using elliptic curve point compression), so that space is
@@ -170,19 +187,19 @@ path is longer than 1). It outputs additional two entries:
 
 Also, here, both values are EC points, where the latter MAY be represented via the same one-way representation.
 
-This tuple is called `PoRValues` and is used to finalize the partial Ticket: the Ticket challenge fills in the missing part in the `Ticket`.
+This tuple is called `PoRValues` and is used to finalise the partial Ticket: the Ticket challenge fills in the missing part in the `Ticket`.
 
-### 3.4. Forward Meta Packet creation
+### 3.4. Forward meta packet creation
 
-At this point, there is enough information to generate the Meta packet, which is a logical construct that does not contain the `Ticket` yet.
+At this point, there is enough information to generate the meta packet, which is a logical construct that does not contain the `ticket` yet.
 
-The Meta Packet consists of the following components:
+The meta packet consists of the following components:
 
 - `Alpha` value
 - `Header` (an instantiation of the Sphinx mix header)
 - padded and encrypted payload `EncPayload`
 
-The above order of these components is canonical MUST be followed when a packet is serialized to its binary form. The definitions of the above
+The above order of these components is canonical and MUST be followed when a packet is serialized to its binary form. The definitions of the above
 components follow in the next sections.
 
 The `Alpha` value is obtained from the Shared secrets generation phase.
@@ -267,7 +284,8 @@ Header {
 The packet payload consists of the User payload given at the beginning of section 2. However, if any non-zero number of return paths has been given as
 well, the packet payload MUST consist of that many Single Use Reply Blocks (SURBs) that are prepended to the User payload.
 
-The total size of the packet payload MUST not exceed `PacketMax` bytes, and therefore the size of the User payload and the number of SURBs is bounded.
+The total size of the packet payload MUST not exceed `PacketMax` bytes, and therefore the size of the User payload and the number of SURBs are
+bounded.
 
 A packet MAY only contain SURBs and no User payload. There MUST NOT be more than 15 SURBs in a single packet. The packet MAY contain additional packet
 signals for the recipient, typically the upper 4 bits of the SURB count field MAY serve this purpose.
@@ -295,15 +313,15 @@ The user payload usually consists of the Application layer protocol as described
 
 #### 3.4.3. Generating SURBs
 
-The Single Use Reply Block is always generated by the Sender for its chosen pseudonym. Its purpose is to allow reply packet generation sent on the
-return path from the recipient back to sender.
+The Single Use Reply Block is always generated by the sender for its chosen pseudonym. Its purpose is to allow reply packet generation sent on the
+return path from the recipient back to the sender.
 
 The process of generating a single SURB is very similar to the process of creating the forward packet header.
 
-As `SURB` is sent to the packet recipient, it also has its counterpart, called `ReplyOpener`. The `ReplyOpener` is generated alongside the SURB and is
-stored at the Sender (indexed by its Pseudonym) and used later to decrypt the reply packet delivered to the Sender using the associated SURB.
+As the `SURB` is sent to the packet recipient, it also has its counterpart, called `ReplyOpener`. The `ReplyOpener` is generated alongside the SURB
+and is stored at the sender (indexed by its pseudonym) and used later to decrypt the reply packet delivered to the sender using the associated SURB.
 
-Both `SURB` and the `ReplyOpener` are always bound to the chosen Sender pseudonym.
+Both the `SURB` and the `ReplyOpener` are always bound to the chosen sender pseudonym.
 
 Inputs for creating a `SURB` and the `ReplyOpener`:
 
@@ -318,12 +336,12 @@ Assume the length of the return path is N (between 0 and 3) and each hop's publi
 
 Let the extended return path be a list of `Phop_i` and `Psrc` (for i = 1 .. N). For N = 0, the Extended return path consists of just `Psrc`.
 
-1. generate a Shared secret list (`SharedSecret_i`) for the extended return path and the corresponding `Alpha` value as given in section 3.2.
-1. generate PoR for the given extended return path: list of `PoRStrings_i` and `PoRValues`
-1. generate Reply packet `Header` for the extended return path as in section 3.4.1:
-   - The list of `PoRStrings_i` and list of `SharedSecret_i` from step 1 and 2 are used
+1. Generate a Shared secret list (`SharedSecret_i`) for the extended return path and the corresponding `Alpha` value as given in section 3.2.
+2. Generate PoR for the given extended return path: list of `PoRStrings_i` and `PoRValues`
+3. Generate Reply packet `Header` for the extended return path as in section 3.4.1:
+   - The list of `PoRStrings_i` and list of `SharedSecret_i` from steps 1 and 2 are used
    - The 5th bit of the `HeaderPrefix` is set to 1 (see section 3.4.1)
-1. generate a random cryptographic key material, for at least the selected security boundary (`SenderKey` as a sequence of bytes)
+4. Generate random cryptographic key material, for at least the selected security boundary (`SenderKey` as a sequence of bytes)
 
 `SURB` MUST consist of:
 
@@ -355,15 +373,15 @@ ReplyOpener {
 }
 ```
 
-The Sender keeps the `ReplyOpener` (MUST be indexed by the chosen pseudonym), and puts the `SURB` in the forward packet payload.
+The sender keeps the `ReplyOpener` (MUST be indexed by the chosen pseudonym), and puts the `SURB` in the forward packet payload.
 
 #### 3.4.4. Payload padding
 
-The packet payload MUST be padded in accordance to [01] to exactly `PacketMax + |PaddingTag|` bytes.
+The packet payload MUST be padded in accordance with [01] to exactly `PacketMax + |PaddingTag|` bytes.
 
 The process works as follows:
 
-The payload MUST always be pre-pended with a `PaddingTag`. The `PaddingTag` SHOULD be 1 byte long.
+The payload MUST always be prepended with a `PaddingTag`. The `PaddingTag` SHOULD be 1 byte long.
 
 If the length of the payload is still less than `PacketMax + |PaddingTag|` bytes, zero bytes MUST be prepended until the length is exactly
 `PacketMax + |PaddingTag|` bytes.
@@ -393,7 +411,7 @@ The Meta packet is formed from `Alpha`, `Header`, and `EncPayload`.
 
 ### 3.5. Final forward packet overview
 
-The final structure of the HOPR packet format MUST consist of the logical Meta packet with the `Ticket` attached:
+The final structure of the HOPR packet format MUST consist of the logical meta packet with the `ticket` attached:
 
 ```
 HOPR_Packet {
@@ -406,23 +424,23 @@ HOPR_Packet {
 
 The packet is then sent to the peer represented by the first public key of the forward path.
 
-Note that the size of the packet is exactly `|HOPR_Packet| = |Alpha| + |Header| + |PacketMax| + |PaddingTag| + |Ticket|`. It can be also referred to
-the size of the logical Meta packet plus `|Ticket|`.
+Note that the size of the packet is exactly `|HOPR_Packet| = |Alpha| + |Header| + |PacketMax| + |PaddingTag| + |ticket|`. It can also be referred to
+as the size of the logical meta packet plus `|ticket|`.
 
 ## 4. Reply packet creation
 
-Upon receiving a forward packet, the forward packet recipient SHOULD create a reply packet using one of a SURB. This is possible only if the Recipient
-received a SURB (with this or any previous forward packets) from an equal pseudonym.
+Upon receiving a forward packet, the forward packet recipient SHOULD create a reply packet using one of the SURBs. This is possible only if the
+recipient received a SURB (with this or any previous forward packets) from an equal pseudonym.
 
-The Recipient MAY use any SURB with the same pseudonym; however, in such a case the SURBs MUST be used in the reverse order in which they were
+The recipient MAY use any SURB with the same pseudonym; however, in such a case the SURBs MUST be used in the reverse order in which they were
 received.
 
-The Sender of the forward packet MAY use a fixed random prefix of the pseudonym to identify itself across multiple forward packets. In such a case,
+The sender of the forward packet MAY use a fixed random prefix of the pseudonym to identify itself across multiple forward packets. In such a case,
 the SURBs indexed with pseudonyms with the same prefix SHOULD be used in random order to construct reply packets.
 
 The following inputs are REQUIRED to create the reply packet:
 
-- User's Packet payload (as a sequence of bytes)
+- User's packet payload (as a sequence of bytes)
 - Pseudonym of the forward packet sender
 - Single Use Reply Block (`SURB`) corresponding to the above pseudonym
 
@@ -434,7 +452,7 @@ The final reply packet is a `HOPR_Packet` and the means of getting the values ne
 
 The `PoRValues` and first reply hop key identifiers are extracted from the used `SURB`.
 
-The mapper is used to map the key identifier (`first_hop_ident`) to the public key of the first reply hop, which is then used to retrieve required
+The mapper is used to map the key identifier (`first_hop_ident`) to the public key of the first reply hop, which is then used to retrieve the required
 ticket information.
 
 The Challenge from the `PoRValues` (`por_values`) in the `SURB` is used to construct the complete `Ticket` for the first hop.
@@ -465,23 +483,23 @@ The `SenderKey` (`sender_key` field) is extracted from the used `SURB`.
 The `PaddedPayload` of the reply packet MUST be encrypted as follows:
 
 1. Generate `Kprp_reply` = KDF("HASH_KEY_REPLY_PRP", `SenderKey`, `Pseudonym`)
-2. Transform the `PaddedPayload` as using PRP:
+2. Transform the `PaddedPayload` using PRP:
 
 ```
 EncPayload = PRP(Kprp_reply, PaddedPayload)
 ```
 
-This finalizes all the fields of the `HOPR_Packet` of for the reply. The `HOPR_Packet` is sent to the peer represented by a public key, corresponding
-to `first_hop_ident` extracted from the `SURB` (that is the first peer on the return path). For this operation, the mapper MAY be used to get the
-actual public key to route the packet.
+This finalises all the fields of the `HOPR_Packet` for the reply. The `HOPR_Packet` is sent to the peer represented by a public key, corresponding to
+`first_hop_ident` extracted from the `SURB` (that is the first peer on the return path). For this operation, the mapper MAY be used to get the actual
+public key to route the packet.
 
 ## 5. Packet processing
 
-This section describes the behavior of processing a `HOPR_Packet` instance, when received by a peer (hop). Let `Phop_priv` be the private key
+This section describes the behaviour of processing a `HOPR_Packet` instance when received by a peer (hop). Let `Phop_priv` be the private key
 corresponding to the public key `Phop` of the peer processing the packet.
 
-Upon reception of a byte-sequence that is at least `|HOPR_Packet|` bytes-long, the `|Ticket|` is separated from the sequence. As per section 2.4, the
-order of the fields in `HOPR_Packet` is canonical, thefore the `Ticket` starts exactly at |HOPR_Packet| - |Ticket| byte-offset.
+Upon reception of a byte-sequence that is at least `|HOPR_Packet|` bytes long, the `|Ticket|` is separated from the sequence. As per section 2.4, the
+order of the fields in `HOPR_Packet` is canonical, therefore the `Ticket` starts exactly at |HOPR_Packet| - |Ticket| byte-offset.
 
 The resulting Meta packet is processed first, and if this processing is successful, the `Ticket` is validated as well, as defined in
 [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md).
@@ -499,18 +517,18 @@ To recover the `SharedSecret_i`, the `Alpha` value MUST be transformed using the
 
 Similarly, as in section 3.2, the `B_i` in step 3 MAY be additionally transformed so that it conforms to a valid field scalar usable in step 4.
 
-Shall the process fail in any of these steps (due to invalid EC point or field scalar), the process MUST terminate with an error and the entire packet
-MUST be rejected.
+Should the process fail in any of these steps (due to invalid EC point or field scalar), the process MUST terminate with an error and the entire
+packet MUST be rejected.
 
 Also derive the `ReplayTag` = KDF("HASH_KEY_PACKET_TAG", `SharedSecret_i`). Verify that `ReplayTag` has not yet been seen by this node, and if yes,
 the packet MUST be rejected.
 
 ### 5.2. Header processing
 
-In the next steps, the `Header` (field `header`) processed using the derived `SharedSecret_i` .
+In the next steps, the `Header` (field `header`) is processed using the derived `SharedSecret_i`.
 
 As per section 3.4.1, the `Header` consists of two byte sequences of fixed length: the `header` and `oa_tag`. Let |T| be the fixed byte-length of
-`oa_tag` and |Header| be the fixed byte-length of `header`. Also denote |PoRString_i|, which have equal for all `i`, as |PoRString|. Likewise, |ID_i|
+`oa_tag` and |Header| be the fixed byte-length of `header`. Also denote |PoRString_i|, which are equal for all `i`, as |PoRString|. Likewise, |ID_i|
 for all `i` as |ID|.
 
 1. Generate `K_tag` = KDF("HASH_KEY_TAG", 0, `SharedSecret_i`)
@@ -544,12 +562,12 @@ new_payload = PRP(Kprp, encrypted_payload)
 
 #### 5.3.1. Forwarded packet
 
-If the processed header indicated that the packet is destined for another node, the `new_payload` is the `encrypted_payload: EncryptedPayload` . The
+If the processed header indicated that the packet is destined for another node, the `new_payload` is the `encrypted_payload: EncryptedPayload`. The
 updated `header` and `alpha` values from the previous steps are used to construct the forwarded packet. A new `ticket` structure is created for the
 recipient (as described in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)), while the current `ticket` structure MUST be verified (as
 also described in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)).
 
-The forwarded packet MUST have the identical structure :
+The forwarded packet MUST have the identical structure:
 
 ```
 HOPR_Packet {
@@ -618,8 +636,8 @@ The acknowledgement of the successfully processed packet is created as per [RFC-
 `SharedKey_i+1_ack` = `HS(SharedSecret_i, "HASH_ACK_KEY")`. The `SharedKey_i+1_ack` is the scalar in the field of the elliptic curve chosen in
 [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md). The acknowledgement is sent back to the previous hop.
 
-This is done creating and sending a standard forward packet directly to the node the original packet was received from. The `NoAckFlag` on this packet
-MUST be set. The `user_payload` of the packet contains the encoded `Acknowledgement` structure as defined in
+This is done by creating and sending a standard forward packet directly to the node the original packet was received from. The `NoAckFlag` on this
+packet MUST be set. The `user_payload` of the packet contains the encoded `Acknowledgement` structure as defined in
 [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md). The `num_surbs` of this packet MUST be set to 0.
 
 If the packet processing was not successful at any point, a random acknowledgement MUST be generated (as defined in
@@ -630,8 +648,8 @@ If the packet processing was not successful at any point, a random acknowledgeme
 The current version is instantiated using the following cryptographic primitives:
 
 - Curve25519 elliptic curve with the corresponding scalar field
-- PRP is instantiated using Lioness wide-block cipher [04] over Chacha20 and Blake3
-- PRG is instantiated using Chacha20 [02]
+- PRP is instantiated using Lioness wide-block cipher [04] over ChaCha20 and Blake3
+- PRG is instantiated using ChaCha20 [02]
 - OA is instantiated with Poly1305 [02]
 - KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`:
   `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.

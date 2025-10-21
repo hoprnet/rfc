@@ -2,11 +2,11 @@
 
 - **RFC Number:** XXXX
 - **Title:** \<RFC Title in Title Case\>
-- **Status:** Raw | Discussion | Prototype | Implementation | Finalized | Rejected | Superseded
+- **Status:** Raw | Discussion | Prototype | Implementation | Finalised | Rejected | Superseded
 - **Author(s):** \<Name (GitHub Handle)\>
 - **Created:** \<YYYY-MM-DD\>
 - **Updated:** \<YYYY-MM-DD\>
-- **Version:** v0.x.x (Raw), v1.x.x (Finalized)
+- **Version:** v0.x.x (Raw), v1.x.x (Finalised)
 - **Supersedes:** RFC-YYYY (if applicable)
 - **Related Links:** [Related RFCs or Documentation Links]
 
