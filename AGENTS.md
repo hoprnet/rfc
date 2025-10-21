@@ -128,7 +128,7 @@ Every RFC MUST begin with this exact format:
 
 ## Quality Checklist
 
-Before finalizing any RFC modifications:
+Before finalising any RFC modifications:
 
 ### References
 
@@ -160,14 +160,20 @@ Before finalizing any RFC modifications:
 - [ ] Cross-references are accurate and current
 - [ ] No conflicting specifications
 
-## Common Mistakes to Avoid, Do's and Dont's
+### Validation
+
+- [ ] Run `just spell-check` and ensure it passes with no errors
+- [ ] All spelling errors must be fixed before finalising changes
+- [ ] Use British English spelling variants (e.g., "analyse", "optimise", "finalise")
+
+## Common Mistakes to Avoid, Do's and Don'ts
 
 **Don't:**
 
 - Use inline IETF RFC citations like `[IETF RFC 2119](https://...)`
 - Put RFC cross-references in the References section
 - Use single-digit reference numbers like `[1]`, `[2]`
-- Include "TODO" placeholders in finalized documents
+- Include "TODO" placeholders in finalised documents
 - Reference URLs directly in body text
 
 **Do:**

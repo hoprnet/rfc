@@ -14,63 +14,81 @@
 
 ## 1. Abstract
 
-This RFC specifies the HOPR Session Data Protocol, which provides reliable and unreliable data transmission capabilities over the HOPR mixnet. The
-protocol implements TCP-like [01] features including message segmentation, reassembly, acknowledgement, and retransmission while maintaining
-simplicity and efficiency. This protocol works in conjunction with the HOPR Session Start Protocol (see
-[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)) to provide complete session management capabilities for applications
-within the HOPR mixnet ecosystem.
+This RFC specifies the HOPR session data protocol, which provides reliable and unreliable data transmission capabilities over the HOPR mixnet. The
+protocol implements TCP-like features [01] including message segmentation, reassembly, acknowledgement, and retransmission, whilst maintaining
+simplicity and efficiency suitable for mixnet deployment. This protocol works in conjunction with the HOPR session start protocol
+([RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)) to provide complete session management capabilities for applications
+within the HOPR ecosystem.
+
+The protocol supports both reliable (TCP-like) and unreliable (UDP-like) transmission modes, allowing applications to choose the appropriate trade-off
+between reliability and latency for their use case.
 
 ## 2. Motivation
 
-The HOPR mixnet uses HOPR packets [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) to send data between nodes. This
-fundamental packet sending mechanisms however works, similar to UDP [03], as a fire-and-forget mechanisms and does not provide any higher-level
-features any application developer would expect. To ease adoption a HOPR node needs a way for existing applications to use it without having to
-implement TCP [01] or UDP all over again. Since HOPR protocol is not IP-based, such implementation would require IP protocol emulation.
+The HOPR mixnet uses HOPR packets ([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) to transport data between nodes. This
+fundamental packet-sending mechanism operates as a fire-and-forget transport similar to UDP [03], providing no guarantees of delivery, ordering, or
+message boundaries. Whilst this simplicity is appropriate for the packet layer, application developers typically require higher-level features such
+as:
 
-The HOPR Session Data Protocol fills that gap by providing reliable and unreliable data transmission capabilities to applications. Session
-establishment and lifecycle management is handled by the HOPR Session Start Protocol
-[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md), while this protocol focuses exclusively on data transmission.
+- **Reliable delivery**: ensuring that messages are delivered or that the sender is notified of failures
+- **Message ordering**: receiving messages in the order they were sent
+- **Message segmentation**: handling messages larger than the fixed packet size
+- **Flow control**: managing transmission rates to prevent overwhelming receivers
+
+To ease adoption, HOPR nodes must provide a way for applications to use these features without reimplementing TCP [01] or UDP [02] from scratch. Since
+the HOPR protocol is not IP-based, implementing these protocols directly would require complex IP protocol emulation.
+
+The HOPR session data protocol fills this gap by providing both reliable and unreliable data transmission modes directly over the HOPR packet
+transport. Session establishment and lifecycle management are handled by the HOPR session start protocol
+([RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)), whilst this protocol focuses exclusively on efficient data
+transmission once a session is established.
 
 ## 3. Terminology
 
 Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following
-session-specific terms:
+session-protocol-specific terms:
 
-- **Frame**: A logical unit of data transmission in the Session Protocol. Frames can be of arbitrary length and are identified by a unique Frame ID.
+- _frame_: a logical unit of data transmission in the session protocol. Frames can be of arbitrary length and are identified by a unique frame ID.
+  Frames represent complete application messages that may span multiple packets.
 
-- **Segment**: A fixed-size fragment of a frame. Frames are split into segments for transmission, with each segment carrying metadata about its
-  position within the frame.
+- _segment_: a fixed-size fragment of a frame. Frames larger than the packet MTU are split into segments for transmission, with each segment carrying
+  metadata about its position within the frame to enable reassembly.
 
-- **Frame ID**: A 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed). Frame ID values are interpreted as big-endian
-  unsigned integers.
+- _frame ID_: a 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed, starting from 1). Frame ID values are
+  interpreted as big-endian unsigned integers and increment sequentially with each new frame.
 
-- **Sequence Number (SeqNum)**: An 8-bit unsigned integer indicating a segment's position within its frame (0-indexed).
+- _Sequence Number (SeqNum)_: an 8-bit unsigned integer indicating a segment's position within its frame (0-indexed, starting from 0). This enables
+  correct reassembly of frames from segments.
 
-- **Sequence Flags (SeqFlags)**: An 8-bit value encoding additional segment sequence metadata.
+- _Sequence Flags (SeqFlags)_: an 8-bit value encoding additional segment metadata, including whether the segment is the final segment of a frame and
+  whether it represents a terminating segment.
 
-- **Session Socket**: The endpoint abstraction that implements the Session Protocol, available in both reliable and unreliable variants.
+- _session socket_: the endpoint abstraction that implements the session protocol, available in both reliable and unreliable variants. Session sockets
+  provide familiar send/receive APIs to applications.
 
-- **MTU (Maximum Transmission Unit)**: The maximum size of a single HOPR protocol message, denoted as `C` throughout this specification.
+- _MTU (Maximum Transmission Unit)_: the maximum size of a single HOPR protocol message payload, denoted as `C` throughout this specification. This is
+  determined by the packet format defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md).
 
-- **Terminating Segment**: A special segment that signals the end of a session.
+- _terminating segment_: a special segment with the termination flag set that signals the graceful end of a session. Terminating segments carry no
+  data payload.
 
 ## 4. Specification
 
 ### 4.1 Protocol Overview
 
-The HOPR Session Data Protocol operates at version 1 and consists of three message types that work together to provide reliable or unreliable data
+The HOPR session data protocol operates at version 1 and consists of three message types that work together to provide reliable or unreliable data
 transmission:
 
-1. **Segment Messages**: Carry actual data fragments
-2. **Retransmission Request Messages**: Request missing segments
-3. **Frame Acknowledgement Messages**: Confirm successful frame receipt
+1. **segment messages**: Carry actual data fragments
+2. **retransmission request messages**: Request missing segments
+3. **frame acknowledgement messages**: Confirm successful frame receipt
 
 The protocol supports two operational modes:
 
 - **Unreliable Mode**: Fast, stateless operation similar to UDP [03]
 - **Reliable Mode**: Stateful operation with acknowledgements and retransmissions
 
-Session establishment and lifecycle management is handled by the HOPR Session Start Protocol. All multi-byte integer fields use network byte order
+Session establishment and lifecycle management are handled by the HOPR Session Start Protocol. All multi-byte integer fields use network byte order
 (big-endian) encoding to ensure consistent interpretation across different architectures.
 
 ### 4.2 Session Data Protocol Message Format
@@ -290,7 +308,7 @@ stateDiagram-v2
 
 ### 4.8 Session Termination
 
-1. Either party MAY send a terminating segment (empty segment with termination flag set)
+1. Either party MAY send a terminating segment (empty segment with the termination flag set)
 2. Upon receiving a terminating segment:
    - Unreliable sockets SHOULD close immediately
    - Reliable sockets MUST complete pending acknowledgements before closing
@@ -378,7 +396,7 @@ sequenceDiagram
 
 ### 5.1 Maximum Segments Limitation
 
-The protocol limits frames to 64 segments due to the 6-bit sequence length field. This provides a good balance between:
+The protocol limits frames to 64 segments due to the 6-bit sequence length field. This provides a good balance among:
 
 - Frame size flexibility (up to 64 × MTU)
 - Protocol overhead (1 byte for sequence information)
@@ -392,7 +410,7 @@ The 32-bit Frame ID space allows for over 4 billion frames per session. Frame ID
 - Out-of-order delivery handling
 - Simple state management
 
-The Session MUST terminate when Frame ID of 0 is encountered by the receiving side, indicating an overflow.
+The Session MUST terminate when a Frame ID of 0 is encountered by the receiving side, indicating an overflow.
 
 ### 5.3 Retransmission Request Design
 

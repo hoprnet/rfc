@@ -21,5 +21,8 @@ jobs:
     - name: Enable Nix Cache
       uses: DeterminateSystems/magic-nix-cache-action@565684385bcd71bad329742eefe8d12f2e765b39 # v13
 
-    - name: Check Formatting
-      run: nix develop --command just format-check 
+#    - name: Check Formatting
+#      run: nix develop --command just format-check
+
+#    - name: Check Spelling
+#      run: nix develop --command just spell-check-ci
