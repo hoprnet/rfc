@@ -97,9 +97,13 @@
 \titleformat{\subsection}
   {\color{rfcblue}\sourcecodepro\large\bfseries\RaggedRight}
   {\thesubsection}{1em}{}
+% \titlespacing*{\subsection}{left indentation}{space before heading}{space after heading}
+\titlespacing*{\subsection}{0pt}{6pt plus 2pt minus 1pt}{6pt plus 2pt minus 1pt} % Here: left indent = 0pt (flush left); space before = 6pt (flexible: +2pt -1pt); space after = 6pt (flexible: +2pt -1pt)
 \titleformat{\subsubsection}
   {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
   {\thesubsubsection}{1em}{}
+% \titlespacing*{\subsubsection}{left indentation}{space before heading}{space after heading}
+\titlespacing*{\subsubsection}{0pt}{6pt plus 2pt minus 1pt}{6pt plus 2pt minus 1pt} % Here: left indent = 0pt (flush left); space before = 6pt (flexible: +2pt -1pt); space after = 6pt (flexible: +2pt -1pt)
 \titleformat{\paragraph}
   {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
   {\theparagraph}{1em}{}
