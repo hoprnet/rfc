@@ -186,9 +186,7 @@ Messages themselves are constructed using the `MessageFormat` class, which encod
 indices—into a raw byte string. The message is padded to the required packet size and sent through the UDP socket to the destination node's address
 and port. The system can optionally wait for a response to measure round-trip time, which is useful for monitoring and diagnostics.
 
-The batching of multiple message sendings is handled according to the session parameters described earlier. Multiple messages can be sent in a batch, and
-after each batch, the system waits for the calculated delay before sending the next batch. This approach ensures that message delivery is both
-efficient and aligned with the reward allocation determined by the economic model.
+The batching of multiple message sendings is handled according to the session parameters described earlier. Multiple messages can be sent in a batch, and after each batch, the system waits for the calculated delay before sending the next batch. This approach ensures that message delivery is both efficient and aligned with the reward allocation determined by the economic model.
 
 The following flowchart summarizes the message sending process:
 
