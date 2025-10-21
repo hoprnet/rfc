@@ -55,6 +55,15 @@
 
               # Commit message formatting
               commitizen.enable = true;
+
+              # Spell checking
+              cspell = {
+                enable = true;
+                name = "cspell";
+                entry = "${pkgs.nodePackages.cspell}/bin/cspell --no-progress";
+                files = "\\.md$";
+                types = [ "text" ];
+              };
             };
             tools = pkgs;
             excludes = [
@@ -69,6 +78,9 @@
                 # Task runner and formatting
                 just
                 config.treefmt.build.wrapper
+
+                # Spell checking
+                nodePackages.cspell
               ]
               ++ (pkgs.lib.attrValues config.treefmt.build.programs);
           };

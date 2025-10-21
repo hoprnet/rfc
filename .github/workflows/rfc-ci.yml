@@ -19,3 +19,6 @@ jobs:
 
     - name: Check Formatting
       run: nix develop --command just format-check
+
+    - name: Check Spelling
+      run: nix develop --command just spell-check-ci
