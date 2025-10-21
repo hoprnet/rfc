@@ -10,14 +10,11 @@ GENERATOR_SCRIPT="./generator-tex.sh"
 BASE_MAIN_TEX="main_base.tex"
 MAIN_TEX="main.tex"
 
-# Rebuild main.tex from base each run
-cp "$BASE_MAIN_TEX" "$MAIN_TEX"
-
 echo "🔍 Scanning for RFC markdown files..."
 
 [ -d "$RFC_FOLDER" ] || { echo "❌ RFC folder not found: $RFC_FOLDER"; exit 1; }
 [ -f "$GENERATOR_SCRIPT" ] || { echo "❌ Generator script not found: $GENERATOR_SCRIPT"; exit 1; }
-[ -f "$MAIN_TEX" ] || { echo "❌ main.tex not found in $(pwd)"; exit 1; }
+[ -f "$BASE_MAIN_TEX" ] || { echo "❌ $BASE_MAIN_TEX not found in $(pwd)"; exit 1; }
 
 # Collect markdown files
 MD_FILES=()
@@ -84,42 +81,21 @@ if [ -z "$INCLUDE_LINES" ]; then
 fi
 
 BLOCK_START="% BEGIN GENERATED RFC INCLUDES"
+BLOCK_MIDDLE="% (auto-filled by generator-pdf.sh)"
 BLOCK_END="% END GENERATED RFC INCLUDES"
 
-# Rebuild block text (each include already newline-terminated earlier)
-BLOCK_CONTENT="$BLOCK_START"$'\n'"$INCLUDE_LINES"$'\n'"$BLOCK_END"
 
-tmp_clean="$MAIN_TEX.tmp.clean"
-tmp_new="$MAIN_TEX.tmp.new"
-
-# 1. Strip any previously generated block
-if grep -q "BEGIN GENERATED RFC INCLUDES" "$MAIN_TEX"; then
-  # Remove from start marker through end marker (inclusive)
-  sed "/$BLOCK_START/,/$BLOCK_END/d" "$MAIN_TEX" > "$tmp_clean"
-else
-  cp "$MAIN_TEX" "$tmp_clean"
-fi
-
-# 2. Insert the new block immediately after the first \begin{document}
-if grep -q '\\begin{document}' "$tmp_clean"; then
-  lineNo="$(grep -n '\\begin{document}' "$tmp_clean" | head -1 | cut -d: -f1)"
-  {
-    # Up to and including \begin{document}
-    head -n "$lineNo" "$tmp_clean"
-    # Our generated block
-    printf '%s\n' "$BLOCK_CONTENT"
-    # Remainder of file (start AFTER that line)
-    # Use tail -n +N (works GNU & BSD) to start from next line
-    tail -n +"$((lineNo+1))" "$tmp_clean"
-  } > "$tmp_new"
-else
-  # Fallback: append block at end
-  cp "$tmp_clean" "$tmp_new"
-  printf '\n%s\n' "$BLOCK_CONTENT" >> "$tmp_new"
-fi
-
-mv "$tmp_new" "$MAIN_TEX"
-rm -f "$tmp_clean"
+# Insert the new block immediately after the first \begin{document}
+lineNo="$(grep -n "$BLOCK_MIDDLE" "$BASE_MAIN_TEX" | head -1 | cut -d: -f1)"
+{
+  # Up to and including \begin{document}
+  head -n "$lineNo" "$BASE_MAIN_TEX"
+  # Our generated block
+  printf '%s\n' "$INCLUDE_LINES"
+  # Remainder of file (start AFTER that line)
+  # Use tail -n +N (works GNU & BSD) to start from next line
+  tail -n +"$((lineNo+1))" "$BASE_MAIN_TEX"
+} > "$MAIN_TEX"
 
 echo "✅ main.tex updated with includes (no duplication)"
 printf '%s\n' "$INCLUDE_LINES"
