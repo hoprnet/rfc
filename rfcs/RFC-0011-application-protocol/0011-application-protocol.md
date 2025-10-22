@@ -1,4 +1,4 @@
-# RFC-0011 Application Layer protocol
+# RFC-0011: Application Layer protocol
 
 - **RFC Number:** 0011
 - **Title:** Application Layer protocol
