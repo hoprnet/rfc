@@ -90,20 +90,27 @@
    \begin{Verbatim}[breaklines=true,breakanywhere=true]}
   {\end{Verbatim}\end{codebubbleblock}}
 
+% --- Font size adjustments ---
+\renewcommand{\large}{\fontsize{16}{18}\selectfont}
+\renewcommand{\mediumlarge}{\fontsize{12}{14}\selectfont}
+\renewcommand{\normalsize}{\fontsize{8}{11}\selectfont}
+\renewcommand{\small}{\fontsize{7}{10}\selectfont}
+\renewcommand{\footerAuthorsSize}{\fontsize{6}{6}\selectfont}
+
 % --- Section styling with HOPR branding ---
 \titleformat{\section}
-  {\color{rfcblue}\sourcecodepro\Large\bfseries\RaggedRight}
+  {\color{rfcblue}\sourcecodepro\large\bfseries\RaggedRight}
   {\thesection}{1em}{}
 \titleformat{\subsection}
-  {\color{rfcblue}\sourcecodepro\large\bfseries\RaggedRight}
+  {\color{rfcblue}\sourcecodepro\mediumlarge\bfseries\RaggedRight}
   {\thesubsection}{1em}{}
 % \titlespacing*{\subsection}{left indentation}{space before heading}{space after heading}
-\titlespacing*{\subsection}{0pt}{6pt plus 2pt minus 1pt}{6pt plus 2pt minus 1pt} % Here: left indent = 0pt (flush left); space before = 6pt (flexible: +2pt -1pt); space after = 6pt (flexible: +2pt -1pt)
+\titlespacing*{\subsection}{0pt}{4pt plus 2pt minus 1pt}{4pt plus 2pt minus 1pt} % Here: left indent = 0pt (flush left); space before = 4pt (flexible: +2pt -1pt); space after = 4pt (flexible: +2pt -1pt)
 \titleformat{\subsubsection}
   {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
   {\thesubsubsection}{1em}{}
 % \titlespacing*{\subsubsection}{left indentation}{space before heading}{space after heading}
-\titlespacing*{\subsubsection}{0pt}{6pt plus 2pt minus 1pt}{6pt plus 2pt minus 1pt} % Here: left indent = 0pt (flush left); space before = 6pt (flexible: +2pt -1pt); space after = 6pt (flexible: +2pt -1pt)
+\titlespacing*{\subsubsection}{0pt}{4pt plus 2pt minus 1pt}{4pt plus 2pt minus 1pt} % Here: left indent = 0pt (flush left); space before = 4pt (flexible: +2pt -1pt); space after = 4pt (flexible: +2pt -1pt)
 \titleformat{\paragraph}
   {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
   {\theparagraph}{1em}{}
@@ -111,21 +118,45 @@
   {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
   {\thesubparagraph}{1em}{}
 
-\renewcommand{\normalsize}{\fontsize{9}{11}\selectfont}
-\renewcommand{\small}{\fontsize{7}{10}\selectfont}
 
 
-% --- Header/Footer setup ---
-\pagestyle{fancy}
-\fancyhf{}
-\fancyfoot[LE,RO]{\thepage}
+
 
 % --- Custom commands for header/footer ---
 \newcommand{\rfcnumber}[1]{\fancyhead[LE,RO]{RFC-#1}}
 \newcommand{\rfctitle}[1]{\fancyhead[CE,CO]{#1}}
 \newcommand{\rfcdate}[1]{\fancyhead[RE,LO]{#1}}
-\newcommand{\rfcauthor}[1]{\fancyfoot[RE,LO]{#1}}
+\newcommand{\rfcauthor}[1]{\def\rfcauthorname{#1}}
+\newcommand{\rfcauthorname}{} % initialize empty
+% \newcommand{\rfcauthor}[1]{\fancyfoot[RE,LO]{#1}}
 % \newcommand{\rfccategory}[1]{\fancyfoot[CE,CO]{#1}}
+
+% --- Header/Footer setup ---
+\pagestyle{fancy}
+\fancyhf{}
+
+% Odd pages: author left, page number right
+\fancyfoot[LO]{\footerAuthorsSize\rfcauthorname}
+\fancyfoot[RO]{\thepage}
+
+% Even pages: page number left, author right (swapped)
+\fancyfoot[LE]{\thepage}
+\fancyfoot[RE]{\rfcauthorname}
+
+% Clear centers
+\fancyfoot[CO]{}
+\fancyfoot[CE]{}
+
+% Also override plain style for page 1
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[LO]{}
+  \fancyfoot[RO]{\thepage}
+  \fancyfoot[LE]{}
+  \fancyfoot[RE]{}
+  \fancyfoot[CO]{}
+  \fancyfoot[CE]{}
+}
 
 % --- Metadata block environment ---
 \newenvironment{metadata}{

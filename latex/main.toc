@@ -7,18 +7,18 @@
 \contentsline {paragraph}{4.1.1. \textbf {Mermaid Diagram for RFC Life Cycle Stages}}{3}{paragraph*.6}%
 \contentsline {paragraph}{4.1.2. \textbf {Stage Descriptions:}}{3}{paragraph*.7}%
 \contentsline {subsubsection}{4.2. File Structure}{5}{subsubsection*.8}%
-\contentsline {subsubsection}{4.3. Validation Rules}{6}{subsubsection*.9}%
+\contentsline {subsubsection}{4.3. Validation Rules}{5}{subsubsection*.9}%
 \contentsline {subsubsection}{4.4. RFC Document Structure}{6}{subsubsection*.10}%
 \contentsline {paragraph}{4.4.1. Metadata Preface}{6}{paragraph*.11}%
-\contentsline {paragraph}{4.4.2. Reference Styles}{7}{paragraph*.12}%
+\contentsline {paragraph}{4.4.2. Reference Styles}{6}{paragraph*.12}%
 \contentsline {subparagraph}{4.4.2.1. RFC-to-RFC References}{7}{subparagraph*.13}%
 \contentsline {subparagraph}{4.4.2.2. External References}{7}{subparagraph*.14}%
 \contentsline {paragraph}{4.4.3. Required Sections}{8}{paragraph*.15}%
 \contentsline {subsection}{5. Design Considerations}{8}{subsection*.16}%
 \contentsline {subsection}{6. Compatibility}{8}{subsection*.17}%
 \contentsline {subsection}{7. Security Considerations}{8}{subsection*.18}%
-\contentsline {subsection}{8. Drawbacks}{9}{subsection*.19}%
-\contentsline {subsection}{9. Alternatives}{9}{subsection*.20}%
+\contentsline {subsection}{8. Drawbacks}{8}{subsection*.19}%
+\contentsline {subsection}{9. Alternatives}{8}{subsection*.20}%
 \contentsline {subsection}{10. Unresolved Questions}{9}{subsection*.21}%
 \contentsline {subsection}{11. Future Work}{9}{subsection*.22}%
 \contentsline {subsection}{12. References}{9}{subsection*.23}%
@@ -27,262 +27,262 @@
 \contentsline {subsection}{2. Motivation}{10}{subsection*.25}%
 \contentsline {subsection}{3. Terminology}{10}{subsection*.26}%
 \contentsline {subsection}{4. References}{13}{subsection*.27}%
-\contentsline {section}{\numberline {3}RFC-0003: HOPR Overview}{15}{section.3}%
-\contentsline {subsection}{1. Abstract}{15}{subsection*.28}%
-\contentsline {subsection}{2. Motivation}{16}{subsection*.29}%
-\contentsline {subsection}{3. Terminology}{16}{subsection*.30}%
-\contentsline {subsection}{4. Network Overview}{17}{subsection*.31}%
-\contentsline {subsubsection}{4.1 Network Architecture}{17}{subsubsection*.32}%
-\contentsline {subsubsection}{4.2 Path Construction}{17}{subsubsection*.33}%
-\contentsline {subsubsection}{4.3 Economic Incentives}{18}{subsubsection*.34}%
-\contentsline {subsubsection}{4.4 Privacy Properties}{18}{subsubsection*.35}%
-\contentsline {subsection}{5. Protocol Overview}{19}{subsection*.36}%
-\contentsline {subsubsection}{5.1 Protocol Architecture}{19}{subsubsection*.37}%
-\contentsline {subsubsection}{5.2 Core Protocol Components}{20}{subsubsection*.38}%
-\contentsline {paragraph}{5.2.1 HOPR Packet Protocol}{20}{paragraph*.39}%
-\contentsline {paragraph}{5.2.2 Proof of Relay}{21}{paragraph*.40}%
-\contentsline {paragraph}{5.2.3 Traffic Mixing}{21}{paragraph*.41}%
-\contentsline {paragraph}{5.2.4 Session Management}{22}{paragraph*.42}%
-\contentsline {paragraph}{5.2.5 Economic System}{22}{paragraph*.43}%
-\contentsline {subsubsection}{5.3 Protocol Flow}{23}{subsubsection*.44}%
-\contentsline {subsubsection}{5.4 Integration Points}{23}{subsubsection*.45}%
-\contentsline {subsection}{6. References}{24}{subsection*.46}%
-\contentsline {section}{\numberline {4}RFC-0004: HOPR Packet Protocol}{25}{section.4}%
-\contentsline {subsection}{1. Abstract}{25}{subsection*.47}%
-\contentsline {subsection}{2. Introduction}{25}{subsection*.48}%
-\contentsline {subsubsection}{2.1. Conventions and terminology}{27}{subsubsection*.49}%
-\contentsline {subsubsection}{2.2. Global packet format parameters}{28}{subsubsection*.50}%
-\contentsline {subsection}{3. Forward packet creation}{28}{subsection*.51}%
-\contentsline {subsubsection}{3.1. Partial ticket creation}{29}{subsubsection*.52}%
-\contentsline {subsubsection}{3.2. Generating the Shared secrets}{29}{subsubsection*.53}%
-\contentsline {subsubsection}{3.3. Generating the Proof of Relay}{30}{subsubsection*.54}%
-\contentsline {subsubsection}{3.4. Forward meta packet creation}{31}{subsubsection*.55}%
-\contentsline {paragraph}{3.4.1. Header creation}{32}{paragraph*.56}%
-\contentsline {paragraph}{3.4.2. Forward payload creation}{34}{paragraph*.57}%
-\contentsline {paragraph}{3.4.3. Generating SURBs}{35}{paragraph*.58}%
-\contentsline {paragraph}{3.4.4. Payload padding}{37}{paragraph*.59}%
-\contentsline {paragraph}{3.4.5. Payload encryption}{38}{paragraph*.60}%
-\contentsline {subsubsection}{3.5. Final forward packet overview}{38}{subsubsection*.61}%
-\contentsline {subsection}{4. Reply packet creation}{39}{subsection*.62}%
-\contentsline {subsubsection}{4.1. Reply packet ticket creation}{40}{subsubsection*.63}%
-\contentsline {subsubsection}{4.2. Reply meta packet creation}{40}{subsubsection*.64}%
-\contentsline {paragraph}{4.2.1. Reply payload creation}{40}{paragraph*.65}%
-\contentsline {paragraph}{4.2.2. Reply payload encryption}{41}{paragraph*.66}%
-\contentsline {subsection}{5. Packet processing}{41}{subsection*.67}%
-\contentsline {subsubsection}{5.1. Advancing the Alpha value}{42}{subsubsection*.68}%
-\contentsline {subsubsection}{5.2. Header processing}{42}{subsubsection*.69}%
-\contentsline {subsubsection}{5.3. Packet processing}{43}{subsubsection*.70}%
-\contentsline {paragraph}{5.3.1. Forwarded packet}{44}{paragraph*.71}%
-\contentsline {paragraph}{5.3.2. Final packet}{44}{paragraph*.72}%
-\contentsline {subparagraph}{5.3.2.1. Forward packet}{44}{subparagraph*.73}%
-\contentsline {subparagraph}{5.3.2.2. Reply packet}{45}{subparagraph*.74}%
-\contentsline {paragraph}{5.3.3. Interpreting the payload}{45}{paragraph*.75}%
-\contentsline {subsubsection}{5.4. Ticket verification and acknowledgement}{46}{subsubsection*.76}%
-\contentsline {subsection}{6. Appendix A}{46}{subsection*.77}%
-\contentsline {subsection}{7. References}{47}{subsection*.78}%
-\contentsline {section}{\numberline {5}RFC-0005: Proof of Relay}{48}{section.5}%
-\contentsline {subsection}{1. Abstract}{48}{subsection*.79}%
-\contentsline {subsection}{2. Motivation}{48}{subsection*.80}%
-\contentsline {subsection}{3. Terminology}{49}{subsection*.81}%
-\contentsline {subsubsection}{3.1. Cryptographic and security parameters}{50}{subsubsection*.82}%
-\contentsline {subsection}{4. Payment channels}{51}{subsection*.83}%
-\contentsline {subsubsection}{4.1. Payment channel life-cycle}{53}{subsubsection*.84}%
-\contentsline {subsection}{5. Tickets}{54}{subsection*.85}%
-\contentsline {subsubsection}{5.1. Ticket structure encoding}{54}{subsubsection*.86}%
-\contentsline {subsubsection}{5.2. Construction of Proof-of-Relay (PoR) secrets}{56}{subsubsection*.87}%
-\contentsline {paragraph}{5.2.1. Creation of Proof of Relay strings and values}{57}{paragraph*.88}%
-\contentsline {subsubsection}{5.3 Creation of the ticket for the first relayer}{58}{subsubsection*.89}%
-\contentsline {paragraph}{Multi-hop ticket: for \codebubble {n} \textgreater {} 1}{58}{paragraph*.90}%
-\contentsline {paragraph}{Zero-hop ticket: \codebubble {n} = 1}{58}{paragraph*.91}%
-\contentsline {subsubsection}{5.4. Ticket processing at a node}{59}{subsubsection*.92}%
-\contentsline {paragraph}{5.4.1. Ticket pre-verification}{59}{paragraph*.93}%
-\contentsline {paragraph}{5.4.2. Ticket validation and replacement}{60}{paragraph*.94}%
-\contentsline {paragraph}{5.2.3. Ticket acknowledgement}{61}{paragraph*.95}%
-\contentsline {subparagraph}{5.2.3.1. Sending acknowledgement}{62}{subparagraph*.96}%
-\contentsline {subparagraph}{5.2.3.2. Receiving an acknowledgement}{63}{subparagraph*.97}%
-\contentsline {subparagraph}{5.2.3.3. Derivation of VRF parameters for an Acknowledged ticket}{63}{subparagraph*.98}%
-\contentsline {subsection}{6 Ticket and Channel interactions}{64}{subsection*.99}%
-\contentsline {subsubsection}{6.1. Discovering acknowledged winning tickets}{64}{subsubsection*.100}%
-\contentsline {subsubsection}{6.2. Claiming a winning ticket}{65}{subsubsection*.101}%
-\contentsline {subsection}{7. Appendix 1}{67}{subsection*.102}%
-\contentsline {subsection}{8. Appendix 2}{67}{subsection*.103}%
-\contentsline {subsubsection}{8.1. Allowed transitions}{68}{subsubsection*.104}%
-\contentsline {subsection}{9. Appendix 3}{70}{subsection*.105}%
-\contentsline {subsection}{10. References}{71}{subsection*.106}%
-\contentsline {section}{\numberline {6}RFC-0006: HOPR Mixer}{72}{section.6}%
-\contentsline {subsection}{1. Abstract}{72}{subsection*.107}%
-\contentsline {subsection}{2. Motivation}{72}{subsection*.108}%
-\contentsline {subsection}{3. Terminology}{73}{subsection*.109}%
-\contentsline {subsection}{4. Specification}{73}{subsection*.110}%
-\contentsline {subsubsection}{4.1. Overview}{73}{subsubsection*.111}%
-\contentsline {subsubsection}{4.2. Configuration Parameters}{74}{subsubsection*.112}%
-\contentsline {subsubsection}{4.3. Core Components}{74}{subsubsection*.113}%
-\contentsline {paragraph}{4.3.1. Delay Assignment}{74}{paragraph*.114}%
-\contentsline {paragraph}{4.3.2. Mixing buffer}{75}{paragraph*.115}%
-\contentsline {subsubsection}{4.4. Operational Behaviour}{75}{subsubsection*.116}%
-\contentsline {paragraph}{4.4.1. Packet processing flow}{75}{paragraph*.117}%
-\contentsline {paragraph}{4.4.2. Timer Management}{76}{paragraph*.118}%
-\contentsline {subsubsection}{4.5. Special Cases}{76}{subsubsection*.119}%
-\contentsline {paragraph}{4.5.1. Zero Delay Configuration}{76}{paragraph*.120}%
-\contentsline {subsection}{5. Design Considerations}{77}{subsection*.121}%
-\contentsline {subsubsection}{5.1. Performance Optimisation}{77}{subsubsection*.122}%
-\contentsline {subsubsection}{5.2. Abuse Resistance and Resource Limits}{77}{subsubsection*.123}%
-\contentsline {subsubsection}{5.3. Monitoring and Metrics}{77}{subsubsection*.124}%
-\contentsline {subsection}{6. Security Considerations}{78}{subsection*.125}%
-\contentsline {subsubsection}{6.1. Threat Model}{78}{subsubsection*.126}%
-\contentsline {subsubsection}{6.2. Limitations}{78}{subsubsection*.127}%
-\contentsline {subsection}{7. Drawbacks}{78}{subsection*.128}%
-\contentsline {subsection}{8. Alternatives}{79}{subsection*.129}%
-\contentsline {subsection}{9. Unresolved Questions}{79}{subsection*.130}%
-\contentsline {subsection}{10. Future Work}{79}{subsection*.131}%
-\contentsline {subsection}{11. References}{79}{subsection*.132}%
-\contentsline {section}{\numberline {7}RFC-0007: Economic Reward System}{81}{section.7}%
-\contentsline {subsection}{1. Abstract}{81}{subsection*.133}%
-\contentsline {subsection}{2. Motivation}{81}{subsection*.134}%
-\contentsline {subsection}{3. Terminology}{82}{subsection*.135}%
-\contentsline {subsection}{4. System Overview}{83}{subsection*.136}%
-\contentsline {subsection}{5. Data Collection and Enrichment}{83}{subsection*.137}%
-\contentsline {subsubsection}{5.1 Data Sources}{83}{subsubsection*.138}%
-\contentsline {subsubsection}{5.2 Data Enrichment}{85}{subsubsection*.139}%
-\contentsline {subsection}{6. Peer eligibility filtering}{85}{subsection*.140}%
-\contentsline {subsection}{7. Economic Model Application}{88}{subsection*.141}%
-\contentsline {subsection}{8. Message Timing and Delay Calculation}{88}{subsection*.142}%
-\contentsline {subsection}{9. Message Sending Architecture}{89}{subsection*.143}%
-\contentsline {subsection}{10. Security and Monitoring}{90}{subsection*.144}%
-\contentsline {subsection}{11. Appendix: Data Structures}{90}{subsection*.145}%
-\contentsline {subsubsection}{Registered Node}{90}{subsubsection*.146}%
-\contentsline {subsubsection}{Safe}{91}{subsubsection*.147}%
-\contentsline {subsubsection}{Allocation}{91}{subsubsection*.148}%
-\contentsline {subsubsection}{EOA Balance}{91}{subsubsection*.149}%
-\contentsline {subsubsection}{Topology Entry}{93}{subsubsection*.150}%
-\contentsline {subsubsection}{Peer (Enriched)}{93}{subsubsection*.151}%
-\contentsline {subsection}{12. References}{93}{subsection*.152}%
-\contentsline {subsection}{13. Changelog}{93}{subsection*.153}%
-\contentsline {section}{\numberline {8}RFC-0008: Session Data Protocol}{94}{section.8}%
-\contentsline {subsection}{1. Abstract}{94}{subsection*.154}%
-\contentsline {subsection}{2. Motivation}{94}{subsection*.155}%
-\contentsline {subsection}{3. Terminology}{95}{subsection*.156}%
-\contentsline {subsection}{4. Specification}{96}{subsection*.157}%
-\contentsline {subsubsection}{4.1 Protocol Overview}{96}{subsubsection*.158}%
-\contentsline {subsubsection}{4.2 Session Data Protocol Message Format}{97}{subsubsection*.159}%
-\contentsline {paragraph}{4.2.1 Message Types}{97}{paragraph*.160}%
-\contentsline {paragraph}{4.2.2 Byte Order}{98}{paragraph*.161}%
-\contentsline {subsubsection}{4.3 Segment Message}{98}{subsubsection*.162}%
-\contentsline {paragraph}{4.3.1 Segment Structure}{98}{paragraph*.163}%
-\contentsline {paragraph}{4.3.2 Sequence Flags Bitmap}{99}{paragraph*.164}%
-\contentsline {paragraph}{4.3.3 Segmentation Rules}{99}{paragraph*.165}%
-\contentsline {paragraph}{4.3.4 Protocol Constants}{100}{paragraph*.166}%
-\contentsline {subsubsection}{4.4 Retransmission Request Message}{100}{subsubsection*.167}%
-\contentsline {paragraph}{4.4.1 Request Structure}{100}{paragraph*.168}%
-\contentsline {paragraph}{4.4.2 Missing Bitmap Format}{101}{paragraph*.169}%
-\contentsline {paragraph}{4.4.3 Request Rules}{101}{paragraph*.170}%
-\contentsline {subsubsection}{4.5 Frame Acknowledgement Message}{102}{subsubsection*.171}%
-\contentsline {paragraph}{4.5.1 Acknowledgement Structure}{102}{paragraph*.172}%
-\contentsline {paragraph}{4.5.2 Acknowledgement Rules}{102}{paragraph*.173}%
-\contentsline {subsubsection}{4.6 Protocol State Machines}{103}{subsubsection*.174}%
-\contentsline {paragraph}{4.6.1 Unreliable Socket State Machine}{103}{paragraph*.175}%
-\contentsline {paragraph}{4.6.2 Reliable Socket State Machine}{103}{paragraph*.176}%
-\contentsline {subsubsection}{4.7 Timing and Reliability Parameters}{105}{subsubsection*.177}%
-\contentsline {paragraph}{4.7.1 Unreliable Mode}{105}{paragraph*.178}%
-\contentsline {paragraph}{4.7.2 Reliable Mode Parameters}{105}{paragraph*.179}%
-\contentsline {subsubsection}{4.8 Session Termination}{105}{subsubsection*.180}%
-\contentsline {subsubsection}{4.9 Example Message Exchanges}{106}{subsubsection*.181}%
-\contentsline {paragraph}{4.9.1 Simple Frame Transmission (Unreliable Mode)}{106}{paragraph*.182}%
-\contentsline {paragraph}{4.9.2 Frame with Retransmission (Reliable Mode)}{106}{paragraph*.183}%
-\contentsline {paragraph}{4.9.3 Multiple Frame Acknowledgement (Reliable Mode)}{106}{paragraph*.184}%
-\contentsline {paragraph}{4.9.4 Session Termination (Reliable Mode)}{108}{paragraph*.185}%
-\contentsline {paragraph}{4.9.5 Session Termination (Unreliable Mode)}{108}{paragraph*.186}%
-\contentsline {subsection}{5. Design Considerations}{108}{subsection*.187}%
-\contentsline {subsubsection}{5.1 Maximum Segments Limitation}{109}{subsubsection*.188}%
-\contentsline {subsubsection}{5.2 Frame ID Space}{109}{subsubsection*.189}%
-\contentsline {subsubsection}{5.3 Retransmission Request Design}{109}{subsubsection*.190}%
-\contentsline {subsubsection}{5.4 Protocol Overhead}{109}{subsubsection*.191}%
-\contentsline {subsection}{6. Compatibility}{110}{subsection*.192}%
-\contentsline {subsubsection}{6.1 Version Compatibility}{110}{subsubsection*.193}%
-\contentsline {subsubsection}{6.2 Transport Requirements}{110}{subsubsection*.194}%
-\contentsline {subsection}{7. Security Considerations}{110}{subsection*.195}%
-\contentsline {subsubsection}{7.1 Protocol Security}{110}{subsubsection*.196}%
-\contentsline {subsection}{8. Future Work}{110}{subsection*.197}%
-\contentsline {subsection}{9. Implementation Notes}{110}{subsection*.198}%
-\contentsline {subsubsection}{9.1 Testing Recommendations}{110}{subsubsection*.199}%
-\contentsline {subsection}{10. References}{111}{subsection*.200}%
-\contentsline {section}{\numberline {9}RFC-0009: Session Start Protocol}{112}{section.9}%
-\contentsline {subsection}{1. Abstract}{112}{subsection*.201}%
-\contentsline {subsection}{2. Motivation}{112}{subsection*.202}%
-\contentsline {subsection}{3. Terminology}{113}{subsection*.203}%
-\contentsline {subsection}{4. Specification}{114}{subsection*.204}%
-\contentsline {subsubsection}{4.1 Protocol Overview}{114}{subsubsection*.205}%
-\contentsline {subsubsection}{4.2 Message Format}{115}{subsubsection*.206}%
-\contentsline {paragraph}{4.2.1 Message Types}{115}{paragraph*.207}%
-\contentsline {paragraph}{4.2.2 Byte Order}{116}{paragraph*.208}%
-\contentsline {subsubsection}{4.3 StartSession Message}{116}{subsubsection*.209}%
-\contentsline {paragraph}{4.3.1 Capability Flags}{117}{paragraph*.210}%
-\contentsline {subsubsection}{4.4 SessionEstablished Message}{118}{subsubsection*.211}%
-\contentsline {subsubsection}{4.5 SessionError Message}{119}{subsubsection*.212}%
-\contentsline {paragraph}{4.5.1 Error Codes}{119}{paragraph*.213}%
-\contentsline {subsubsection}{4.6 KeepAlive Message}{120}{subsubsection*.214}%
-\contentsline {subsubsection}{4.7 Protocol Flow}{121}{subsubsection*.215}%
-\contentsline {subsubsection}{4.8 Protocol Constants}{121}{subsubsection*.216}%
-\contentsline {subsubsection}{4.9 Protocol Rules}{122}{subsubsection*.217}%
-\contentsline {subsubsection}{4.10 Example Message Exchanges}{122}{subsubsection*.218}%
-\contentsline {paragraph}{4.10.1 Successful Session Establishment}{122}{paragraph*.219}%
-\contentsline {paragraph}{4.10.2 Session Establishment Failure}{123}{paragraph*.220}%
-\contentsline {paragraph}{4.10.3 Session Establishment Timeout}{123}{paragraph*.221}%
-\contentsline {paragraph}{4.10.4 Long-Running Session with Periodic Keep-Alives}{124}{paragraph*.222}%
-\contentsline {subsection}{5. Design Considerations}{124}{subsection*.223}%
-\contentsline {subsubsection}{5.1 CBOR Encoding}{124}{subsubsection*.224}%
-\contentsline {subsubsection}{5.2 Challenge-Response Design}{125}{subsubsection*.225}%
-\contentsline {subsubsection}{5.3 Capability Negotiation}{126}{subsubsection*.226}%
-\contentsline {subsubsection}{5.4 Transport Independence}{126}{subsubsection*.227}%
-\contentsline {subsubsection}{5.5 Error Handling}{126}{subsubsection*.228}%
-\contentsline {subsection}{6. Compatibility}{127}{subsection*.229}%
-\contentsline {subsubsection}{6.1 Version Compatibility}{127}{subsubsection*.230}%
-\contentsline {subsubsection}{6.2 Transport Requirements}{127}{subsubsection*.231}%
-\contentsline {subsubsection}{6.3 Integration with HOPR Session Data Protocol}{128}{subsubsection*.232}%
-\contentsline {subsection}{7. Security Considerations}{128}{subsection*.233}%
-\contentsline {subsubsection}{7.1 Protocol Security}{128}{subsubsection*.234}%
-\contentsline {subsubsection}{7.2 Attack Vectors}{128}{subsubsection*.235}%
-\contentsline {subsubsection}{7.3 Mitigation Strategies}{129}{subsubsection*.236}%
-\contentsline {subsection}{8. Future Work}{130}{subsection*.237}%
-\contentsline {subsection}{9. Implementation Notes}{130}{subsection*.238}%
-\contentsline {subsubsection}{9.1 Testing Recommendations}{130}{subsubsection*.239}%
-\contentsline {subsection}{10. References}{131}{subsection*.240}%
-\contentsline {subsection}{11. Related Links}{131}{subsection*.241}%
-\contentsline {subsection}{12. Appendix 1}{131}{subsection*.242}%
-\contentsline {section}{\numberline {10}RFC-0010: Automatic path discovery}{132}{section.10}%
-\contentsline {subsection}{1. Abstract}{132}{subsection*.243}%
-\contentsline {subsection}{2. Motivation}{132}{subsection*.244}%
-\contentsline {subsection}{3. Terminology}{133}{subsection*.245}%
-\contentsline {subsection}{4. Specification}{133}{subsection*.246}%
-\contentsline {subsubsection}{4.1 Overview}{133}{subsubsection*.247}%
-\contentsline {subsubsection}{4.2 Network probing}{134}{subsubsection*.248}%
-\contentsline {paragraph}{4.2.1 Path-generating probing algorithm}{135}{paragraph*.249}%
-\contentsline {subparagraph}{4.2.1.1 Breadth-first algorithm (BFA)}{137}{subparagraph*.250}%
-\contentsline {subparagraph}{4.2.1.2 Depth-first algorithm (DFA)}{139}{subparagraph*.251}%
-\contentsline {subparagraph}{4.2.1.3 BFA and DFA interactions}{141}{subparagraph*.252}%
-\contentsline {paragraph}{4.2.2 Evaluation mechanism}{142}{paragraph*.253}%
-\contentsline {paragraph}{4.2.3 Retention and slashing mechanism}{142}{paragraph*.254}%
-\contentsline {paragraph}{4.2.4 Throughput considerations}{143}{paragraph*.255}%
-\contentsline {subsubsection}{4.3 Telemetry}{143}{subsubsection*.256}%
-\contentsline {paragraph}{4.3.1 Next-hop telemetry}{143}{paragraph*.257}%
-\contentsline {paragraph}{4.3.2 Non-probing telemetry}{144}{paragraph*.258}%
-\contentsline {paragraph}{4.3.3 Probing telemetry}{144}{paragraph*.259}%
-\contentsline {subsubsection}{4.4 Component placement}{145}{subsubsection*.260}%
-\contentsline {subsection}{5. Design considerations}{146}{subsection*.261}%
-\contentsline {subsection}{6. Compatibility}{148}{subsection*.262}%
-\contentsline {subsection}{7. Security considerations}{148}{subsection*.263}%
-\contentsline {subsection}{8. Drawbacks}{149}{subsection*.264}%
-\contentsline {subsection}{9. Alternatives}{150}{subsection*.265}%
-\contentsline {subsection}{10. Unresolved questions}{150}{subsection*.266}%
-\contentsline {subsection}{11. Future work}{151}{subsection*.267}%
-\contentsline {subsection}{12. References}{151}{subsection*.268}%
-\contentsline {section}{\numberline {11}RFC-0011: Application Layer protocol}{152}{section.11}%
-\contentsline {subsection}{1. Abstract}{152}{subsection*.269}%
-\contentsline {subsection}{2. Motivation}{152}{subsection*.270}%
-\contentsline {subsection}{3. Terminology}{153}{subsection*.271}%
-\contentsline {subsection}{4. Introduction}{153}{subsection*.272}%
-\contentsline {subsection}{5. Specification}{154}{subsection*.273}%
-\contentsline {subsubsection}{5.1 Wire format encoding}{155}{subsubsection*.274}%
-\contentsline {subsection}{6. Appendix 1}{155}{subsection*.275}%
-\contentsline {subsubsection}{HOPR packet protocol signals in the current implementation}{155}{subsubsection*.276}%
-\contentsline {subsection}{7. References}{156}{subsection*.277}%
+\contentsline {section}{\numberline {3}RFC-0003: HOPR Overview}{14}{section.3}%
+\contentsline {subsection}{1. Abstract}{14}{subsection*.28}%
+\contentsline {subsection}{2. Motivation}{15}{subsection*.29}%
+\contentsline {subsection}{3. Terminology}{15}{subsection*.30}%
+\contentsline {subsection}{4. Network Overview}{15}{subsection*.31}%
+\contentsline {subsubsection}{4.1 Network Architecture}{16}{subsubsection*.32}%
+\contentsline {subsubsection}{4.2 Path Construction}{16}{subsubsection*.33}%
+\contentsline {subsubsection}{4.3 Economic Incentives}{17}{subsubsection*.34}%
+\contentsline {subsubsection}{4.4 Privacy Properties}{17}{subsubsection*.35}%
+\contentsline {subsection}{5. Protocol Overview}{18}{subsection*.36}%
+\contentsline {subsubsection}{5.1 Protocol Architecture}{18}{subsubsection*.37}%
+\contentsline {subsubsection}{5.2 Core Protocol Components}{18}{subsubsection*.38}%
+\contentsline {paragraph}{5.2.1 HOPR Packet Protocol}{19}{paragraph*.39}%
+\contentsline {paragraph}{5.2.2 Proof of Relay}{19}{paragraph*.40}%
+\contentsline {paragraph}{5.2.3 Traffic Mixing}{20}{paragraph*.41}%
+\contentsline {paragraph}{5.2.4 Session Management}{20}{paragraph*.42}%
+\contentsline {paragraph}{5.2.5 Economic System}{21}{paragraph*.43}%
+\contentsline {subsubsection}{5.3 Protocol Flow}{21}{subsubsection*.44}%
+\contentsline {subsubsection}{5.4 Integration Points}{22}{subsubsection*.45}%
+\contentsline {subsection}{6. References}{22}{subsection*.46}%
+\contentsline {section}{\numberline {4}RFC-0004: HOPR Packet Protocol}{23}{section.4}%
+\contentsline {subsection}{1. Abstract}{23}{subsection*.47}%
+\contentsline {subsection}{2. Introduction}{23}{subsection*.48}%
+\contentsline {subsubsection}{2.1. Conventions and terminology}{24}{subsubsection*.49}%
+\contentsline {subsubsection}{2.2. Global packet format parameters}{25}{subsubsection*.50}%
+\contentsline {subsection}{3. Forward packet creation}{26}{subsection*.51}%
+\contentsline {subsubsection}{3.1. Partial ticket creation}{27}{subsubsection*.52}%
+\contentsline {subsubsection}{3.2. Generating the Shared secrets}{27}{subsubsection*.53}%
+\contentsline {subsubsection}{3.3. Generating the Proof of Relay}{28}{subsubsection*.54}%
+\contentsline {subsubsection}{3.4. Forward meta packet creation}{29}{subsubsection*.55}%
+\contentsline {paragraph}{3.4.1. Header creation}{29}{paragraph*.56}%
+\contentsline {paragraph}{3.4.2. Forward payload creation}{32}{paragraph*.57}%
+\contentsline {paragraph}{3.4.3. Generating SURBs}{33}{paragraph*.58}%
+\contentsline {paragraph}{3.4.4. Payload padding}{35}{paragraph*.59}%
+\contentsline {paragraph}{3.4.5. Payload encryption}{35}{paragraph*.60}%
+\contentsline {subsubsection}{3.5. Final forward packet overview}{36}{subsubsection*.61}%
+\contentsline {subsection}{4. Reply packet creation}{36}{subsection*.62}%
+\contentsline {subsubsection}{4.1. Reply packet ticket creation}{37}{subsubsection*.63}%
+\contentsline {subsubsection}{4.2. Reply meta packet creation}{37}{subsubsection*.64}%
+\contentsline {paragraph}{4.2.1. Reply payload creation}{37}{paragraph*.65}%
+\contentsline {paragraph}{4.2.2. Reply payload encryption}{38}{paragraph*.66}%
+\contentsline {subsection}{5. Packet processing}{38}{subsection*.67}%
+\contentsline {subsubsection}{5.1. Advancing the Alpha value}{38}{subsubsection*.68}%
+\contentsline {subsubsection}{5.2. Header processing}{39}{subsubsection*.69}%
+\contentsline {subsubsection}{5.3. Packet processing}{40}{subsubsection*.70}%
+\contentsline {paragraph}{5.3.1. Forwarded packet}{40}{paragraph*.71}%
+\contentsline {paragraph}{5.3.2. Final packet}{41}{paragraph*.72}%
+\contentsline {subparagraph}{5.3.2.1. Forward packet}{41}{subparagraph*.73}%
+\contentsline {subparagraph}{5.3.2.2. Reply packet}{41}{subparagraph*.74}%
+\contentsline {paragraph}{5.3.3. Interpreting the payload}{42}{paragraph*.75}%
+\contentsline {subsubsection}{5.4. Ticket verification and acknowledgement}{42}{subsubsection*.76}%
+\contentsline {subsection}{6. Appendix A}{43}{subsection*.77}%
+\contentsline {subsection}{7. References}{43}{subsection*.78}%
+\contentsline {section}{\numberline {5}RFC-0005: Proof of Relay}{44}{section.5}%
+\contentsline {subsection}{1. Abstract}{44}{subsection*.79}%
+\contentsline {subsection}{2. Motivation}{44}{subsection*.80}%
+\contentsline {subsection}{3. Terminology}{45}{subsection*.81}%
+\contentsline {subsubsection}{3.1. Cryptographic and security parameters}{45}{subsubsection*.82}%
+\contentsline {subsection}{4. Payment channels}{46}{subsection*.83}%
+\contentsline {subsubsection}{4.1. Payment channel life-cycle}{48}{subsubsection*.84}%
+\contentsline {subsection}{5. Tickets}{49}{subsection*.85}%
+\contentsline {subsubsection}{5.1. Ticket structure encoding}{50}{subsubsection*.86}%
+\contentsline {subsubsection}{5.2. Construction of Proof-of-Relay (PoR) secrets}{51}{subsubsection*.87}%
+\contentsline {paragraph}{5.2.1. Creation of Proof of Relay strings and values}{52}{paragraph*.88}%
+\contentsline {subsubsection}{5.3 Creation of the ticket for the first relayer}{53}{subsubsection*.89}%
+\contentsline {paragraph}{Multi-hop ticket: for \codebubble {n} \textgreater {} 1}{53}{paragraph*.90}%
+\contentsline {paragraph}{Zero-hop ticket: \codebubble {n} = 1}{53}{paragraph*.91}%
+\contentsline {subsubsection}{5.4. Ticket processing at a node}{54}{subsubsection*.92}%
+\contentsline {paragraph}{5.4.1. Ticket pre-verification}{54}{paragraph*.93}%
+\contentsline {paragraph}{5.4.2. Ticket validation and replacement}{55}{paragraph*.94}%
+\contentsline {paragraph}{5.2.3. Ticket acknowledgement}{56}{paragraph*.95}%
+\contentsline {subparagraph}{5.2.3.1. Sending acknowledgement}{56}{subparagraph*.96}%
+\contentsline {subparagraph}{5.2.3.2. Receiving an acknowledgement}{57}{subparagraph*.97}%
+\contentsline {subparagraph}{5.2.3.3. Derivation of VRF parameters for an Acknowledged ticket}{58}{subparagraph*.98}%
+\contentsline {subsection}{6 Ticket and Channel interactions}{59}{subsection*.99}%
+\contentsline {subsubsection}{6.1. Discovering acknowledged winning tickets}{59}{subsubsection*.100}%
+\contentsline {subsubsection}{6.2. Claiming a winning ticket}{59}{subsubsection*.101}%
+\contentsline {subsection}{7. Appendix 1}{61}{subsection*.102}%
+\contentsline {subsection}{8. Appendix 2}{61}{subsection*.103}%
+\contentsline {subsubsection}{8.1. Allowed transitions}{62}{subsubsection*.104}%
+\contentsline {subsection}{9. Appendix 3}{64}{subsection*.105}%
+\contentsline {subsection}{10. References}{65}{subsection*.106}%
+\contentsline {section}{\numberline {6}RFC-0006: HOPR Mixer}{66}{section.6}%
+\contentsline {subsection}{1. Abstract}{66}{subsection*.107}%
+\contentsline {subsection}{2. Motivation}{66}{subsection*.108}%
+\contentsline {subsection}{3. Terminology}{67}{subsection*.109}%
+\contentsline {subsection}{4. Specification}{67}{subsection*.110}%
+\contentsline {subsubsection}{4.1. Overview}{67}{subsubsection*.111}%
+\contentsline {subsubsection}{4.2. Configuration Parameters}{67}{subsubsection*.112}%
+\contentsline {subsubsection}{4.3. Core Components}{68}{subsubsection*.113}%
+\contentsline {paragraph}{4.3.1. Delay Assignment}{68}{paragraph*.114}%
+\contentsline {paragraph}{4.3.2. Mixing buffer}{69}{paragraph*.115}%
+\contentsline {subsubsection}{4.4. Operational Behaviour}{69}{subsubsection*.116}%
+\contentsline {paragraph}{4.4.1. Packet processing flow}{69}{paragraph*.117}%
+\contentsline {paragraph}{4.4.2. Timer Management}{69}{paragraph*.118}%
+\contentsline {subsubsection}{4.5. Special Cases}{70}{subsubsection*.119}%
+\contentsline {paragraph}{4.5.1. Zero Delay Configuration}{70}{paragraph*.120}%
+\contentsline {subsection}{5. Design Considerations}{70}{subsection*.121}%
+\contentsline {subsubsection}{5.1. Performance Optimisation}{70}{subsubsection*.122}%
+\contentsline {subsubsection}{5.2. Abuse Resistance and Resource Limits}{70}{subsubsection*.123}%
+\contentsline {subsubsection}{5.3. Monitoring and Metrics}{71}{subsubsection*.124}%
+\contentsline {subsection}{6. Security Considerations}{71}{subsection*.125}%
+\contentsline {subsubsection}{6.1. Threat Model}{71}{subsubsection*.126}%
+\contentsline {subsubsection}{6.2. Limitations}{71}{subsubsection*.127}%
+\contentsline {subsection}{7. Drawbacks}{72}{subsection*.128}%
+\contentsline {subsection}{8. Alternatives}{72}{subsection*.129}%
+\contentsline {subsection}{9. Unresolved Questions}{72}{subsection*.130}%
+\contentsline {subsection}{10. Future Work}{73}{subsection*.131}%
+\contentsline {subsection}{11. References}{73}{subsection*.132}%
+\contentsline {section}{\numberline {7}RFC-0007: Economic Reward System}{74}{section.7}%
+\contentsline {subsection}{1. Abstract}{74}{subsection*.133}%
+\contentsline {subsection}{2. Motivation}{74}{subsection*.134}%
+\contentsline {subsection}{3. Terminology}{75}{subsection*.135}%
+\contentsline {subsection}{4. System Overview}{76}{subsection*.136}%
+\contentsline {subsection}{5. Data Collection and Enrichment}{76}{subsection*.137}%
+\contentsline {subsubsection}{5.1 Data Sources}{76}{subsubsection*.138}%
+\contentsline {subsubsection}{5.2 Data Enrichment}{78}{subsubsection*.139}%
+\contentsline {subsection}{6. Peer eligibility filtering}{78}{subsection*.140}%
+\contentsline {subsection}{7. Economic Model Application}{78}{subsection*.141}%
+\contentsline {subsection}{8. Message Timing and Delay Calculation}{81}{subsection*.142}%
+\contentsline {subsection}{9. Message Sending Architecture}{82}{subsection*.143}%
+\contentsline {subsection}{10. Security and Monitoring}{82}{subsection*.144}%
+\contentsline {subsection}{11. Appendix: Data Structures}{84}{subsection*.145}%
+\contentsline {subsubsection}{Registered Node}{84}{subsubsection*.146}%
+\contentsline {subsubsection}{Safe}{84}{subsubsection*.147}%
+\contentsline {subsubsection}{Allocation}{84}{subsubsection*.148}%
+\contentsline {subsubsection}{EOA Balance}{85}{subsubsection*.149}%
+\contentsline {subsubsection}{Topology Entry}{85}{subsubsection*.150}%
+\contentsline {subsubsection}{Peer (Enriched)}{85}{subsubsection*.151}%
+\contentsline {subsection}{12. References}{86}{subsection*.152}%
+\contentsline {subsection}{13. Changelog}{86}{subsection*.153}%
+\contentsline {section}{\numberline {8}RFC-0008: Session Data Protocol}{87}{section.8}%
+\contentsline {subsection}{1. Abstract}{87}{subsection*.154}%
+\contentsline {subsection}{2. Motivation}{87}{subsection*.155}%
+\contentsline {subsection}{3. Terminology}{88}{subsection*.156}%
+\contentsline {subsection}{4. Specification}{89}{subsection*.157}%
+\contentsline {subsubsection}{4.1 Protocol Overview}{89}{subsubsection*.158}%
+\contentsline {subsubsection}{4.2 Session Data Protocol Message Format}{89}{subsubsection*.159}%
+\contentsline {paragraph}{4.2.1 Message Types}{90}{paragraph*.160}%
+\contentsline {paragraph}{4.2.2 Byte Order}{90}{paragraph*.161}%
+\contentsline {subsubsection}{4.3 Segment Message}{91}{subsubsection*.162}%
+\contentsline {paragraph}{4.3.1 Segment Structure}{91}{paragraph*.163}%
+\contentsline {paragraph}{4.3.2 Sequence Flags Bitmap}{91}{paragraph*.164}%
+\contentsline {paragraph}{4.3.3 Segmentation Rules}{92}{paragraph*.165}%
+\contentsline {paragraph}{4.3.4 Protocol Constants}{92}{paragraph*.166}%
+\contentsline {subsubsection}{4.4 Retransmission Request Message}{93}{subsubsection*.167}%
+\contentsline {paragraph}{4.4.1 Request Structure}{93}{paragraph*.168}%
+\contentsline {paragraph}{4.4.2 Missing Bitmap Format}{93}{paragraph*.169}%
+\contentsline {paragraph}{4.4.3 Request Rules}{94}{paragraph*.170}%
+\contentsline {subsubsection}{4.5 Frame Acknowledgement Message}{94}{subsubsection*.171}%
+\contentsline {paragraph}{4.5.1 Acknowledgement Structure}{94}{paragraph*.172}%
+\contentsline {paragraph}{4.5.2 Acknowledgement Rules}{95}{paragraph*.173}%
+\contentsline {subsubsection}{4.6 Protocol State Machines}{95}{subsubsection*.174}%
+\contentsline {paragraph}{4.6.1 Unreliable Socket State Machine}{95}{paragraph*.175}%
+\contentsline {paragraph}{4.6.2 Reliable Socket State Machine}{95}{paragraph*.176}%
+\contentsline {subsubsection}{4.7 Timing and Reliability Parameters}{95}{subsubsection*.177}%
+\contentsline {paragraph}{4.7.1 Unreliable Mode}{95}{paragraph*.178}%
+\contentsline {paragraph}{4.7.2 Reliable Mode Parameters}{95}{paragraph*.179}%
+\contentsline {subsubsection}{4.8 Session Termination}{98}{subsubsection*.180}%
+\contentsline {subsubsection}{4.9 Example Message Exchanges}{98}{subsubsection*.181}%
+\contentsline {paragraph}{4.9.1 Simple Frame Transmission (Unreliable Mode)}{98}{paragraph*.182}%
+\contentsline {paragraph}{4.9.2 Frame with Retransmission (Reliable Mode)}{99}{paragraph*.183}%
+\contentsline {paragraph}{4.9.3 Multiple Frame Acknowledgement (Reliable Mode)}{100}{paragraph*.184}%
+\contentsline {paragraph}{4.9.4 Session Termination (Reliable Mode)}{100}{paragraph*.185}%
+\contentsline {paragraph}{4.9.5 Session Termination (Unreliable Mode)}{100}{paragraph*.186}%
+\contentsline {subsection}{5. Design Considerations}{100}{subsection*.187}%
+\contentsline {subsubsection}{5.1 Maximum Segments Limitation}{100}{subsubsection*.188}%
+\contentsline {subsubsection}{5.2 Frame ID Space}{102}{subsubsection*.189}%
+\contentsline {subsubsection}{5.3 Retransmission Request Design}{102}{subsubsection*.190}%
+\contentsline {subsubsection}{5.4 Protocol Overhead}{102}{subsubsection*.191}%
+\contentsline {subsection}{6. Compatibility}{102}{subsection*.192}%
+\contentsline {subsubsection}{6.1 Version Compatibility}{102}{subsubsection*.193}%
+\contentsline {subsubsection}{6.2 Transport Requirements}{103}{subsubsection*.194}%
+\contentsline {subsection}{7. Security Considerations}{103}{subsection*.195}%
+\contentsline {subsubsection}{7.1 Protocol Security}{103}{subsubsection*.196}%
+\contentsline {subsection}{8. Future Work}{103}{subsection*.197}%
+\contentsline {subsection}{9. Implementation Notes}{103}{subsection*.198}%
+\contentsline {subsubsection}{9.1 Testing Recommendations}{103}{subsubsection*.199}%
+\contentsline {subsection}{10. References}{103}{subsection*.200}%
+\contentsline {section}{\numberline {9}RFC-0009: Session Start Protocol}{105}{section.9}%
+\contentsline {subsection}{1. Abstract}{105}{subsection*.201}%
+\contentsline {subsection}{2. Motivation}{105}{subsection*.202}%
+\contentsline {subsection}{3. Terminology}{106}{subsection*.203}%
+\contentsline {subsection}{4. Specification}{107}{subsection*.204}%
+\contentsline {subsubsection}{4.1 Protocol Overview}{107}{subsubsection*.205}%
+\contentsline {subsubsection}{4.2 Message Format}{107}{subsubsection*.206}%
+\contentsline {paragraph}{4.2.1 Message Types}{108}{paragraph*.207}%
+\contentsline {paragraph}{4.2.2 Byte Order}{109}{paragraph*.208}%
+\contentsline {subsubsection}{4.3 StartSession Message}{109}{subsubsection*.209}%
+\contentsline {paragraph}{4.3.1 Capability Flags}{110}{paragraph*.210}%
+\contentsline {subsubsection}{4.4 SessionEstablished Message}{110}{subsubsection*.211}%
+\contentsline {subsubsection}{4.5 SessionError Message}{111}{subsubsection*.212}%
+\contentsline {paragraph}{4.5.1 Error Codes}{111}{paragraph*.213}%
+\contentsline {subsubsection}{4.6 KeepAlive Message}{112}{subsubsection*.214}%
+\contentsline {subsubsection}{4.7 Protocol Flow}{113}{subsubsection*.215}%
+\contentsline {subsubsection}{4.8 Protocol Constants}{113}{subsubsection*.216}%
+\contentsline {subsubsection}{4.9 Protocol Rules}{114}{subsubsection*.217}%
+\contentsline {subsubsection}{4.10 Example Message Exchanges}{114}{subsubsection*.218}%
+\contentsline {paragraph}{4.10.1 Successful Session Establishment}{114}{paragraph*.219}%
+\contentsline {paragraph}{4.10.2 Session Establishment Failure}{115}{paragraph*.220}%
+\contentsline {paragraph}{4.10.3 Session Establishment Timeout}{115}{paragraph*.221}%
+\contentsline {paragraph}{4.10.4 Long-Running Session with Periodic Keep-Alives}{116}{paragraph*.222}%
+\contentsline {subsection}{5. Design Considerations}{116}{subsection*.223}%
+\contentsline {subsubsection}{5.1 CBOR Encoding}{116}{subsubsection*.224}%
+\contentsline {subsubsection}{5.2 Challenge-Response Design}{117}{subsubsection*.225}%
+\contentsline {subsubsection}{5.3 Capability Negotiation}{118}{subsubsection*.226}%
+\contentsline {subsubsection}{5.4 Transport Independence}{118}{subsubsection*.227}%
+\contentsline {subsubsection}{5.5 Error Handling}{118}{subsubsection*.228}%
+\contentsline {subsection}{6. Compatibility}{119}{subsection*.229}%
+\contentsline {subsubsection}{6.1 Version Compatibility}{119}{subsubsection*.230}%
+\contentsline {subsubsection}{6.2 Transport Requirements}{119}{subsubsection*.231}%
+\contentsline {subsubsection}{6.3 Integration with HOPR Session Data Protocol}{120}{subsubsection*.232}%
+\contentsline {subsection}{7. Security Considerations}{120}{subsection*.233}%
+\contentsline {subsubsection}{7.1 Protocol Security}{120}{subsubsection*.234}%
+\contentsline {subsubsection}{7.2 Attack Vectors}{120}{subsubsection*.235}%
+\contentsline {subsubsection}{7.3 Mitigation Strategies}{121}{subsubsection*.236}%
+\contentsline {subsection}{8. Future Work}{121}{subsection*.237}%
+\contentsline {subsection}{9. Implementation Notes}{122}{subsection*.238}%
+\contentsline {subsubsection}{9.1 Testing Recommendations}{122}{subsubsection*.239}%
+\contentsline {subsection}{10. References}{122}{subsection*.240}%
+\contentsline {subsection}{11. Related Links}{122}{subsection*.241}%
+\contentsline {subsection}{12. Appendix 1}{123}{subsection*.242}%
+\contentsline {section}{\numberline {10}RFC-0010: Automatic path discovery}{124}{section.10}%
+\contentsline {subsection}{1. Abstract}{124}{subsection*.243}%
+\contentsline {subsection}{2. Motivation}{124}{subsection*.244}%
+\contentsline {subsection}{3. Terminology}{125}{subsection*.245}%
+\contentsline {subsection}{4. Specification}{125}{subsection*.246}%
+\contentsline {subsubsection}{4.1 Overview}{125}{subsubsection*.247}%
+\contentsline {subsubsection}{4.2 Network probing}{125}{subsubsection*.248}%
+\contentsline {paragraph}{4.2.1 Path-generating probing algorithm}{127}{paragraph*.249}%
+\contentsline {subparagraph}{4.2.1.1 Breadth-first algorithm (BFA)}{129}{subparagraph*.250}%
+\contentsline {subparagraph}{4.2.1.2 Depth-first algorithm (DFA)}{131}{subparagraph*.251}%
+\contentsline {subparagraph}{4.2.1.3 BFA and DFA interactions}{133}{subparagraph*.252}%
+\contentsline {paragraph}{4.2.2 Evaluation mechanism}{133}{paragraph*.253}%
+\contentsline {paragraph}{4.2.3 Retention and slashing mechanism}{134}{paragraph*.254}%
+\contentsline {paragraph}{4.2.4 Throughput considerations}{134}{paragraph*.255}%
+\contentsline {subsubsection}{4.3 Telemetry}{135}{subsubsection*.256}%
+\contentsline {paragraph}{4.3.1 Next-hop telemetry}{135}{paragraph*.257}%
+\contentsline {paragraph}{4.3.2 Non-probing telemetry}{136}{paragraph*.258}%
+\contentsline {paragraph}{4.3.3 Probing telemetry}{136}{paragraph*.259}%
+\contentsline {subsubsection}{4.4 Component placement}{137}{subsubsection*.260}%
+\contentsline {subsection}{5. Design considerations}{138}{subsection*.261}%
+\contentsline {subsection}{6. Compatibility}{139}{subsection*.262}%
+\contentsline {subsection}{7. Security considerations}{140}{subsection*.263}%
+\contentsline {subsection}{8. Drawbacks}{140}{subsection*.264}%
+\contentsline {subsection}{9. Alternatives}{141}{subsection*.265}%
+\contentsline {subsection}{10. Unresolved questions}{141}{subsection*.266}%
+\contentsline {subsection}{11. Future work}{141}{subsection*.267}%
+\contentsline {subsection}{12. References}{142}{subsection*.268}%
+\contentsline {section}{\numberline {11}RFC-0011: Application Layer protocol}{143}{section.11}%
+\contentsline {subsection}{1. Abstract}{143}{subsection*.269}%
+\contentsline {subsection}{2. Motivation}{143}{subsection*.270}%
+\contentsline {subsection}{3. Terminology}{144}{subsection*.271}%
+\contentsline {subsection}{4. Introduction}{144}{subsection*.272}%
+\contentsline {subsection}{5. Specification}{144}{subsection*.273}%
+\contentsline {subsubsection}{5.1 Wire format encoding}{145}{subsubsection*.274}%
+\contentsline {subsection}{6. Appendix 1}{146}{subsection*.275}%
+\contentsline {subsubsection}{HOPR packet protocol signals in the current implementation}{146}{subsubsection*.276}%
+\contentsline {subsection}{7. References}{146}{subsection*.277}%
