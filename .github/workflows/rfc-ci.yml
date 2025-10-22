@@ -17,9 +17,12 @@ jobs:
 
     - name: Install Nix
       uses: DeterminateSystems/nix-installer-action@786fff0690178f1234e4e1fe9b536e94f5433196 # v20
-      
+
     - name: Enable Nix Cache
       uses: DeterminateSystems/magic-nix-cache-action@565684385bcd71bad329742eefe8d12f2e765b39 # v13
+
+    - name: Check RFCs .md structure
+      run: bash scripts/structure-check.sh
 
 #    - name: Check Formatting
 #      run: nix develop --command just format-check
