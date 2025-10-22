@@ -8,7 +8,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
+    - name: Checkout Repository    curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | bash
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
     - name: Install Nix
@@ -18,7 +18,7 @@ jobs:
       uses: DeterminateSystems/magic-nix-cache-action@565684385bcd71bad329742eefe8d12f2e765b39 # v13
 
     - name: Check RFCs .md structure
-      run: sh scripts/structure-check.sh
+      run: bash scripts/structure-check.sh
 
 #    - name: Check Formatting
 #      run: nix develop --command just format-check

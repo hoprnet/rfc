@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # List all .md files from rfcs subfolders into an array
 md_files=( )
 for dir in rfcs/*/; do
@@ -53,7 +55,7 @@ for file in "${md_files[@]}"; do
 done
 
 # Check the header metadata for each file
-printf '\n[Checking RFC headers - metadata]\n'
+printf '\n[Checking RFC headers - metadata]'
 for file in "${md_files[@]}"; do
   first_line=$(sed -n '1p' "$file")
   rfc_number=$(sed -n '3p' "$file")
