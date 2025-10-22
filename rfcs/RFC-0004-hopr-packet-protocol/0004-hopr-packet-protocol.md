@@ -1,4 +1,4 @@
-# RFC-0004 HOPR Packet Protocol
+# RFC-0004: HOPR Packet Protocol
 
 - **RFC Number:** 0004
 - **Title:** HOPR Packet Protocol

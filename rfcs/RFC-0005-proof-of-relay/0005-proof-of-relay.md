@@ -4,8 +4,8 @@
 - **Title:** Proof of Relay
 - **Status:** Implementation
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
-- **Created:** 2025/04/02
-- **Updated:** 2025/08/28
+- **Created:** 2025-04-02
+- **Updated:** 2025-08-28
 - **Version:** v0.9.0 (Draft)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),

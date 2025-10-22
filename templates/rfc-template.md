@@ -2,7 +2,7 @@
 
 - **RFC Number:** XXXX
 - **Title:** \<RFC Title in Title Case\>
-- **Status:** Raw | Discussion | Prototype | Implementation | Finalised | Rejected | Superseded
+- **Status:** Raw | Discussion | Prototype | Implementation | Finalised | Rejected | Superseded | Draft
 - **Author(s):** \<Name (GitHub Handle)\>
 - **Created:** \<YYYY-MM-DD\>
 - **Updated:** \<YYYY-MM-DD\>
