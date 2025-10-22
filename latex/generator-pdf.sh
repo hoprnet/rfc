@@ -25,7 +25,7 @@ done < <(find "$RFC_FOLDER" -type f -name "*.md" | sort)
 echo "📄 Files detected: ${#MD_FILES[@]}"
 printf ' - %s\n' "${MD_FILES[@]}"
 
-[ ${#MD_FILES[@]} -gt 0 ] || { echo "📭 No markdown files."; exit 0; }
+[ ${#MD_FILES[@]} -gt 0 ] || { echo "📭 No markdown files."; exit 1; }
 
 SUCCESS_COUNT=0
 FAIL_COUNT=0
@@ -41,16 +41,12 @@ for MD_FILE in "${MD_FILES[@]}"; do
   echo "============================================================"
   echo "🔄 START: $MD_FILE"
 
-  # Run generator explicitly; capture exit code
-  bash "$GENERATOR_SCRIPT" "$MD_FILE"
-  rc=$?
-
-  echo "↪ Exit code: $rc"
-
-  if [ $rc -eq 0 ]; then
+  # Run generator; under set -e we must guard with 'if'
+  if bash "$GENERATOR_SCRIPT" "$MD_FILE"; then
     SUCCESS_COUNT=$((SUCCESS_COUNT+1))
     echo "✅ OK: $MD_FILE"
   else
+    rc=$?
     FAIL_COUNT=$((FAIL_COUNT+1))
     FAILED_FILES+=("$MD_FILE")
     echo "❌ FAIL ($rc): $MD_FILE"
@@ -80,13 +76,12 @@ if [ -z "$INCLUDE_LINES" ]; then
   exit 1
 fi
 
-BLOCK_START="% BEGIN GENERATED RFC INCLUDES"
-BLOCK_MIDDLE="% (auto-filled by generator-pdf.sh)"
-BLOCK_END="% END GENERATED RFC INCLUDES"
 
+INSERT_BLOCK="% (auto-filled by generator-pdf.sh)"
 
-# Insert the new block immediately after the first \begin{document}
-lineNo="$(grep -n "$BLOCK_MIDDLE" "$BASE_MAIN_TEX" | head -1 | cut -d: -f1)"
+# Insert generated RFCs into main.tex
+lineNo="$(grep -nF "$INSERT_BLOCK" "$BASE_MAIN_TEX" | head -1 | cut -d: -f1)"
+[ -n "${lineNo}" ] || { echo "❌ Insert block marker not found in $BASE_MAIN_TEX: $INSERT_BLOCK"; exit 1; }
 {
   # Up to and including \begin{document}
   head -n "$lineNo" "$BASE_MAIN_TEX"

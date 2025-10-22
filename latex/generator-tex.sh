@@ -127,4 +127,5 @@ echo "Markdown: $DST_MD"
 echo "LaTeX:    $OUTDIR/$NAME-pandoc.tex"
 echo "Images:"
 ls -1 "$OUTDIR"/mermaid_*.png 2>/dev/null || echo "None"
+rm puppeteer-config.json
 echo "Done: $OUTDIR/$NAME-pandoc.tex"
