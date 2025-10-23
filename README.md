@@ -38,9 +38,10 @@ associated assets such as images, diagrams, and relevant files within each RFC r
 │       ├── 0004-return-path.md
 │       ├── templates/                    # Common RFC templates and guidelines
 │       └── rfc-template.md
-└── ui                                    # UI for displaying the awesome RFCs
+├── ui                                    # UI for displaying the awesome RFCs
+└── templates                             # MD templates for the RFCs starter document
 ```
 
 ## Contributing to RFCs
 
-The process of contributing RFC is detailed in the `./rfcs/RFC-0001-rfc-process/`. A summary will be posted below.
+The process of contributing RFC is detailed in the `./rfcs/RFC-0001-rfc-process/` and the template to start a new one is in the  `./templates/rfc-template.md`
