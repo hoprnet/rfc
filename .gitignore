@@ -8,11 +8,13 @@ latex/main.aux
 latex/main.out
 latex/main.tex
 latex/main.pdf
+latex/main.toc
 latex/main.synctex.gz
 latex/main_base.tex.tmp
 latex/main_base.aux
 latex/main_base.log
 latex/main_base.out
+latex/main_base.toc
 latex/main.pdf
 latex/RFCs.pdf
 latex/puppeteer-config.json

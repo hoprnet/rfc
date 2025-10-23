@@ -75,6 +75,91 @@ done < "$SRC"
 
 echo "Rendered $RENDERED Mermaid diagram(s)."
 
+# Prepare tables for Pandoc
+table_sep_matches="$(grep -nE '^\|\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|\s*$' "$DST_MD" | cut -d: -f1 || true)"
+# Fix the table_sep_matches if there are no matches
+if [ -n "$table_sep_matches" ]; then
+  table_sep_json="$(printf '%s\n' "$table_sep_matches" | jq -s .)"
+else
+  table_sep_json="[]"
+fi
+table_count="$(printf '%s\n' "$table_sep_json" | jq 'length')"
+echo "Tables found: $table_count"
+echo "Table separator lines JSON: $table_sep_json"
+
+echo "== Table separator line audit =="
+echo "$table_sep_json" | jq -r '.[]' | while read -r lineno; do
+  line_content="$(sed -n "${lineno}p" "$DST_MD")"
+  line_len=${#line_content}
+  col_count="$(printf '%s\n' "$line_content" | awk -F'|' '{print NF-2}')"
+  echo "Line ${lineno}: columns=${col_count} length=${line_len}"
+  if [ "$line_len" -lt 80 ]; then
+
+    # Count dashes per column (ignore spaces and colons)
+    dash_json="$(
+      trimmed="${line_content#|}"; trimmed="${trimmed%|}"
+      IFS='|' read -r -a cols <<< "$trimmed"
+      first=1
+      printf '['
+      for col in "${cols[@]}"; do
+        cell="$(echo "$col" | tr -d ' \t:')"
+        dashes="$(echo -n "$cell" | tr -cd '-' | wc -c | tr -d ' ')"
+        if [ $first -eq 0 ]; then printf ','; fi
+        printf '%s' "$dashes"
+        first=0
+      done
+      printf ']'
+    )"
+
+    # Force array length == col_count (trim or pad)
+    dash_len="$(echo "$dash_json" | jq 'length')"
+    if [ "$dash_len" -gt "$col_count" ]; then
+      dash_json="$(echo "$dash_json" | jq ".[0:$col_count]")"
+    elif [ "$dash_len" -lt "$col_count" ]; then
+      # Pad missing columns with 0 (will be raised to min 3 below)
+      missing=$((col_count - dash_len))
+      pad="$(jq -n --argjson m "$missing" '[range($m)|0]')"
+      dash_json="$(jq -n --argjson a "$dash_json" --argjson p "$pad" '$a + $p')"
+    fi
+
+    # Add all dashes in the columns
+    dash_sum="$(echo "$dash_json" | jq 'add')"
+
+    # Calculate percentages of columns widths (by the dash counts)
+    dash_pct_json="$(echo "$dash_json" | jq --argjson s "$dash_sum" 'map(if $s>0 then ((. / $s)) else 0 end)')"
+
+    # Count dashes to have according to percentages
+    dashesToHavePerColumn="$(echo "$dash_pct_json" | jq 'map((. * 100)|ceil)')"
+
+    echo "  Dashes per column: $dash_json (sum=$dash_sum) Percentages: $dash_pct_json, need more dashes to reach at 80 chars, distributing as: $dashesToHavePerColumn"
+
+    # Build new table separator line from dashesToHavePerColumn
+    new_sep_line="|"
+    while read -r count; do
+      # enforce minimum 3 dashes per Markdown spec
+      [ "$count" -lt 3 ] && count=3
+      new_sep_line="${new_sep_line} $(printf '%*s' "$count" | tr ' ' -) |"
+    done < <(echo "$dashesToHavePerColumn" | jq -r '.[]')
+
+    # new_sep_line now like: | ----- | -------- | --- |
+    # TODO: replace original separator line if desired:
+    # sed -i '' "${lineno}s|.*|${new_sep_line}|" "$DST_MD"
+
+    echo "  Generated separator: $new_sep_line"
+
+    # Replace original separator line at $lineno with $new_sep_line (portable sed)
+    escaped_new_sep_line="$(printf '%s' "$new_sep_line" | sed 's/[&/]/\\&/g')"
+    if sed --version >/dev/null 2>&1; then
+      # GNU sed
+      sed -i "${lineno}s/.*/$escaped_new_sep_line/" "$DST_MD"
+    else
+      # BSD sed (macOS) requires empty suffix
+      sed -i '' "${lineno}s/.*/$escaped_new_sep_line/" "$DST_MD"
+    fi
+
+  fi
+done
+
 echo "== Pandoc convert =="
 pandoc "$DST_MD" --lua-filter=./filters/bubble.lua -f markdown -t latex -o "$OUTDIR/$NAME-pandoc.tex"
 
