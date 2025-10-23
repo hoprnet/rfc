@@ -225,9 +225,27 @@
   {\end{quote}}
 
 % --- Table styling ---
+\RequirePackage{needspace} 
 \RequirePackage{longtable}
 \RequirePackage{booktabs}
 \RequirePackage{array}
+
+% \AtBeginEnvironment{longtable}{\small} % Force \small font size inside every longtable
+
+% Same page table - doesnt work! TODO: fix to use instad of the solution below
+% \AtBeginEnvironment{longtable}{\begin{samepage}\small}
+% \AtEndEnvironment{longtable}{\end{samepage}}
+
+\newlength{\MinLongtableSpace}
+\setlength{\MinLongtableSpace}{10\baselineskip} % heuristic: ~7 lines
+
+\AtBeginEnvironment{longtable}{%
+  \par
+  \needspace{\MinLongtableSpace}% move to next page if remaining space < MinLongtableSpace
+  \small
+}% ...existing code...
+
+
 
 % --- Enhanced hyperlink styling ---
 \hypersetup{
