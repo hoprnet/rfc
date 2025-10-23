@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0008
 - **Title:** Session Data Protocol
-- **Status:** Implementation
+- **Status:** Finalized
 - **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-15
 - **Updated:** 2025-09-05
-- **Version:** v0.1.0 (Draft)
+- **Version:** v1.0.0 (Finalized)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md),
@@ -47,28 +47,28 @@ transmission once a session is established.
 Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following
 session-protocol-specific terms:
 
-- _frame_: a logical unit of data transmission in the session protocol. Frames can be of arbitrary length and are identified by a unique frame ID.
+- **frame**: a logical unit of data transmission in the session protocol. Frames can be of arbitrary length and are identified by a unique frame ID.
   Frames represent complete application messages that may span multiple packets.
 
-- _segment_: a fixed-size fragment of a frame. Frames larger than the packet MTU are split into segments for transmission, with each segment carrying
+- **segment**: a fixed-size fragment of a frame. Frames larger than the packet MTU are split into segments for transmission, with each segment carrying
   metadata about its position within the frame to enable reassembly.
 
-- _frame ID_: a 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed, starting from 1). Frame ID values are interpreted
+- **frame ID**: a 32-bit unsigned integer that uniquely identifies a frame within a session (1-indexed, starting from 1). Frame ID values are interpreted
   as big-endian unsigned integers and increment sequentially with each new frame.
 
-- _Sequence Number (SeqNum)_: an 8-bit unsigned integer indicating a segment's position within its frame (0-indexed, starting from 0). This enables
+- **sequence number (SeqNum)**: an 8-bit unsigned integer indicating a segment's position within its frame (0-indexed, starting from 0). This enables
   correct reassembly of frames from segments.
 
-- _Sequence Flags (SeqFlags)_: an 8-bit value encoding additional segment metadata, including whether the segment is the final segment of a frame and
+- **sequence flags (SeqFlags)**: an 8-bit value encoding additional segment metadata, including whether the segment is the final segment of a frame and
   whether it represents a terminating segment.
 
-- _session socket_: the endpoint abstraction that implements the session protocol, available in both reliable and unreliable variants. Session sockets
+- **session socket**: the endpoint abstraction that implements the session protocol, available in both reliable and unreliable variants. Session sockets
   provide familiar send/receive APIs to applications.
 
-- _MTU (Maximum Transmission Unit)_: the maximum size of a single HOPR protocol message payload, denoted as `C` throughout this specification. This is
+- **MTU (maximum transmission unit)**: the maximum size of a single HOPR protocol message payload, denoted as `C` throughout this specification. This is
   determined by the packet format defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md).
 
-- _terminating segment_: a special segment with the termination flag set that signals the graceful end of a session. Terminating segments carry no data
+- **terminating segment**: a special segment with the termination flag set that signals the graceful end of a session. Terminating segments carry no data
   payload.
 
 ## 4. Specification

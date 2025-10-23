@@ -1,22 +1,23 @@
-# RFC-0004 HOPR Packet Protocol
+# RFC-0004: HOPR Packet Protocol
 
 - **RFC Number:** 0004
 - **Title:** HOPR Packet Protocol
-- **Status:** Draft
+- **Status:** Finalized
 - **Author(s):** Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-03-19
 - **Updated:** 2025-08-27
-- **Version:** v0.9.0 (Draft)
+- **Version:** v1.0.0 (Finalized)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
-  [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
+  [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md), [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md),
+  [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
 
 ## 1. Abstract
 
 This RFC describes the wire format of a HOPR packet and its encoding and decoding protocols. The HOPR packet format is heavily based on the Sphinx
 packet format [01], as it aims to fulfill a similar set of goals: providing anonymous, indistinguishable packets that hide path length and ensure
-unlinkability of messages. The HOPR packet format extends Sphinx by adding information to support incentivisation of individual relay nodes through the
-Proof of Relay mechanism.
+unlinkability of messages. The HOPR packet format extends Sphinx by adding information to support incentivisation of individual relay nodes through 
+the Proof of Relay mechanism.
 
 The Proof of Relay (PoR) mechanism is described in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md). This RFC focuses on the packet
 structure and cryptographic operations required for packet creation, forwarding, and processing.
@@ -62,20 +63,20 @@ to be interpreted as described in [02] when, and only when, they appear in all c
 Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used throughout this document. Additionally, the following
 packet-protocol-specific terms are defined:
 
-_peer public/private key_ (also _pubkey_ or _privkey_): part of a cryptographic key pair owned by a peer. The public key is used to establish
+**Peer public/private key** (also **pubkey** or **privkey**): part of a cryptographic key pair owned by a peer. The public key is used to establish
 shared secrets for onion encryption, whilst the private key is kept secret and used to decrypt packets destined for that peer.
 
-_extended path_: a forward or return path that includes the final destination or original sender respectively. For a forward path of `N` hops, the
+**Extended path**: a forward or return path that includes the final destination or original sender respectively. For a forward path of `N` hops, the
 extended path contains `N` relay nodes plus the destination node (`N+1` nodes total). For a return path, it contains `N` relay nodes plus the original sender.
 
-_pseudonym_: a randomly generated identifier of the sender used to enable reply messages. The pseudonym MAY be prefixed with a static prefix to allow
+**Pseudonym**: a randomly generated identifier of the sender used to enable reply messages. The pseudonym MAY be prefixed with a static prefix to allow
 the sender to be identified across multiple messages whilst maintaining anonymity. The length of any static prefix MUST NOT exceed half of the entire
 pseudonym's size. The pseudonym used in the forward message MUST be identical to the pseudonym used in any reply message to enable proper routing.
 
-_public key identifier_: a compact identifier of each peer's public key. The size of such an identifier SHOULD be strictly smaller than the size of
+**Public key identifier**: a compact identifier of each peer's public key. The size of such an identifier SHOULD be strictly smaller than the size of
 the corresponding public key to reduce header overhead. Implementations MAY use truncated hashes of public keys as identifiers.
 
-_|x|_: denotes the binary representation length of `x` in bytes. This notation is used throughout the specification to indicate field sizes.
+**|x|**: denotes the binary representation length of `x` in bytes. This notation is used throughout the specification to indicate field sizes.
 
 ### 2.2. Global packet format parameters
 

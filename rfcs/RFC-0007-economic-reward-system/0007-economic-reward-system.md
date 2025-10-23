@@ -26,18 +26,18 @@ The economic reward system is a necessary component of the HOPR mixnet, as it in
 
 Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following economic system-specific terms:
 
-- _Subgraph_: an off-chain data indexer (such as The Graph protocol) that indexes blockchain events and provides queryable access to on-chain data
+- **subgraph**: an off-chain data indexer (such as The Graph protocol) that indexes blockchain events and provides queryable access to on-chain data
   including NFT holders, registered nodes, allocations, and EOA balances.
-- _API_: the HOPR node HTTP API that provides real-time network data including topology information, peer connectivity, and channel balances.
-- _EOA (Externally Owned Account)_: a blockchain account directly controlled by a private key (as opposed to a smart contract account). EOAs can
+- **API**: the HOPR node HTTP API that provides real-time network data including topology information, peer connectivity, and channel balances.
+- **EOA (externally owned account)**: a blockchain account directly controlled by a private key (as opposed to a smart contract account). EOAs can
   initiate transactions and hold token balances.
-- _Safe_: a smart contract wallet (specifically Gnosis Safe) used for holding tokens with multi-signature security. Node operators typically use Safes
+- **safe**: a smart contract wallet (specifically Gnosis Safe) used for holding tokens with multi-signature security. Node operators typically use Safes
   to manage their staked funds.
-- _CT node_: a node running the Cover Traffic (CT) application, which is used by the HOPR Association to distribute rewards. CT nodes are excluded from
+- **CT node**: a node running the Cover Traffic (CT) application, which is used by the HOPR Association to distribute rewards. CT nodes are excluded from
   receiving rewards to prevent self-dealing.
-- _NFT Holder_: an address holding a specific NFT that grants preferential treatment in the reward system (lower staking thresholds).
-- _SessionToSocket_: an implementation object that manages a UDP session and socket for communicating with a specific peer.
-- _MessageFormat_: a class responsible for encoding message metadata and payload as bytes for transmission over the network.
+- **NFT holder**: an address holding a specific NFT that grants preferential treatment in the reward system (lower staking thresholds).
+- **SessionToSocket**: an implementation object that manages a UDP session and socket for communicating with a specific peer.
+- **MessageFormat**: a class responsible for encoding message metadata and payload as bytes for transmission over the network.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01].

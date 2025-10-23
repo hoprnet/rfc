@@ -2,21 +2,26 @@
 
 - **RFC Number:** 0001
 - **Title:** RFC Life Cycle, Process and Structure
-- **Status:** Raw
+- **Status:** Finalized
 - **Author(s):** Qianchen Yu (@QYuQianchen), Tino Breddin (@tolbrino)
 - **Created:** 2025-02-20
 - **Updated:** 2025-08-20
-- **Version:** v0.2.0 (Raw)
+- **Version:** v1.0.0 (Finalized)
 - **Supersedes:** none
 - **Related Links:** none
 
 ## 1. Abstract
 
-This RFC defines the lifecycle, contribution process, versioning system, governance model, and document structure for RFCs within the HOPR project. It specifies the stages RFCs progress through, along with the naming conventions, validation rules, and formatting standards that MUST be followed to ensure consistency and clarity across all RFC submissions. The process ensures iterative development with feedback loops, transparent updates via pull requests (PRs), and clear criteria for advancing through each stage.
+This RFC defines the lifecycle, contribution process, versioning system, governance model, and document structure for RFCs within the HOPR
+project. It specifies the stages RFCs progress through, along with the naming conventions, validation rules, and formatting standards that
+MUST be followed to ensure consistency and clarity across all RFC submissions. The process ensures iterative development with feedback loops,
+transparent updates via pull requests (PRs), and clear criteria for advancing through each stage.
 
 ## 2. Motivation
 
-The HOPR project requires a clear and consistent process for managing technical proposals and documenting protocol architecture. A well-defined lifecycle MUST be established and upheld to maintain coherence, ensure quality, streamline development, and provide clear expectations for contributors. This process serves multiple purposes:
+The HOPR project requires a clear and consistent process for managing technical proposals and documenting protocol architecture. A
+well-defined lifecycle MUST be established and upheld to maintain coherence, ensure quality, streamline development, and provide clear
+expectations for contributors. This process serves multiple purposes:
 
 - **Quality assurance**: ensuring that RFCs undergo appropriate review and refinement before implementation
 - **Transparency**: making the development process visible and accessible to all stakeholders
@@ -28,7 +33,7 @@ The HOPR project requires a clear and consistent process for managing technical 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01].
 
-_Draft_: an RFC is considered a draft from the moment it is proposed for review. A draft MUST include a clear summary, contextual background, and
+**Draft**: an RFC is considered a draft from the moment it is proposed for review. A draft MUST include a clear summary, contextual background, and
 initial technical details sufficient for evaluation. Drafts MUST follow the v0.x.x versioning scheme, with each version being independently reviewable
 and, where appropriate, independently implementable. A draft version (v0.1.0) is assigned as soon as the first PR is created and the RFC number is
 allocated.
@@ -166,6 +171,30 @@ All RFCs MUST include the following sections:
 1. **Metadata Preface** (as defined in 4.4.1)
 2. **Abstract** - Brief summary of the RFC's purpose and scope
 3. **References** - External citations (if any)
+
+#### 4.4.4. Terminology Formatting Standards
+
+All RFCs MUST follow consistent terminology formatting to ensure clarity and professionalism:
+
+- **Format**: Use bold with colons for term definitions: `**Term**: definition`
+- **Capitalization**: Capitalize the first word of each term: `**Node**`, `**Relay node**`, `**Session protocol**`
+- **Punctuation**: Always use colons after terms in definition lists
+- **Consistency**: Apply the same formatting throughout each RFC and across all RFCs
+
+**Examples:**
+```
+- **Node**: a process that implements the HOPR protocol and participates in the mixnet
+- **Relay node**: a node that forwards messages from one node to another in the mixnet
+- **Session protocol**: the protocol layer that provides reliable message delivery over HOPR packets
+```
+
+**Incorrect examples:**
+```
+- _Node_: (should use bold instead of italics)
+- **Node**: (should capitalize first word)
+- **Node** (should include colon)
+- "Node": (should not use quotation marks)
+```
 
 ## 5. Design Considerations
 

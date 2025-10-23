@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0005
 - **Title:** Proof of Relay
-- **Status:** Implementation
+- **Status:** Finalized
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
 - **Created:** 2025/04/02
 - **Updated:** 2025/08/28
-- **Version:** v0.9.0 (Draft)
+- **Version:** v1.0.0 (Finalized)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
@@ -39,14 +39,14 @@ packets" or "mixnet packets" refer to a particular structure (`HOPR_Packet`) def
 
 In addition, this document defines the following proof-of-relay-specific terms:
 
-- _channel_ (or _payment channel_): a unidirectional relation between two parties (source node and destination node) that holds a monetary
+- **Channel** (or **Payment channel**): a unidirectional relation between two parties (source node and destination node) that holds a monetary
   balance. The source can pay out funds to the destination when certain conditions are met (specifically, when valid proof-of-relay tickets are
   presented).
-- _ticket_: a cryptographic structure that enables probabilistic fund transfer within a payment channel. Tickets contain challenges that must be solved
+- **Ticket**: a cryptographic structure that enables probabilistic fund transfer within a payment channel. Tickets contain challenges that must be solved
   by the relay node to prove packet delivery.
-- _domainSeparator_: a unique identifier that binds cryptographic signatures to a specific execution context (contract address, chain ID, etc.) to
+- **DomainSeparator**: a unique identifier that binds cryptographic signatures to a specific execution context (contract address, chain ID, etc.) to
   prevent replay attacks across different domains where the channel ledger may be deployed.
-- _Notice period (T_closure)_: the minimum elapsed time required for an outgoing channel to transition from the `PENDING_TO_CLOSE` state to the `CLOSED`
+- **Notice period (T_closure)**: the minimum elapsed time required for an outgoing channel to transition from the `PENDING_TO_CLOSE` state to the `CLOSED`
   state. This period allows relay nodes to claim pending rewards before channel closure.
 
 The above terms are formally defined in the following sections.
@@ -65,16 +65,16 @@ The security parameter `L` SHALL NOT be less than 2^128, meaning the chosen cryp
 
 The following cryptographic primitives are required:
 
-- _EC group_: a specific elliptic curve `E` group over a finite field, where the computational Diffie-Hellman problem has hardness at least
+- **EC group**: a specific elliptic curve `E` group over a finite field, where the computational Diffie-Hellman problem has hardness at least
   equal to the security parameter `L`. Field elements are denoted using lowercase letters, whilst elliptic curve points (EC points) are denoted using
   uppercase letters.
-- _MUL(a,B)_: scalar multiplication of an EC point `B` by a scalar `a` from the corresponding finite field.
-- _ADD(A,B)_: addition of two EC points `A` and `B` on the elliptic curve.
-- _Public key_: a non-identity EC group element of large order, used to identify a node and establish shared secrets.
-- _Private key_: a scalar from the finite field of the chosen EC group, corresponding to a public key. Must be kept secret.
-- _Hash `H(x)`_: a cryptographic hash function taking an input of any size and returning a fixed-length output. The security of `H` against
+- **MUL(a,B)**: scalar multiplication of an EC point `B` by a scalar `a` from the corresponding finite field.
+- **ADD(A,B)**: addition of two EC points `A` and `B` on the elliptic curve.
+- **Public key**: a non-identity EC group element of large order, used to identify a node and establish shared secrets.
+- **Private key**: a scalar from the finite field of the chosen EC group, corresponding to a public key. Must be kept secret.
+- **Hash `H(x)`**: a cryptographic hash function taking an input of any size and returning a fixed-length output. The security of `H` against
   preimage, collision, and second-preimage attacks SHALL be at least `L` bits.
-- _Verifiable Random Function (VRF)_: a function that produces a pseudo-random value along with a proof of correct computation. The output is publicly
+- **Verifiable random function (VRF)**: a function that produces a pseudo-random value along with a proof of correct computation. The output is publicly
   verifiable but cannot be forged or precomputed without the secret key.
 
 Nodes and clients MUST implement handling for each of the above to ensure compliance and fault tolerance within the HOPR PoR protocol.
@@ -100,7 +100,7 @@ Channel funds MUST be strictly greater than 0 and strictly less than 2^96 (to fi
 There MUST NOT be more than one payment channel between any two nodes A and B in a given direction. Since channels are unidirectional, there MAY
 simultaneously exist both a channel A -> B and a channel B -> A.
 
-Each channel has a unique, deterministic identifier: the channel ID. The channel ID for A → B MUST be computed as:
+Each channel has a unique, deterministic identifier: the channel ID. The channel ID for A -> B MUST be computed as:
 `channel_id = H(f(P_A)||f(P_B))` where `||` denotes byte-wise concatenation and `f` represents a deterministic encoding function for public keys
 (typically compressed EC point encoding). This construction is directional: the source node's public key appears first, followed by the destination node's
 public key.

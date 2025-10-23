@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0009
 - **Title:** Session Start Protocol
-- **Status:** Implementation
+- **Status:** Finalized
 - **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-20
 - **Updated:** 2025-09-05
-- **Version:** v0.1.0 (Draft)
+- **Version:** v1.0.0 (Finalized)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
@@ -38,17 +38,17 @@ The session start protocol is intentionally lightweight and transport-agnostic, 
 
 Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used throughout this specification. Additionally, this document defines the following session start protocol-specific terms:
 
-- _challenge_: A 64-bit random value used to correlate requests and responses in the handshake process. Challenge values MUST be generated using a cryptographically secure pseudo-random number generator (CSPRNG) and are interpreted as big-endian unsigned integers.
+- **challenge**: A 64-bit random value used to correlate requests and responses in the handshake process. Challenge values MUST be generated using a cryptographically secure pseudo-random number generator (CSPRNG) and are interpreted as big-endian unsigned integers.
 
-- _session target_: The destination or purpose of a session, typically representing an address or service identifier. Session targets are encoded using CBOR format [01] to allow flexible representation of various endpoint types (e.g., IPv4/IPv6 addresses with ports, service URIs).
+- **session target**: The destination or purpose of a session, typically representing an address or service identifier. Session targets are encoded using CBOR format [01] to allow flexible representation of various endpoint types (e.g., IPv4/IPv6 addresses with ports, service URIs).
 
-- _session capabilities_: A bitmap of session features and options negotiated during session establishment. The capabilities field enables peers to agree on optional protocol features, with unrecognised bits being safely ignored to support backward compatibility.
+- **session capabilities**: A bitmap of session features and options negotiated during session establishment. The capabilities field enables peers to agree on optional protocol features, with unrecognised bits being safely ignored to support backward compatibility.
 
-- _session ID_: A unique identifier assigned by the responder to identify an established session. Session IDs are encoded using CBOR format and MUST be unique within the responder's session namespace. Within HOPR, session IDs follow a specific format (see Appendix 1).
+- **session ID**: A unique identifier assigned by the responder to identify an established session. Session IDs are encoded using CBOR format and MUST be unique within the responder's session namespace. Within HOPR, session IDs follow a specific format (see Appendix 1).
 
-- _entry node_: The node that initiates a session establishment request. The entry node generates the initial challenge and specifies the desired session target and capabilities.
+- **entry node**: The node that initiates a session establishment request. The entry node generates the initial challenge and specifies the desired session target and capabilities.
 
-- _exit node_: The node that receives and responds to a session establishment request. The exit node validates the request, assigns a unique session ID upon success, and returns either a `SessionEstablished` or `SessionError` message.
+- **exit node**: The node that receives and responds to a session establishment request. The exit node validates the request, assigns a unique session ID upon success, and returns either a `SessionEstablished` or `SessionError` message.
 
 ## 4. Specification
 
@@ -432,11 +432,7 @@ Implementations SHOULD include comprehensive tests covering:
 
 [01] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.
 
-## 11. Related Links
-
-- [RFC-0011 Application Layer protocol](../RFC-0011-application-protocol/0011-application-protocol.md)
-
-## 12. Appendix 1
+## 11. Appendix 1
 
 Within the HOPR protocol, a session is identified uniquely via the HOPR session ID. This consists of 10 pseudo-random bytes as a prefix and a 64-bit unsigned integer as a suffix. The 64-bit suffix is encoded and interpreted as a big-endian unsigned integer.
 
