@@ -43,35 +43,6 @@
 % --- Load custom style ---
 \usepackage{rfcstyle}
 
-% Pandoc image handling
-\makeatletter
-\def\pandocbounded#1{#1}
-% Limit natural size to text block (never exceed \textwidth or \textheight)
-\def\maxwidth{%
-  \ifdim\Gin@nat@width>\textwidth
-    \textwidth
-  \else
-    \Gin@nat@width
-  \fi
-}
-\def\maxheight{%
-  \ifdim\Gin@nat@height>\textheight
-    \textheight
-  \else
-    \Gin@nat@height
-  \fi
-}
-% Apply both limits while preserving aspect ratio
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio,draft=false}
-
-\setlength{\fboxrule}{0pt}       % ensure no frame if \fbox/\frame used
-\makeatother
-
-% Set default figure placement
-\makeatletter
-\def\fps@figure{htbp}
-\makeatother
-
 % Number sections but NOT subsections
 \makeatother
 \setcounter{secnumdepth}{1}
