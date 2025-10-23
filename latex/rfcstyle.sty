@@ -95,7 +95,7 @@
 \newcommand{\mediumlarge}{\fontsize{12}{14}\selectfont}
 \renewcommand{\normalsize}{\fontsize{8}{11}\selectfont}
 \renewcommand{\small}{\fontsize{7}{10}\selectfont}
-\newcommand{\footerAuthorsSize}{\fontsize{6}{6}\selectfont}
+\newcommand{\footerAuthorsSize}{\fontsize{7}{7}\selectfont}
 
 % --- Section styling with HOPR branding ---
 \titleformat{\section}
@@ -123,9 +123,9 @@
 
 
 % --- Custom commands for header/footer ---
-\newcommand{\rfcnumber}[1]{\fancyhead[LE,RO]{RFC-#1}}
-\newcommand{\rfctitle}[1]{\fancyhead[CE,CO]{#1}}
-\newcommand{\rfcdate}[1]{\fancyhead[RE,LO]{#1}}
+\newcommand{\rfcnumber}[1]{\fancyhead[LE,RO]{\footerAuthorsSize RFC-#1}}
+\newcommand{\rfctitle}[1]{\fancyhead[CE,CO]{\footerAuthorsSize #1}}
+\newcommand{\rfcdate}[1]{\fancyhead[RE,LO]{\footerAuthorsSize #1}}
 \newcommand{\rfcauthor}[1]{\def\rfcauthorname{#1}}
 \newcommand{\rfcauthorname}{} % initialize empty
 % \newcommand{\rfcauthor}[1]{\fancyfoot[RE,LO]{#1}}
@@ -137,10 +137,10 @@
 
 % Odd pages: author left, page number right
 \fancyfoot[LO]{\footerAuthorsSize\rfcauthorname}
-\fancyfoot[RO]{\thepage}
+\fancyfoot[RO]{\footerAuthorsSize\thepage}
 
 % Even pages: page number left, author right (swapped)
-\fancyfoot[LE]{\thepage}
+\fancyfoot[LE]{\footerAuthorsSize\thepage}
 \fancyfoot[RE]{\footerAuthorsSize\rfcauthorname}
 
 % Clear centers
@@ -151,7 +151,7 @@
 \fancypagestyle{plain}{
   \fancyhf{}
   \fancyfoot[LO]{}
-  \fancyfoot[RO]{\thepage}
+  \fancyfoot[RO]{\footerAuthorsSize\thepage}
   \fancyfoot[LE]{}
   \fancyfoot[RE]{}
   \fancyfoot[CO]{}
