@@ -361,20 +361,22 @@
 \setlength{\fboxrule}{0pt}       % ensure no frame if \fbox/\frame used
 \makeatother
 
-% Set default figure placement
-% \makeatletter
-% \def\fps@figure{H}
-% \makeatother
-
 \RequirePackage{placeins}
-
 \makeatletter
 \def\fps@figure{!htbp} % strong preference: here/top/bottom/page
 \makeatother
 \usepackage{etoolbox}
-\AfterEndEnvironment{figure}{\FloatBarrier}
+\AtBeginEnvironment{figure}{%
+  \renewcommand{\caption}[2][]{\refstepcounter{figure}} % disable caption display
+}
+\AfterEndEnvironment{figure}{
+  \FloatBarrier
+}
 
-% \AtBeginEnvironment{figure}{\par\phantomsection}
-% \captionsetup[figure]{hypcap=true}
+
+% Remove the border around figures and tables
+\floatstyle{plain}% was boxed
+\restylefloat{figure}
+\restylefloat{table}
 
 
