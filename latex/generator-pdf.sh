@@ -98,5 +98,5 @@ printf '%s\n' "$INCLUDE_LINES"
 [ $FAIL_COUNT -eq 0 ] || exit 1
 
 echo "🖨  Building PDF..."
-xelatex -synctex=1 -interaction=nonstopmode -halt-on-error -shell-escape main.tex
-echo "✅ Done: main.pdf"
+xelatex -synctex=1 -interaction=nonstopmode -halt-on-error -shell-escape HOPR_RFCs.tex
+echo "✅ Done: HOPR_RFCs.pdf"

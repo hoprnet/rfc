@@ -71,10 +71,10 @@ jobs:
       - name: Collect PDF
         run: |
           mkdir -p artifacts
-          if [ -f latex/main.pdf ]; then
-            cp latex/main.pdf artifacts/RFCs.pdf
+          if [ -f latex/HOPR_RFCs.pdf ]; then
+            cp latex/HOPR_RFCs.pdf artifacts/HOPR_RFCs.pdf
           else
-            echo "main.pdf not found"
+            echo "HOPR_RFCs.pdf not found"
             exit 1
           fi
 
