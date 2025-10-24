@@ -68,14 +68,13 @@
   text and listing
 }
 
+
 % Create environment that preserves line breaks
 \newenvironment{codebubbleenv}
   {\VerbatimEnvironment
    \begin{codebubbleblock}%
-   \begingroup
-   \catcode`\\=9 % Make backslash an "ignored" character in this group
    \begin{Verbatim}[breaklines=true,breakanywhere=true]}
-  {\end{Verbatim}\endgroup\end{codebubbleblock}}
+  {\end{Verbatim}\end{codebubbleblock}}
 
 % --- Font size adjustments ---
 \renewcommand{\large}{\fontsize{16}{18}\selectfont}
@@ -83,6 +82,9 @@
 \renewcommand{\normalsize}{\fontsize{8}{11}\selectfont}
 \renewcommand{\small}{\fontsize{7}{10}\selectfont}
 \newcommand{\footerAuthorsSize}{\fontsize{7}{7}\selectfont}
+
+% --- SourceCodePro SemiBold for \textbf ---
+\renewcommand{\textbf}[1]{{\SourceCodeProSemiBold #1}}
 
 % --- Section styling with HOPR branding ---
 \titleformat{\section}
