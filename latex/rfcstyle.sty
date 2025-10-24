@@ -64,7 +64,7 @@
   top=4pt,
   bottom=-5pt,
   fontupper=\sourcecodepro\small\color{rfcbody},
-  breakable,
+  breakable=false, % prevent page breaks inside codebubbleblock
   text and listing
 }
 
@@ -72,8 +72,10 @@
 \newenvironment{codebubbleenv}
   {\VerbatimEnvironment
    \begin{codebubbleblock}%
+   \begingroup
+   \catcode`\\=9 % Make backslash an "ignored" character in this group
    \begin{Verbatim}[breaklines=true,breakanywhere=true]}
-  {\end{Verbatim}\end{codebubbleblock}}
+  {\end{Verbatim}\endgroup\end{codebubbleblock}}
 
 % --- Font size adjustments ---
 \renewcommand{\large}{\fontsize{16}{18}\selectfont}
