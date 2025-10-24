@@ -86,4 +86,4 @@ jobs:
           if-no-files-found: warn
 
       - name: Verify main PDF
-        run: test -f artifacts/RFCs.pdf
+        run: test -f artifacts/HOPR_RFCs.pdf
