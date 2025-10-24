@@ -7,14 +7,24 @@ set -u
 
 RFC_FOLDER="../rfcs"
 GENERATOR_SCRIPT="./generator-tex.sh"
-BASE_MAIN_TEX="main_base.tex"
-MAIN_TEX="main.tex"
+BASE_MAIN_TEX="./assets/tex/main_base.tex"
+STYLE_FILE="./assets/tex/rfcstyle.sty"
+MAIN_TEX="./generated/main.tex"
 
 echo "🔍 Scanning for RFC markdown files..."
 
 [ -d "$RFC_FOLDER" ] || { echo "❌ RFC folder not found: $RFC_FOLDER"; exit 1; }
 [ -f "$GENERATOR_SCRIPT" ] || { echo "❌ Generator script not found: $GENERATOR_SCRIPT"; exit 1; }
 [ -f "$BASE_MAIN_TEX" ] || { echo "❌ $BASE_MAIN_TEX not found in $(pwd)"; exit 1; }
+
+
+echo "Copy style file..."
+mkdir -p ./generated
+cp "$STYLE_FILE" ./generated/rfcstyle.sty
+
+echo "Copy fonts files..."
+cp -r ./assets/fonts ./generated/fonts
+
 
 # Collect markdown files
 MD_FILES=()
@@ -63,8 +73,9 @@ for MD_FILE in "${MD_FILES[@]}"; do
   name="${base%.*}"
   gen_dir="generated/$name"
   tex_file="$gen_dir/${name}-pandoc.tex"
+  include_file="$name/${name}-pandoc.tex"
   if [ -f "$tex_file" ]; then
-    INCLUDE_LINES+=$(printf '\\include{%s}\n' "$tex_file")
+    INCLUDE_LINES+=$(printf '\\include{%s}\n' "$include_file")
   fi
 done
 
@@ -98,5 +109,7 @@ printf '%s\n' "$INCLUDE_LINES"
 [ $FAIL_COUNT -eq 0 ] || exit 1
 
 echo "🖨  Building PDF..."
-xelatex -synctex=1 -interaction=nonstopmode -halt-on-error -shell-escape HOPR_RFCs.tex
+cd ./generated
+xelatex -synctex=1 -interaction=nonstopmode -halt-on-error -shell-escape ./main.tex
+cp ./main.pdf ../HOPR_RFCs.pdf
 echo "✅ Done: HOPR_RFCs.pdf"

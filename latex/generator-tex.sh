@@ -173,7 +173,7 @@ done
 
 echo "== Pandoc convert =="
 pandoc "$DST_MD" \
-  --lua-filter=./filters/bubble.lua \
+  --lua-filter=./assets/filters/bubble.lua \
   -f markdown \
   -t latex \
   -o "$OUTDIR/$NAME-pandoc.tex"
@@ -187,7 +187,7 @@ else
   SED_I=(-i '')
 fi
 
-sed "${SED_I[@]}" "s|mermaid_\\([0-9][0-9]*\\)\\.png|generated/$NAME/mermaid_\\1.png|g" "$OUTDIR/$NAME-pandoc.tex"
+sed "${SED_I[@]}" "s|mermaid_\\([0-9][0-9]*\\)\\.png|$NAME/mermaid_\\1.png|g" "$OUTDIR/$NAME-pandoc.tex"
 
 
 echo "== Extract metadata =="
