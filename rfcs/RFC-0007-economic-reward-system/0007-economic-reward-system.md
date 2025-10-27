@@ -18,8 +18,6 @@ The reward system operates by collecting data from multiple sources (blockchain,
 
 ## 2. Motivation
 
-The rewards calculation can be seen as an opaque procedure selecting who receives which amount. This RFC aims to lift the veil and clarify the reasoning behind it.
-
 The economic reward system is a necessary component of the HOPR mixnet, as it incentivises node runners to keep their nodes running in order to have a network topology that is as stable as possible. It must employ fair logic that never favours or disadvantages a subset of node runners, and that encourages sustainability without compromising decentralisation. It must also incentivise node runners to be connected to other nodes in the network via channels. Isolated nodes are far less useful to the network than well-connected nodes.
 
 ## 3. Terminology

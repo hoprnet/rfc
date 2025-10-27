@@ -82,7 +82,7 @@ The network probing mechanism abstracts transport interactions and consists of t
 
 The primary responsibility of the path-generating component is to apply different graph traversal algorithms to generate probe paths that offer insights into selected sections of the network, with the goal of collecting path viability information.
 
-The algorithm MUST use a loopback form of communication to conceal the probing nature of the traffic from relay nodes. Loopback communication means that the probing node functions as both sender and receiver, with packets traversing a multi-hop path before returning to the origin. Loopback MAY be realized via the session protocol ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) or via an equivalent ephemeral mechanism; formal sessions are OPTIONAL for probing traffic.
+The algorithm MUST use a loopback form of communication to conceal the probing nature of the traffic from relay nodes. Loopback communication means that the probing node functions as both sender and receiver, with packets traversing a multi-hop path before returning to the origin. Loopback MAY be realised via the session protocol ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) or via an equivalent ephemeral mechanism; formal sessions are OPTIONAL for probing traffic.
 
 In this approach, each node in the path is treated as a probed relay node, and each edge between consecutive relays is treated as a probed connection. While a single probing attempt does not guarantee extraction of all relevant information, when combined with results from multiple probing attempts across different paths, it enables construction of a comprehensive view of network topology and dynamics.
 

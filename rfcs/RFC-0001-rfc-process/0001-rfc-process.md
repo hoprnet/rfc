@@ -42,7 +42,7 @@ allocated.
 
 ### 4.1. RFC Life Cycle Stages
 
-#### 4.1.1. **Mermaid Diagram for RFC Life Cycle Stages**
+#### 4.1.1. Mermaid Diagram for RFC Life Cycle Stages
 
 ```mermaid
 graph TD
@@ -75,7 +75,7 @@ graph TD
     A --> I
 ```
 
-#### 4.1.2. **Stage Descriptions:**
+#### 4.1.2. Stage Descriptions
 
 - **Raw:** The RFC MUST begin as a raw draft reflecting initial ideas. The draft MAY contain incomplete details but MUST provide a clear
   objective.
@@ -181,14 +181,14 @@ All RFCs MUST follow consistent terminology formatting to ensure clarity and pro
 - **Punctuation**: Always use colons after terms in definition lists
 - **Consistency**: Apply the same formatting throughout each RFC and across all RFCs
 
-**Examples:**
+Examples:
 ```
 - **Node**: a process that implements the HOPR protocol and participates in the mixnet
 - **Relay node**: a node that forwards messages from one node to another in the mixnet
 - **Session protocol**: the protocol layer that provides reliable message delivery over HOPR packets
 ```
 
-**Incorrect examples:**
+Incorrect examples:
 ```
 - _Node_: (should use bold instead of italics)
 - **Node**: (should capitalize first word)

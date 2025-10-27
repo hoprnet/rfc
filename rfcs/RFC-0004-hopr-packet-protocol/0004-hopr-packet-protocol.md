@@ -492,7 +492,7 @@ actual public key to route the packet.
 
 ## 5. Packet processing
 
-This section describes the behavior of processing a `HOPR_Packet` instance when received by a peer (hop). Let `Phop_priv` be the private key
+This section describes the behaviour of processing a `HOPR_Packet` instance when received by a peer (hop). Let `Phop_priv` be the private key
 corresponding to the public key `Phop` of the peer processing the packet.
 
 Upon reception of a byte-sequence that is at least `|HOPR_Packet|` bytes long, the `|Ticket|` is separated from the sequence. As per section 2.4, the
