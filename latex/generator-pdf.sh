@@ -75,7 +75,7 @@ for MD_FILE in "${MD_FILES[@]}"; do
   tex_file="$gen_dir/${name}-pandoc.tex"
   include_file="$name/${name}-pandoc.tex"
   if [ -f "$tex_file" ]; then
-    INCLUDE_LINES+=$(printf '\\ifodd\\value{page}\\null\\else\\hbox{}\\newpage\\fi\\include{%s}\\clearpage\n' "$include_file")
+    INCLUDE_LINES+=$(printf '\\ifodd\\value{page}\\include{%s}\\else\\hbox{}\\newpage\\include{%s}\\fi\\clearpage\n' "$include_file" "$include_file")
   fi
 done
 

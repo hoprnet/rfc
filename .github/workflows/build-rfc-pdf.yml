@@ -27,7 +27,7 @@ jobs:
             texlive-xetex texlive-latex-extra texlive-fonts-recommended \
             texlive-fonts-extra texlive-luatex texlive-plain-generic \
             fonts-dejavu fonts-liberation fonts-noto-color-emoji \
-            imagemagick inkscape
+            imagemagick inkscape ghostscript
             
           # Chromium headless runtime libs (minimal)
           sudo apt-get install -y \
