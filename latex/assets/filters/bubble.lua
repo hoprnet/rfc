@@ -1,13 +1,12 @@
 function Code(el)
   local text = el.text
-  -- Multi-line code: use environment
-  -- Escape LaTeX special characters for environment content
+  
   text = text:gsub("([#$&%%{}])", "\\%1")
   text = text:gsub("_", "\\_")
   text = text:gsub("%^", "\\textasciicircum{}")
   text = text:gsub("~", "\\textasciitilde{}")
   
-  return pandoc.RawInline('latex', '\\begin{codebubble}\n' .. text .. '\n\\end{codebubble}')
+  return pandoc.RawInline('latex', '\\codebubble{' .. text .. '}')
 end
 
 function CodeBlock(el)
