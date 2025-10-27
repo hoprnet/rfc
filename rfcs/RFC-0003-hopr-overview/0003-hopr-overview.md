@@ -5,7 +5,7 @@
 - **Status:** Finalised
 - **Author(s):** Tino Breddin (@tolbrino)
 - **Created:** 2025-09-11
-- **Updated:** 2025-09-11
+- **Updated:** 2025-10-27
 - **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),

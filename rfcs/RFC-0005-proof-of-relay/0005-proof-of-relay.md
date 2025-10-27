@@ -5,7 +5,7 @@
 - **Status:** Finalised
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
 - **Created:** 2025-04-02
-- **Updated:** 2025-08-28
+- **Updated:** 2025-10-27
 - **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
@@ -95,7 +95,7 @@ When node A wishes to communicate with node C using node B as a relay, node A op
 B), depositing funds into this channel on-chain. The channel holds the current balance and additional state information shared between A and B, and funds
 flow strictly in the direction A -> B.
 
-Channel funds MUST be strictly greater than 0 and strictly less than 2^96 (to fit within the ticket structure's amount field).
+ MUST be strictly greater than 0 and strictly less than 2^96 (to fit within the ticket structure's amount field).
 
 There MUST NOT be more than one payment channel between any two nodes A and B in a given direction. Since channels are unidirectional, there MAY
 simultaneously exist both a channel A -> B and a channel B -> A.
@@ -402,7 +402,7 @@ If the ticket validation fails at any point, it still applies that the discarded
 
 #### 5.2.3. Ticket acknowledgement
 
-The following sections first describe how acknowledgements are created when sent back to the original packet's Sender, and secondly how a received
+The following sections first describe how acknowledgements are created when sent back to the original packet's sender, and secondly how a received
 acknowledgement should be processed.
 
 ##### 5.2.3.1. Sending acknowledgement
@@ -431,8 +431,7 @@ This EC field element MUST be encoded as a big-endian integer (denoted as `ECSca
    `ack_secret` is set to a random EC point on `E`.
 
 The `signature` field contains the signature of the encoded `ack_secret` bytes. The signature is done over `H(ack_secret)` using the private key of the
-acknowledging party. For this purpose, the same EC cryptosystem for signing and verification as with `Ticket` SHOULD be used. The same encoding of the
-`signature` field is used as with the `Ticket`.
+acknowledging party. For this purpose, the same EC cryptosystem for signing and verification as with `Ticket` SHOULD be used. The same encoding MUST be used for the `signature` field as for the `Ticket`.
 
 ##### 5.2.3.2. Receiving an acknowledgement
 

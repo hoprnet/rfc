@@ -2,17 +2,17 @@
 
 - **RFC Number:** 0007
 - **Title:** Economic Reward System
-- **Status:** Raw
+- **Status:** Draft
 - **Author(s):** Jean Demeusy (@jeandemeusy)
 - **Created:** 2025-08-25
-- **Updated:** 2025-08-25
-- **Version:** v0.1.0 (Raw)
+- **Updated:** 2025-10-27
+- **Version:** v0.2.0 (Draft)
 - **Supersedes:** none
 - **Related Links:** none
 
 ## 1. Abstract
 
-This RFC describes the mechanisms of the HOPR economic reward system, specifically how the eligible peer set is constructed and how rewards are calculated and distributed among peers. The system ensures fair and sustainable incentivisation of node operators whilst preventing gaming and maintaining network decentralisation.
+This RFC describes the mechanisms of the HOPR economic reward system, specifically how the eligible peer set is constructed and how rewards are calculated and distributed among peers. The system ensures fair and sustainable incentivisation of node operators whilst preventing gaming and maintaining network decentralisation. This reward system is separate from the payments made by nodes to relay their data through the mixnet, and instead serves to incentivise general participation and a large number of well-maintained nodes.
 
 The reward system operates by collecting data from multiple sources (blockchain, subgraphs, node APIs), filtering for eligible peers based on stake and connectivity requirements, applying an economic model to calculate reward allocations, and distributing rewards through the HOPR network itself.
 

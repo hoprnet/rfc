@@ -5,7 +5,7 @@
 - **Status:** Finalised
 - **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-15
-- **Updated:** 2025-09-05
+- **Updated:** 2025-10-27
 - **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),

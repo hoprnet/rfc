@@ -5,7 +5,7 @@
 - **Status:** Finalised
 - **Author(s):** Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-03-19
-- **Updated:** 2025-08-27
+- **Updated:** 2025-10-27
 - **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
@@ -650,7 +650,7 @@ The current version is instantiated using the following cryptographic primitives
 - OA is instantiated with Poly1305 [02]
 - KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`:
   `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
-- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [04]. `S` is used a the secret input, and `T` as an
+- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [05]. `S` is used a the secret input, and `T` as an
   additional domain separator.
 
 ## 7. References
