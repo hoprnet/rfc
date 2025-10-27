@@ -111,5 +111,6 @@ printf '%s\n' "$INCLUDE_LINES"
 echo "🖨  Building PDF..."
 cd ./generated
 xelatex -synctex=1 -interaction=nonstopmode -halt-on-error -shell-escape ./main.tex
-cp ./main.pdf ../HOPR_RFCs.pdf
+gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=./generated/output.pdf ./assets/prepared-pages/HOPR_RFC_148x210mm_InnerCover_Page.pdf ./generated/main.pdf
+cp ./output.pdf ../HOPR_RFCs.pdf
 echo "✅ Done: HOPR_RFCs.pdf"
