@@ -2,70 +2,60 @@
 
 - **RFC Number:** 0007
 - **Title:** Economic Reward System
-- **Status:** Raw
+- **Status:** Draft
 - **Author(s):** Jean Demeusy (@jeandemeusy)
 - **Created:** 2025-08-25
-- **Updated:** 2025-08-25
-- **Version:** v0.1.0 (Raw)
+- **Updated:** 2025-10-27
+- **Version:** v0.2.0 (Draft)
 - **Supersedes:** none
 - **Related Links:** none
 
 ## 1. Abstract
 
-This RFC describes the mechanisms of the HOPR economic reward system, specifically how the eligible peer set is constructed and how rewards are
-calculated and distributed among peers. The system ensures fair and sustainable incentivisation of node operators whilst preventing gaming and
-maintaining network decentralisation.
+This RFC describes the mechanisms of the HOPR economic reward system, specifically how the eligible peer set is constructed and how rewards are calculated and distributed among peers. The system ensures fair and sustainable incentivisation of node operators whilst preventing gaming and maintaining network decentralisation. This reward system is separate from the payments made by nodes to relay their data through the mixnet, and instead serves to incentivise general participation and a large number of well-maintained nodes.
 
-The reward system operates by collecting data from multiple sources (blockchain, subgraphs, node APIs), filtering for eligible peers based on stake
-and connectivity requirements, applying an economic model to calculate reward allocations, and distributing rewards through the HOPR network itself.
+The reward system operates by collecting data from multiple sources (blockchain, subgraphs, node APIs), filtering for eligible peers based on stake and connectivity requirements, applying an economic model to calculate reward allocations, and distributing rewards through the HOPR network itself.
 
 ## 2. Motivation
 
-The rewards calculation can be seen as an opaque procedure selecting who receives which amount. This RFC aims to lift the veil and clarify the
-reasoning behind it.
-
-The economic reward system is a necessary component of the HOPR mixnet, as it incentivises node runners to keep their nodes running in order to have a
-network topology that is as stable as possible. It must employ fair logic that never favours or disadvantages a subset of node runners, and that
-encourages sustainability without compromising decentralisation. It must also incentivise node runners to be connected to other nodes in the network
-via channels. Isolated nodes are far less useful to the network than well-connected nodes.
+The economic reward system is a necessary component of the HOPR mixnet, as it incentivises node runners to keep their nodes running in order to have a network topology that is as stable as possible. It must employ fair logic that never favours or disadvantages a subset of node runners, and that encourages sustainability without compromising decentralisation. It must also incentivise node runners to be connected to other nodes in the network via channels. Isolated nodes are far less useful to the network than well-connected nodes.
 
 ## 3. Terminology
 
-Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following economic
-system-specific terms:
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following economic system-specific terms:
 
-- _Subgraph_: an off-chain data indexer (such as The Graph protocol) that indexes blockchain events and provides queryable access to on-chain data
+- **subgraph**: an off-chain data indexer (such as The Graph protocol) that indexes blockchain events and provides queryable access to on-chain data
   including NFT holders, registered nodes, allocations, and EOA balances.
-- _API_: the HOPR node HTTP API that provides real-time network data including topology information, peer connectivity, and channel balances.
-- _EOA (Externally Owned Account)_: a blockchain account directly controlled by a private key (as opposed to a smart contract account). EOAs can
+- **API**: the HOPR node HTTP API that provides real-time network data including topology information, peer connectivity, and channel balances.
+- **EOA (externally owned account)**: a blockchain account directly controlled by a private key (as opposed to a smart contract account). EOAs can
   initiate transactions and hold token balances.
-- _Safe_: a smart contract wallet (specifically Gnosis Safe) used for holding tokens with multi-signature security. Node operators typically use Safes
+- **safe**: a smart contract wallet (specifically Gnosis Safe) used for holding tokens with multi-signature security. Node operators typically use Safes
   to manage their staked funds.
-- _CT node_: a node running the Cover Traffic (CT) application, which is used by the HOPR Association to distribute rewards. CT nodes are excluded
-  from receiving rewards to prevent self-dealing.
-- _NFT Holder_: an address holding a specific NFT that grants preferential treatment in the reward system (lower staking thresholds).
-- _SessionToSocket_: an implementation object that manages a UDP session and socket for communicating with a specific peer.
-- _MessageFormat_: a class responsible for encoding message metadata and payload as bytes for transmission over the network.
+- **CT node**: a node running the Cover Traffic (CT) application, which is used by the HOPR Association to distribute rewards. CT nodes are excluded from
+  receiving rewards to prevent self-dealing.
+- **NFT holder**: an address holding a specific NFT that grants preferential treatment in the reward system (lower staking thresholds).
+- **SessionToSocket**: an implementation object that manages a UDP session and socket for communicating with a specific peer.
+- **MessageFormat**: a class responsible for encoding message metadata and payload as bytes for transmission over the network.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01].
 
 ## 4. System Overview
 
-The HOPR Cover Traffic (CT) system distributes rewards to eligible peers based on their participation and stake in the network. The reward
-distribution process consists of several key stages:
+The HOPR Cover Traffic (CT) system distributes rewards to eligible peers based on their participation and stake in the network. The reward distribution
+process consists of several key stages:
 
 1. **Data collection and enrichment**: gathering peer data from multiple sources (blockchain, subgraphs, node APIs) and enriching each peer's profile
    with on-chain and off-chain information
-2. **Eligibility filtering**: applying a series of filters to determine which peers qualify for rewards based on stake, connectivity, and
-   participation criteria
+2. **Eligibility filtering**: applying a series of filters to determine which peers qualify for rewards based on stake, connectivity, and participation
+   criteria
 3. **Economic model application**: calculating the reward allocation (measured in message count) for each eligible peer using an economic model that
    considers stake amounts, network connectivity, and contribution metrics
 4. **Message distribution**: managing the technical process of sending reward messages to eligible peers via UDP sessions, ensuring fair and robust
    distribution
 
-This multi-stage process ensures that rewards are distributed fairly, transparently, and in proportion to each peer's contribution to network
-stability and performance.
+This multi-stage process ensures that rewards are distributed fairly, transparently, and in proportion to each peer's contribution to network stability
+and performance.
 
 The following flowchart summarizes the overall process:
 
@@ -89,9 +79,9 @@ flowchart TD
 Data is gathered from multiple sources to build a comprehensive view of the network and its participants. The HOPR node API provides a list of
 currently visible peers and the network topology, including open payment channels and their balances. Subgraphs supply information about registered
 nodes and their associated Safes. Direct RPC calls are used to provide specific allocations to targeted accounts (which may increase a peer's
-effective stake) and to retrieve those accounts' EOA balances. Finally, a static list of NFT owners is used to allow reward distribution to
-individuals holding a special "OG NFT". This combination of sources ensures that both the live state of the network and relevant historical or
-off-chain data are considered in the reward process.
+effective stake) and to retrieve those accounts' EOA balances. Finally, a static list of NFT owners is used to allow reward distribution to individuals
+holding a special "OG NFT". This combination of sources ensures that both the live state of the network and relevant historical or off-chain data are
+considered in the reward process.
 
 ### 5.2 Data Enrichment
 
@@ -127,8 +117,8 @@ flowchart LR
 
 The eligibility filtering process is designed to ensure that only peers who are meaningfully participating in the network and contributing resources
 are considered for rewards. The first filter checks that the peer's safe allowance meets a minimum threshold, ensuring that only active and funded
-peers are included. Next, the system excludes any peer that is also a CT node to prevent self-rewarding. The NFT/stake requirement is then applied: if
-a peer is not an NFT holder, they must meet a higher minimum stake threshold, while NFT holders may be subject to a lower threshold. Finally, all
+peers are included. Next, the system excludes any peer that is also a CT node to prevent self-rewarding. The NFT/stake requirement is then applied:
+if a peer is not an NFT holder, they must meet a higher minimum stake threshold, while NFT holders may be subject to a lower threshold. Finally, all
 peers must meet a minimum stake requirement, regardless of NFT status. Only those who pass all these checks are considered eligible for rewards.
 
 The following flowchart details the filtering logic:
@@ -194,8 +184,8 @@ Messages themselves are constructed using the `MessageFormat` class, which encod
 indices—into a raw byte string. The message is padded to the required packet size and sent through the UDP socket to the destination node's address
 and port. The system can optionally wait for a response to measure round-trip time, which is useful for monitoring and diagnostics.
 
-The batching of multiple message sendings is handled according to the session parameters described earlier. Multiple messages can be sent in a batch,
-and after each batch, the system waits for the calculated delay before sending the next batch. This approach ensures that message delivery is both
+The batching of multiple message sendings is handled according to the session parameters described earlier. Multiple messages can be sent in a batch, and
+after each batch, the system waits for the calculated delay before sending the next batch. This approach ensures that message delivery is both
 efficient and aligned with the reward allocation determined by the economic model.
 
 The following flowchart summarizes the message sending process:

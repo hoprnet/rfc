@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0011
 - **Title:** Application Layer protocol
-- **Status:** Draft
+- **Status:** Finalised
 - **Author(s):** Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-22
-- **Updated:** 2025-08-22
-- **Version:** v0.1.0 (Draft)
+- **Updated:** 2025-10-27
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
@@ -18,9 +18,9 @@
 This RFC describes the HOPR application layer protocol, a thin multiplexing layer that sits between the HOPR packet protocol
 [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) and higher-level protocols such as the session protocol
 [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) or session start protocol
-[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md). The application protocol enables HOPR nodes to distinguish between
-different upper-layer protocols running over the same packet transport, similar to how TCP and UDP use port numbers to multiplex multiple applications
-over IP.
+[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md). The application protocol enables HOPR nodes to distinguish
+between different upper-layer protocols running over the same packet transport, similar to how TCP and UDP use port numbers to multiplex multiple
+applications over IP.
 
 The protocol consists of a simple tagging mechanism using 64-bit identifiers, allowing up to 2^61 distinct protocol types whilst reserving space for
 future extensions.
@@ -47,9 +47,9 @@ Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md)
 The HOPR network can host multiple upper-layer protocols that serve different purposes. Examples include session management
 ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)), session establishment
 ([RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)), and path discovery
-([RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)). The application layer protocol described in this RFC creates a
-thin multiplexing layer between the HOPR packet protocol ([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) and these
-upper-layer protocols.
+([RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)). The application layer protocol described in this RFC creates a thin
+multiplexing layer between the HOPR packet protocol ([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) and these upper-layer
+protocols.
 
 The application layer protocol serves two primary purposes:
 
@@ -73,12 +73,10 @@ ApplicationData {
 **Tag structure:**
 
 The `Tag` MUST be represented by 64 bits, with the following structure:
-
 - The 3 most significant bits MUST always be set to 0 in the current version (reserved for future use)
 - The remaining 61 bits represent a unique identifier for the upper-layer protocol
 
-This design provides 2^61 (approximately 2.3 × 10^18) possible protocol identifiers whilst reserving space for future protocol versioning or
-extensions.
+This design provides 2^61 (approximately 2.3 × 10^18) possible protocol identifiers whilst reserving space for future protocol versioning or extensions.
 
 **Protocol tag allocation:**
 
@@ -100,8 +98,7 @@ This allocation ensures that core HOPR protocols have well-known identifiers whi
 The individual fields of `ApplicationData` MUST be encoded in the following order:
 
 1. `tag`: unsigned 8 bytes, big-endian order, the 3 most significant bits MUST be cleared
-2. `data`: opaque bytes, the length MUST be at most the size of the HOPR protocol packet, the upper layer protocol SHALL be responsible for the
-   framing
+2. `data`: opaque bytes, the length MUST be at most the size of the HOPR protocol packet, the upper layer protocol SHALL be responsible for the framing
 3. `field`: MUST NOT be serialised, it is a transient, implementation-local, per-packet field
 
 The upper layer protocol MAY use the 4 most significant bits in `flags` to pass arbitrary signalling to the HOPR packet protocol. Conversely, the HOPR
