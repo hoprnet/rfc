@@ -74,7 +74,7 @@ Every RFC MUST begin with this exact format:
 
 - **RFC Number:** XXXX
 - **Title:** [Title in Title Case]
-- **Status:** Raw | Discussion | Review | Draft | Implementation | Finalized | Errata | Rejected | Superseded
+- **Status:** Raw | Discussion | Review | Draft | Implementation | Finalised | Errata | Rejected | Superseded
 - **Author(s):** [Name (@GitHubHandle)]
 - **Created:** YYYY-MM-DD
 - **Updated:** YYYY-MM-DD

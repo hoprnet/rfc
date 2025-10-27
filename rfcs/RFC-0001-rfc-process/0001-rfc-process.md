@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0001
 - **Title:** RFC Life Cycle, Process and Structure
-- **Status:** Finalized
+- **Status:** Finalised
 - **Author(s):** Qianchen Yu (@QYuQianchen), Tino Breddin (@tolbrino)
 - **Created:** 2025-02-20
 - **Updated:** 2025-08-20
-- **Version:** v1.0.0 (Finalized)
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** none
 
@@ -56,10 +56,10 @@ graph TD
       Structured proposal ready for development, each version independently implementable`"]
     E["`**Implementation**
       PR Merge`"]
-    F["`**Finalized** (v1.0.0)
+    F["`**Finalised** (v1.0.0)
       Stable and complete RFC`"]
     G["`**Errata** (v1.0.x)
-      Minor technical corrections post-finalization`"]
+      Minor technical corrections post-finalisation`"]
     H["`**Superseded**
       New RFC required for significant updates`"]
     I["`**Rejected**
@@ -128,7 +128,7 @@ Every RFC MUST begin with the following metadata structure:
 
 - **RFC Number:** XXXX
 - **Title:** [Title in Title Case]
-- **Status:** Raw | Discussion | Review | Draft | Implementation | Finalized | Errata | Rejected | Superseded
+- **Status:** Raw | Discussion | Review | Draft | Implementation | Finalised | Errata | Rejected | Superseded
 - **Author(s):** [Name (GitHub Handle)]
 - **Created:** YYYY-MM-DD
 - **Updated:** YYYY-MM-DD

@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0005
 - **Title:** Proof of Relay
-- **Status:** Finalized
+- **Status:** Finalised
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
 - **Created:** 2025-04-02
 - **Updated:** 2025-08-28
-- **Version:** v1.0.0 (Finalized)
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)

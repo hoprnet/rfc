@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0004
 - **Title:** HOPR Packet Protocol
-- **Status:** Finalized
+- **Status:** Finalised
 - **Author(s):** Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-03-19
 - **Updated:** 2025-08-27
-- **Version:** v1.0.0 (Finalized)
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
   [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md), [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md),
@@ -486,7 +486,7 @@ The `PaddedPayload` of the reply packet MUST be encrypted as follows:
 EncPayload = PRP(Kprp_reply, PaddedPayload)
 ```
 
-This finalizes all the fields of the `HOPR_Packet` for the reply. The `HOPR_Packet` is sent to the peer represented by a public key, corresponding
+This finalises all the fields of the `HOPR_Packet` for the reply. The `HOPR_Packet` is sent to the peer represented by a public key, corresponding
 to `first_hop_ident` extracted from the `SURB` (that is the first peer on the return path). For this operation, the mapper MAY be used to get the
 actual public key to route the packet.
 

@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0002
 - **Title:** Common mixnet terms and keywords
-- **Status:** Finalized
+- **Status:** Finalised
 - **Author(s):** Tino Breddin (@tolbrino)
 - **Created:** 2025-08-01
 - **Updated:** 2025-09-04
-- **Version:** v1.0.0 (Finalized)
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** none
 

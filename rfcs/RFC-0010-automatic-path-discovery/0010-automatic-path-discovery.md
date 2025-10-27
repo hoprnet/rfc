@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0010
 - **Title:** Automatic path discovery
-- **Status:** Finalized
+- **Status:** Finalised
 - **Author(s):** @Teebor-Choka
 - **Created:** 2025-02-25
 - **Updated:** 2025-07-21
-- **Version:** v1.0.0 (Finalized)
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),

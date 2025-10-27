@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0006
 - **Title:** HOPR Mixer
-- **Status:** Finalized
+- **Status:** Finalised
 - **Author(s):** Tino Breddin (@tolbrino)
 - **Created:** 2025-08-14
 - **Updated:** 2025-09-04
-- **Version:** v1.0.0 (Finalized)
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
