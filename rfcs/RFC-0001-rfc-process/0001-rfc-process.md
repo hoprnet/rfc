@@ -2,30 +2,30 @@
 
 - **RFC Number:** 0001
 - **Title:** RFC Life Cycle, Process and Structure
-- **Status:** Raw
+- **Status:** Finalised
 - **Author(s):** Qianchen Yu (@QYuQianchen), Tino Breddin (@tolbrino)
 - **Created:** 2025-02-20
-- **Updated:** 2025-08-20
-- **Version:** v0.2.0 (Raw)
+- **Updated:** 2025-10-27
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** none
 
 ## 1. Abstract
 
-This RFC defines the lifecycle, contribution process, versioning system, governance model, and document structure for RFCs within the HOPR project. It
-specifies the stages RFCs progress through, along with the naming conventions, validation rules, and formatting standards that MUST be followed to
-ensure consistency and clarity across all RFC submissions. The process ensures iterative development with feedback loops, transparent updates via pull
-requests (PRs), and clear criteria for advancing through each stage.
+This RFC defines the lifecycle, contribution process, versioning system, governance model, and document structure for RFCs within the HOPR
+project. It specifies the stages RFCs progress through, along with the naming conventions, validation rules, and formatting standards that
+MUST be followed to ensure consistency and clarity across all RFC submissions. The process ensures iterative development with feedback loops,
+transparent updates via pull requests (PRs), and clear criteria for advancing through each stage.
 
 ## 2. Motivation
 
-The HOPR project requires a clear and consistent process for managing technical proposals and documenting protocol architecture. A well-defined
-lifecycle MUST be established and upheld to maintain coherence, ensure quality, streamline development, and provide clear expectations for
-contributors. This process serves multiple purposes:
+The HOPR project requires a clear and consistent process for managing technical proposals and documenting protocol architecture. A
+well-defined lifecycle MUST be established and upheld to maintain coherence, ensure quality, streamline development, and provide clear
+expectations for contributors. This process serves multiple purposes:
 
 - **Quality assurance**: ensuring that RFCs undergo appropriate review and refinement before implementation
 - **Transparency**: making the development process visible and accessible to all stakeholders
-- **Version control**: tracking changes and maintaining compatibility across protocol versions
+- **Version control**: tracking changes and maintaining compatibility across protocol versions  
 - **Coordination**: allowing multiple contributors to work on related RFCs without conflicts or inconsistencies
 
 ## 3. Terminology
@@ -33,7 +33,7 @@ contributors. This process serves multiple purposes:
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01].
 
-_Draft_: an RFC is considered a draft from the moment it is proposed for review. A draft MUST include a clear summary, contextual background, and
+**Draft**: an RFC is considered a draft from the moment it is proposed for review. A draft MUST include a clear summary, contextual background, and
 initial technical details sufficient for evaluation. Drafts MUST follow the v0.x.x versioning scheme, with each version being independently reviewable
 and, where appropriate, independently implementable. A draft version (v0.1.0) is assigned as soon as the first PR is created and the RFC number is
 allocated.
@@ -42,7 +42,7 @@ allocated.
 
 ### 4.1. RFC Life Cycle Stages
 
-#### 4.1.1. **Mermaid Diagram for RFC Life Cycle Stages**
+#### 4.1.1. Mermaid Diagram for RFC Life Cycle Stages
 
 ```mermaid
 graph TD
@@ -56,10 +56,10 @@ graph TD
       Structured proposal ready for development, each version independently implementable`"]
     E["`**Implementation**
       PR Merge`"]
-    F["`**Finalized** (v1.0.0)
+    F["`**Finalised** (v1.0.0)
       Stable and complete RFC`"]
     G["`**Errata** (v1.0.x)
-      Minor technical corrections post-finalization`"]
+      Minor technical corrections post-finalisation`"]
     H["`**Superseded**
       New RFC required for significant updates`"]
     I["`**Rejected**
@@ -75,9 +75,10 @@ graph TD
     A --> I
 ```
 
-#### 4.1.2. **Stage Descriptions:**
+#### 4.1.2. Stage Descriptions
 
-- **Raw:** The RFC MUST begin as a raw draft reflecting initial ideas. The draft MAY contain incomplete details but MUST provide a clear objective.
+- **Raw:** The RFC MUST begin as a raw draft reflecting initial ideas. The draft MAY contain incomplete details but MUST provide a clear
+  objective.
 - **Discussion:** Upon submission of the initial PR, the RFC number and `v0.1.0` version are assigned. Feedback SHALL be gathered via PRs, with
   iterative updates reflected in version increments `(v0.x.x)`.
 - **Review:** The RFC MUST undergo at least one review cycle. The draft SHOULD incorporate significant feedback and each iteration MUST be
@@ -88,8 +89,8 @@ graph TD
 - **Errata:** Minor technical corrections post-finalisation MUST be documented and result in a patch version increment (`v1.0.x`). Errata are
   technical corrections or factual updates made after an RFC has been finalised. They MUST NOT alter the intended functionality or introduce new
   features.
-- **Superseded:** Significant updates requiring functionality changes MUST be documented in a new RFC, starting at `v2.0.0` or higher. The original
-  RFC must include information that it has been superseded, accompanied by a link to the new RFC that supersedes it.
+- **Superseded:** Significant updates requiring functionality changes MUST be documented in a new RFC, starting at `v2.0.0` or higher. The
+  original RFC must include information that it has been superseded, accompanied by a link to the new RFC that supersedes it.
 - **Rejected:** If an RFC does not progress past the discussion stage, the reasons MUST be documented.
 
 ### 4.2. File Structure
@@ -127,7 +128,7 @@ Every RFC MUST begin with the following metadata structure:
 
 - **RFC Number:** XXXX
 - **Title:** [Title in Title Case]
-- **Status:** Raw | Discussion | Review | Draft | Implementation | Finalized | Errata | Rejected | Superseded
+- **Status:** Raw | Discussion | Review | Draft | Implementation | Finalised | Errata | Rejected | Superseded
 - **Author(s):** [Name (GitHub Handle)]
 - **Created:** YYYY-MM-DD
 - **Updated:** YYYY-MM-DD
@@ -170,6 +171,30 @@ All RFCs MUST include the following sections:
 1. **Metadata Preface** (as defined in 4.4.1)
 2. **Abstract** - Brief summary of the RFC's purpose and scope
 3. **References** - External citations (if any)
+
+#### 4.4.4. Terminology Formatting Standards
+
+All RFCs MUST follow consistent terminology formatting to ensure clarity and professionalism:
+
+- **Format**: Use bold with colons for term definitions: `**Term**: definition`
+- **Capitalization**: Capitalize the first word of each term: `**Node**`, `**Relay node**`, `**Session protocol**`
+- **Punctuation**: Always use colons after terms in definition lists
+- **Consistency**: Apply the same formatting throughout each RFC and across all RFCs
+
+Examples:
+```
+- **Node**: a process that implements the HOPR protocol and participates in the mixnet
+- **Relay node**: a node that forwards messages from one node to another in the mixnet
+- **Session protocol**: the protocol layer that provides reliable message delivery over HOPR packets
+```
+
+Incorrect examples:
+```
+- _Node_: (should use bold instead of italics)
+- **Node**: (should capitalize first word)
+- **Node** (should include colon)
+- "Node": (should not use quotation marks)
+```
 
 ## 5. Design Considerations
 

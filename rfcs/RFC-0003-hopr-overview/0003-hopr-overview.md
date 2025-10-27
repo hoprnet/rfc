@@ -2,31 +2,32 @@
 
 - **RFC Number:** 0003
 - **Title:** HOPR Overview
-- **Status:** Draft
+- **Status:** Finalised
 - **Author(s):** Tino Breddin (@tolbrino)
 - **Created:** 2025-09-11
-- **Updated:** 2025-09-11
-- **Version:** v0.1.0 (Draft)
+- **Updated:** 2025-10-27
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
   [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
-  [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
+  [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md), [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md),
+  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
 
 ## 1. Abstract
 
 This RFC provides an introductory overview of the HOPR network (also referred to as HOPRnet) and its associated protocol stack. HOPR is a
-decentralised and incentivised mix network that enables privacy-preserving communication by routing messages through multiple relay nodes using onion
-routing.
+decentralised and incentivised mix network that enables privacy-preserving communication by routing messages through multiple relay nodes using
+onion routing.
 
-HOPR's key innovation is the proof-of-relay mechanism, which addresses the challenge of establishing economically sustainable anonymous communication
-networks. By combining cryptographic proofs with economic incentives, HOPR enables scalable privacy infrastructure that becomes stronger with
-increased adoption, in contrast to volunteer-based networks that struggle with sustainability and performance issues.
+HOPR's key innovation is the proof-of-relay mechanism, which addresses the challenge of establishing economically sustainable anonymous
+communication networks. By combining cryptographic proofs with economic incentives, HOPR enables scalable privacy infrastructure that becomes
+stronger with increased adoption, in contrast to volunteer-based networks that struggle with sustainability and performance issues.
 
-This document serves as the primary entry point for understanding the HOPR network as outlined in these RFCs. It introduces the network architecture
-and protocol stack at a conceptual level and provides references to additional RFCs that define specific implementation details. The intended audience
-includes researchers, developers, and infrastructure operators seeking to understand or implement privacy-preserving communication systems based on
-the HOPR protocol.
+This document serves as the primary entry point for understanding the HOPR network as outlined in these RFCs. It introduces the network
+architecture and protocol stack at a conceptual level and provides references to additional RFCs that define specific implementation details.
+The intended audience includes researchers, developers, and infrastructure operators seeking to understand or implement privacy-preserving
+communication systems based on the HOPR protocol.
 
 ## 2. Motivation
 
@@ -66,7 +67,7 @@ The HOPR network comprises different node roles based on their function in messa
 
 - **Entry nodes**: nodes that initiate communication sessions and inject messages into the network
 - **Relay nodes**: intermediate nodes that forward messages along routing paths and receive payment for their relay services
-- **Exit nodes**: final relay nodes in a path that deliver messages to their intended destinations
+- **Exit nodes**: final relay nodes in a path that deliver messages to their intended destinations  
 - **Payment infrastructure**: on-chain payment channels that enable efficient microtransactions between nodes without requiring a blockchain
   transaction for each payment
 
@@ -78,12 +79,12 @@ distinction between these roles is functional rather than structural, being depe
 Messages in the HOPR network are routed through multi-hop paths to provide privacy protection. Path construction involves three phases:
 
 1. **Path discovery**: nodes discover available relay nodes through automated probing mechanisms detailed in
-   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md). This process identifies which nodes are reachable, reliable, and
-   have open payment channels.
-2. **Path selection**: senders choose routing paths based on multiple criteria, including privacy requirements, expected latency, relay costs, and
-   node reliability. The selection algorithm balances these trade-offs according to application needs.
-3. **Onion routing**: messages are encrypted in multiple layers using the Sphinx packet format [02, 03], with each relay node able to decrypt only one
-   layer to reveal the next hop whilst keeping the sender, final destination, and full path hidden.
+   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md). This process identifies which nodes are reachable,
+   reliable, and have open payment channels.
+2. **Path selection**: senders choose routing paths based on multiple criteria, including privacy requirements, expected latency, relay costs,
+   and node reliability. The selection algorithm balances these trade-offs according to application needs.
+3. **Onion routing**: messages are encrypted in multiple layers using the Sphinx packet format [02, 03], with each relay node able to decrypt
+   only one layer to reveal the next hop whilst keeping the sender, final destination, and full path hidden.
 
 ### 4.3 Economic Incentives
 
@@ -113,8 +114,8 @@ The network architecture provides several key privacy guarantees through its lay
   mixing prevent timing correlation attacks [06]. This ensures that an observer cannot correlate incoming and outgoing packets based on timing
   patterns.
 
-These properties hold even against an adversary who controls a subset of the network nodes, as long as at least one honest node exists in each routing
-path.
+These properties hold even against an adversary who controls a subset of the network nodes, as long as at least one honest node exists in each
+routing path.
 
 ## 5. Protocol Overview
 
@@ -141,9 +142,11 @@ The HOPR protocol is organized into five layers, arranged as follows:
 
 From top to bottom, these layers provide the following functionalities:
 
-**Application layer**: Support for applications and services **Session management layer**: Session establishment and data transfer **HOPR application
-protocol**: Message routing and protocol multiplexing **HOPR packet protocol**: Onion routing and encryption **Transport layer**: Network
-communication
+**Application layer**: Support for applications and services
+**Session management layer**: Session establishment and data transfer
+**HOPR application protocol**: Message routing and protocol multiplexing
+**HOPR packet protocol**: Onion routing and encryption
+**Transport layer**: Network communication
 
 ### 5.2 Core Protocol Components
 
@@ -152,22 +155,22 @@ communication
 The HOPR packet protocol ([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) defines the fundamental packet format and
 processing rules that enable onion routing:
 
-- **Onion encryption**: multi-layer encryption ensures that each relay node can decrypt only one layer to reveal the next hop's address, maintaining
-  sender and destination anonymity throughout the routing process.
+- **Onion encryption**: multi-layer encryption ensures that each relay node can decrypt only one layer to reveal the next hop's address,
+  maintaining sender and destination anonymity throughout the routing process.
 - **Sphinx-based design**: based on the Sphinx packet format [03] with extensions for incentivisation. Sphinx provides compact headers and strong
   cryptographic guarantees about packet unlinkability.
-- **Fixed packet size**: all packets have identical size (including header, payload, and proof-of-relay information) to prevent traffic analysis based
-  on packet size [06]. To achieve this, variable-length messages are padded to the maximum size.
+- **Fixed packet size**: all packets have identical size (including header, payload, and proof-of-relay information) to prevent traffic analysis
+  based on packet size [06]. To achieve this, variable-length messages are padded to the maximum size.
 - **Single-use reply blocks (SURBs)**: SURBs enable recipients to send reply messages back to anonymous senders without knowing their identity,
   supporting bidirectional communication whilst preserving anonymity.
 
 #### 5.2.2 Proof of Relay
 
-The proof of relay mechanism ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)) ensures that relay nodes actually forward packets before
-receiving payment:
+The proof of relay mechanism ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)) ensures that relay nodes actually forward packets
+before receiving payment:
 
-- **Cryptographic proofs**: each packet contains cryptographic challenges that can only be solved by a node that successfully delivers a packet to the
-  next hop. The solution serves as mathematical proof that the relay service was performed.
+- **Cryptographic proofs**: each packet contains cryptographic challenges that can only be solved by a node that successfully delivers a packet to
+  the next hop. The solution serves as mathematical proof that the relay service was performed.
 - **Payment integration**: proofs are cryptographically bound to payment tickets. Relay nodes can only claim payment by presenting valid proofs,
   ensuring that compensation is tied to actual work performed.
 - **Fraud prevention**: the mechanism detects and prevents nodes from claiming payment without providing relay services. Invalid proofs are rejected,
@@ -177,32 +180,32 @@ receiving payment:
 
 The HOPR mixer ([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) provides traffic analysis resistance through temporal mixing:
 
-- **Temporal mixing**: introduces random delays to packets before forwarding, breaking timing correlations between incoming and outgoing packets [01,
-  06]. This prevents attackers from linking packets based on timing patterns.
+- **Temporal mixing**: introduces random delays to packets before forwarding, breaking timing correlations between incoming and outgoing packets
+  [01, 06]. This prevents attackers from linking packets based on timing patterns.
 - **Configurable delays**: supports configurable minimum delay and delay range parameters, allowing nodes to balance privacy protection against
   latency requirements based on their threat model and application needs.
-- **Per-packet randomisation**: each packet receives an independently generated random delay, ensuring that timing patterns cannot be exploited even
-  when observing multiple packets.
-
+- **Per-packet randomisation**: each packet receives an independently generated random delay, ensuring that timing patterns cannot be exploited
+  even when observing multiple packets.
+  
 The mixer operates as a priority queue ordered by release timestamps, efficiently managing packets even under high-load conditions.
 
 #### 5.2.4 Session Management
 
 Session protocols provide higher-level communication primitives on top of the basic packet transport:
 
-- **Session establishment**: [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md) defines how nodes establish communication
-  sessions with capability negotiation, session identifier exchange, and keep-alive mechanisms.
-- **Data transfer**: [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) provides both reliable and unreliable data transmission modes.
-  Reliable mode includes acknowledgements, retransmissions, and in-order delivery, whilst unreliable mode offers lower latency for applications that
-  can tolerate packet loss.
-- **Message fragmentation**: sessions handle segmentation of large messages into multiple packets and reassembly at the destination, transparently
-  managing the fixed packet size constraint.
+- **Session establishment**: [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md) defines how nodes establish
+  communication sessions with capability negotiation, session identifier exchange, and keep-alive mechanisms.
+- **Data transfer**: [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) provides both reliable and unreliable data transmission
+  modes. Reliable mode includes acknowledgements, retransmissions, and in-order delivery, whilst unreliable mode offers lower latency for applications
+  that can tolerate packet loss.
+- **Message fragmentation**: sessions handle segmentation of large messages into multiple packets and reassembly at the destination,
+  transparently managing the fixed packet size constraint.
 - **Connection management**: session lifecycle management including error handling, timeout management, and graceful termination.
 
 #### 5.2.5 Economic System
 
-The economic reward system ([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md)) incentivises network participation through
-multiple mechanisms:
+The economic reward system ([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md)) incentivises network participation
+through multiple mechanisms:
 
 - **Staking rewards**: nodes that stake tokens receive rewards proportional to their stake, encouraging long-term network commitment and providing
   economic security.
@@ -217,10 +220,10 @@ multiple mechanisms:
 
 A typical message transmission through the HOPR network follows this flow:
 
-1. **Path discovery**: the sender discovers available relay nodes through active probing and constructs a routing path based on network topology,
-   channel availability, and performance metrics.
-2. **Session establishment**: if reliable delivery or bidirectional communication is required, the sender establishes a session with the recipient
-   using the session start protocol. For simple one-way messages, this step may be skipped.
+1. **Path discovery**: the sender discovers available relay nodes through active probing and constructs a routing path based on network topology, channel
+   availability, and performance metrics.
+2. **Session establishment**: if reliable delivery or bidirectional communication is required, the sender establishes a session with the recipient using
+   the session start protocol. For simple one-way messages, this step may be skipped.
 3. **Packet construction**: the message (possibly fragmented into multiple packets) is encrypted in multiple layers using onion encryption. Each layer
    includes routing information for one hop and cryptographic challenges for proof of relay.
 4. **Routing**: packets are forwarded through the selected path, with each relay node:
@@ -236,8 +239,8 @@ The HOPR protocol provides multiple integration points to support various applic
 
 - **Application protocol**: [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md) defines a lightweight multiplexing layer that
   allows multiple higher-level protocols to coexist over the HOPR packet transport, similar to port numbers in TCP/UDP.
-- **Transport independence**: the protocol can operate over different network transports (TCP, UDP, QUIC, etc.), making it deployable in various
-  network environments without requiring specific infrastructure.
+- **Transport independence**: the protocol can operate over different network transports (TCP, UDP, QUIC, etc.), making it deployable in various network
+  environments without requiring specific infrastructure.
 - **API compatibility**: through the session protocols, HOPR provides familiar networking APIs (stream-based and datagram-based) to ease application
   integration and lower the barrier to adoption.
 - **Extensibility**: the modular design allows for protocol extensions and improvements without breaking existing implementations. New features can be

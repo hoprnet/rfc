@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0005
 - **Title:** Proof of Relay
-- **Status:** Implementation
+- **Status:** Finalised
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
 - **Created:** 2025-04-02
-- **Updated:** 2025-08-28
-- **Version:** v0.9.0 (Draft)
+- **Updated:** 2025-10-27
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
@@ -20,8 +20,8 @@ anonymity.
 
 ## 2. Motivation
 
-The Proof of Relay mechanism addresses the challenge of ensuring reliable packet delivery in a privacy-preserving mixnet with economic incentives.
-When a sender (peer A) uses node B as a relay to deliver a packet to destination node C, the mechanism establishes that:
+The Proof of Relay mechanism addresses the challenge of ensuring reliable packet delivery in a privacy-preserving mixnet with economic incentives. When
+a sender (peer A) uses node B as a relay to deliver a packet to destination node C, the mechanism establishes that:
 
 1. Node A has cryptographic guarantees that node B delivered A's packet to node C
 2. After successful relaying to C, node B possesses a cryptographic proof of delivery
@@ -39,14 +39,15 @@ packets" or "mixnet packets" refer to a particular structure (`HOPR_Packet`) def
 
 In addition, this document defines the following proof-of-relay-specific terms:
 
-- _channel_ (or _payment channel_): a unidirectional relation between two parties (source node and destination node) that holds a monetary balance.
-  The source can pay out funds to the destination when certain conditions are met (specifically, when valid proof-of-relay tickets are presented).
-- _ticket_: a cryptographic structure that enables probabilistic fund transfer within a payment channel. Tickets contain challenges that must be
-  solved by the relay node to prove packet delivery.
-- _domainSeparator_: a unique identifier that binds cryptographic signatures to a specific execution context (contract address, chain ID, etc.) to
+- **Channel** (or **Payment channel**): a unidirectional relation between two parties (source node and destination node) that holds a monetary
+  balance. The source can pay out funds to the destination when certain conditions are met (specifically, when valid proof-of-relay tickets are
+  presented).
+- **Ticket**: a cryptographic structure that enables probabilistic fund transfer within a payment channel. Tickets contain challenges that must be solved
+  by the relay node to prove packet delivery.
+- **DomainSeparator**: a unique identifier that binds cryptographic signatures to a specific execution context (contract address, chain ID, etc.) to
   prevent replay attacks across different domains where the channel ledger may be deployed.
-- _Notice period (T_closure)_: the minimum elapsed time required for an outgoing channel to transition from the `PENDING_TO_CLOSE` state to the
-  `CLOSED` state. This period allows relay nodes to claim pending rewards before channel closure.
+- **Notice period (T_closure)**: the minimum elapsed time required for an outgoing channel to transition from the `PENDING_TO_CLOSE` state to the `CLOSED`
+  state. This period allows relay nodes to claim pending rewards before channel closure.
 
 The above terms are formally defined in the following sections.
 
@@ -55,24 +56,25 @@ to be interpreted as described in [01].
 
 ### 3.1. Cryptographic and security parameters
 
-This document uses certain cryptographic and mathematical terms. A security parameter `L` is defined, and corresponding cryptographic primitives are
-instantiated to achieve this security level. The specific instantiation for the current version of this protocol is provided in Appendix 1.
+This document uses certain cryptographic and mathematical terms. A security parameter `L` is defined, and corresponding cryptographic
+primitives are instantiated to achieve this security level. The specific instantiation for the current version of this protocol is provided in
+Appendix 1.
 
-The security parameter `L` SHALL NOT be less than 2^128, meaning the chosen cryptographic primitive instantiations SHALL provide at least 128 bits of
-security against known attacks.
+The security parameter `L` SHALL NOT be less than 2^128, meaning the chosen cryptographic primitive instantiations SHALL provide at least
+128 bits of security against known attacks.
 
 The following cryptographic primitives are required:
 
-- _EC group_: a specific elliptic curve `E` group over a finite field, where the computational Diffie-Hellman problem has hardness at least equal to
-  the security parameter `L`. Field elements are denoted using lowercase letters, whilst elliptic curve points (EC points) are denoted using uppercase
-  letters.
-- _MUL(a,B)_: scalar multiplication of an EC point `B` by a scalar `a` from the corresponding finite field.
-- _ADD(A,B)_: addition of two EC points `A` and `B` on the elliptic curve.
-- _Public key_: a non-identity EC group element of large order, used to identify a node and establish shared secrets.
-- _Private key_: a scalar from the finite field of the chosen EC group, corresponding to a public key. Must be kept secret.
-- _Hash `H(x)`_: a cryptographic hash function taking an input of any size and returning a fixed-length output. The security of `H` against preimage,
-  collision, and second-preimage attacks SHALL be at least `L` bits.
-- _Verifiable Random Function (VRF)_: a function that produces a pseudo-random value along with a proof of correct computation. The output is publicly
+- **EC group**: a specific elliptic curve `E` group over a finite field, where the computational Diffie-Hellman problem has hardness at least
+  equal to the security parameter `L`. Field elements are denoted using lowercase letters, whilst elliptic curve points (EC points) are denoted using
+  uppercase letters.
+- **MUL(a,B)**: scalar multiplication of an EC point `B` by a scalar `a` from the corresponding finite field.
+- **ADD(A,B)**: addition of two EC points `A` and `B` on the elliptic curve.
+- **Public key**: a non-identity EC group element of large order, used to identify a node and establish shared secrets.
+- **Private key**: a scalar from the finite field of the chosen EC group, corresponding to a public key. Must be kept secret.
+- **Hash `H(x)`**: a cryptographic hash function taking an input of any size and returning a fixed-length output. The security of `H` against
+  preimage, collision, and second-preimage attacks SHALL be at least `L` bits.
+- **Verifiable random function (VRF)**: a function that produces a pseudo-random value along with a proof of correct computation. The output is publicly
   verifiable but cannot be forged or precomputed without the secret key.
 
 Nodes and clients MUST implement handling for each of the above to ensure compliance and fault tolerance within the HOPR PoR protocol.
@@ -84,23 +86,24 @@ The concrete choices of the above cryptographic primitives for the implementatio
 Payment channels are the foundation of the HOPR incentive mechanism. They enable efficient micropayments between nodes without requiring a blockchain
 transaction for each packet relayed.
 
-Let A, B, and C be peers participating in the mixnet. Each node possesses its own private key (`Kpriv_A`, `Kpriv_B`, `Kpriv_C`) and the corresponding
-public key (`P_A`, `P_B`, `P_C`). Public keys are publicly exposed to enable packet routing and shared secret establishment.
+Let A, B, and C be peers participating in the mixnet. Each node possesses its own private key (`Kpriv_A`, `Kpriv_B`, `Kpriv_C`) and the
+corresponding public key (`P_A`, `P_B`, `P_C`). Public keys are publicly exposed to enable packet routing and shared secret establishment.
 
 The public keys MUST be from an elliptic curve cryptosystem represented by elliptic curve `E`.
 
-When node A wishes to communicate with node C using node B as a relay, node A opens a unidirectional payment channel with node B (denoted A -> B),
-depositing funds into this channel on-chain. The channel holds the current balance and additional state information shared between A and B, and funds
+When node A wishes to communicate with node C using node B as a relay, node A opens a unidirectional payment channel with node B (denoted A ->
+B), depositing funds into this channel on-chain. The channel holds the current balance and additional state information shared between A and B, and funds
 flow strictly in the direction A -> B.
 
-Channel funds MUST be strictly greater than 0 and strictly less than 2^96 (to fit within the ticket structure's amount field).
+ MUST be strictly greater than 0 and strictly less than 2^96 (to fit within the ticket structure's amount field).
 
 There MUST NOT be more than one payment channel between any two nodes A and B in a given direction. Since channels are unidirectional, there MAY
 simultaneously exist both a channel A -> B and a channel B -> A.
 
-Each channel has a unique, deterministic identifier: the channel ID. The channel ID for A → B MUST be computed as: `channel_id = H(f(P_A)||f(P_B))`
-where `||` denotes byte-wise concatenation and `f` represents a deterministic encoding function for public keys (typically compressed EC point
-encoding). This construction is directional: the source node's public key appears first, followed by the destination node's public key.
+Each channel has a unique, deterministic identifier: the channel ID. The channel ID for A -> B MUST be computed as:
+`channel_id = H(f(P_A)||f(P_B))` where `||` denotes byte-wise concatenation and `f` represents a deterministic encoding function for public keys
+(typically compressed EC point encoding). This construction is directional: the source node's public key appears first, followed by the destination node's
+public key.
 
 Channels transition through three distinct lifecycle states:
 
@@ -144,8 +147,8 @@ A payment channel between nodes A -> B MUST always be initiated by node A. It MU
 `0`, `channel_epoch` equal to `1` and `status` equal to `Open`. To prevent spamming, the funding `balance` MUST be larger than `MIN_USED_BALANCE` and
 smaller than `MAX_USED_BALANCE`.
 
-In such state, the node A is allowed to communicate with node C via B and the node B can claim certain fixed amounts of `balance` to be paid out to it
-in return - as a reward for the relaying work. This will be described in the later sections.
+In such state, the node A is allowed to communicate with node C via B and the node B can claim certain fixed amounts of `balance` to be paid out to it in
+return - as a reward for the relaying work. This will be described in the later sections.
 
 At any point in time, the channel initiator A can initiate a closure of the channel A -> B. Such transition MUST change the `status` field to
 `PENDING_TO_CLOSE` and this change MUST be communicated to B. In such state, the node A MUST NOT be allowed to communicate with C via B, but B MUST be
@@ -229,8 +232,8 @@ The `ticket` signature MUST be done over the same elliptic curve `E` using the p
 ### 5.2. Construction of Proof-of-Relay (PoR) secrets
 
 This section uses terms defined in Section 2.2 in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), namely the
-`SharedSecret_i` generated for the `i`-th node on the path (`i` ranges from 0 (sender node) up to `n` (destination node), i.e. `n` is equal to the
-path length). Note that for 0-hop path (a direct packet from sender to destination), `n` = 1.
+`SharedSecret_i` generated for the `i`-th node on the path (`i` ranges from 0 (sender node) up to `n` (destination node), i.e. `n` is equal to the path
+length). Note that for 0-hop path (a direct packet from sender to destination), `n` = 1.
 
 In the PoR mechanism, a cryptographic secret is established between relay nodes and their adjacent nodes on the route.
 
@@ -399,7 +402,7 @@ If the ticket validation fails at any point, it still applies that the discarded
 
 #### 5.2.3. Ticket acknowledgement
 
-The following sections first describe how acknowledgements are created when sent back to the original packet's Sender, and secondly how a received
+The following sections first describe how acknowledgements are created when sent back to the original packet's sender, and secondly how a received
 acknowledgement should be processed.
 
 ##### 5.2.3.1. Sending acknowledgement
@@ -427,9 +430,8 @@ This EC field element MUST be encoded as a big-endian integer (denoted as `ECSca
    [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) or during packet pre-verification or validation from Section 5.2):
    `ack_secret` is set to a random EC point on `E`.
 
-The `signature` field contains the signature of the encoded `ack_secret` bytes. The signature is done over `H(ack_secret)` using the private key of
-the acknowledging party. For this purpose, the same EC cryptosystem for signing and verification as with `Ticket` SHOULD be used. The same encoding of
-the `signature` field is used as with the `Ticket`.
+The `signature` field contains the signature of the encoded `ack_secret` bytes. The signature is done over `H(ack_secret)` using the private key of the
+acknowledging party. For this purpose, the same EC cryptosystem for signing and verification as with `Ticket` SHOULD be used. The same encoding MUST be used for the `signature` field as for the `Ticket`.
 
 ##### 5.2.3.2. Receiving an acknowledgement
 
@@ -456,8 +458,8 @@ The response is a field element of `E`.
 
 ##### 5.2.3.3. Derivation of VRF parameters for an Acknowledged ticket
 
-Once the ticket becomes acknowledged, the node then calculates the `vrf_V` value, which will be useful to determine if the ticket is suitable for
-value extraction.
+Once the ticket becomes acknowledged, the node then calculates the `vrf_V` value, which will be useful to determine if the ticket is suitable for value
+extraction.
 
 Let `HC(msg, ctx)` be a suitable Hash to Curve function for `E`, where `msg` is an arbitrary binary message, `ctx` is a domain separator and whose
 output is a point on `E`. See Appendix 1 for a concrete choice of `HC`.
@@ -466,8 +468,8 @@ Let `P` be the ticket recipient's public key in the EC cryptosystem on `E`.
 
 Let `a` be the corresponding private key as field element of `E`.
 
-The field element MUST be representable as an unsigned big-endian integer so that it can be used e.g. as an input to a hash function `H`. Similarly,
-`P` MUST be representable in an "uncompressed" form when given to a hash function as input.
+The field element MUST be representable as an unsigned big-endian integer so that it can be used e.g. as an input to a hash function `H`. Similarly, `P`
+MUST be representable in an "uncompressed" form when given to a hash function as input.
 
 Let `H_P` be an irreversible byte-representation of `P`.
 
@@ -491,8 +493,8 @@ the EC point's coordinates.
 
 ### 6.1. Discovering acknowledged winning tickets
 
-The acknowledged tickets are _probabilistic_ in the sense that the monetary value represented by the `amount` MUST be claimable only if the
-acknowledged ticket is _winning_. This is determined using the `encoded_win_prob` field on the `Ticket`.
+The acknowledged tickets are _probabilistic_ in the sense that the monetary value represented by the `amount` MUST be claimable only if the acknowledged
+ticket is _winning_. This is determined using the `encoded_win_prob` field on the `Ticket`.
 
 Let `luck` be an unsigned 56-bit integer in the big-endian encoding created by truncating the output of the following hash output:
 
@@ -509,8 +511,8 @@ ticket.
 
 ### 6.2. Claiming a winning ticket
 
-The monetary value represented by the `amount` on a _winning_ ticket can be claimable at some third party which provides such a service. Such a third
-party MUST have the ability to modify the global state of all the involved `Channels`.
+The monetary value represented by the `amount` on a _winning_ ticket can be claimable at some third party which provides such a service. Such a third party
+MUST have the ability to modify the global state of all the involved `Channels`.
 
 Such `amount` SHOULD be claimable only if the `Channel` corresponding to the winning ticket has enough `balance` >= `amount`.
 
