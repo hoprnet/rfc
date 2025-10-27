@@ -250,9 +250,20 @@
 
 % --- Enhanced table of contents styling ---
 \RequirePackage{tocloft}
-\renewcommand{\cftsecfont}{\sourcecodepro\bfseries\color{rfcblue}}
-\renewcommand{\cftsubsecfont}{\sourcecodepro\color{rfcblue}}
-\renewcommand{\cftsubsubsecfont}{\sourcecodepro\color{rfcbody}}
+\renewcommand{\cftsecfont}{\sourcecodepro\large\bfseries\color{rfcblue}}
+\renewcommand{\cftsubsecfont}{\sourcecodepro\large\color{rfcblue}}
+\renewcommand{\cftsubsubsecfont}{\sourcecodepro\large\color{rfcbody}}
+% Remove section numbering in TOC
+\renewcommand{\numberline}[1]{}
+\renewcommand{\cftsecnumwidth}{0pt}
+\renewcommand{\cftsubsecnumwidth}{0pt}
+\renewcommand{\cftsubsubsecnumwidth}{0pt}
+\renewcommand{\cftsecpresnum}{}
+\renewcommand{\cftsubsecpresnum}{}
+\renewcommand{\cftsubsubsecpresnum}{}
+\renewcommand{\cftsecaftersnum}{}
+\renewcommand{\cftsubsecaftersnum}{}
+\renewcommand{\cftsubsubsecaftersnum}{}
 
 % --- Caption styling ---
 \RequirePackage{caption}
@@ -371,19 +382,19 @@
 
 
 
-% --- Enhanced table of contents styling ---
-\RequirePackage{tocloft}
-\renewcommand{\cftsecfont}{\sourcecodepro\bfseries\color{rfcblue}}
-\renewcommand{\cftsubsecfont}{\sourcecodepro\color{rfcblue}}
-\renewcommand{\cftsubsubsecfont}{\sourcecodepro\color{rfcbody}}
-% Remove section numbering in TOC
-\renewcommand{\numberline}[1]{}
-\renewcommand{\cftsecnumwidth}{0pt}
-\renewcommand{\cftsubsecnumwidth}{0pt}
-\renewcommand{\cftsubsubsecnumwidth}{0pt}
-\renewcommand{\cftsecpresnum}{}
-\renewcommand{\cftsubsecpresnum}{}
-\renewcommand{\cftsubsubsecpresnum}{}
-\renewcommand{\cftsecaftersnum}{}
-\renewcommand{\cftsubsecaftersnum}{}
-\renewcommand{\cftsubsubsecaftersnum}{}
+% % --- Enhanced table of contents styling ---
+% \RequirePackage{tocloft}
+% \renewcommand{\cftsecfont}{\sourcecodepro\bfseries\color{rfcblue}}
+% \renewcommand{\cftsubsecfont}{\sourcecodepro\color{rfcblue}}
+% \renewcommand{\cftsubsubsecfont}{\sourcecodepro\color{rfcbody}}
+% % Remove section numbering in TOC
+% \renewcommand{\numberline}[1]{}
+% \renewcommand{\cftsecnumwidth}{0pt}
+% \renewcommand{\cftsubsecnumwidth}{0pt}
+% \renewcommand{\cftsubsubsecnumwidth}{0pt}
+% \renewcommand{\cftsecpresnum}{}
+% \renewcommand{\cftsubsecpresnum}{}
+% \renewcommand{\cftsubsubsecpresnum}{}
+% \renewcommand{\cftsecaftersnum}{}
+% \renewcommand{\cftsubsecaftersnum}{}
+% \renewcommand{\cftsubsubsecaftersnum}{}
