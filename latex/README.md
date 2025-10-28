@@ -22,6 +22,7 @@ macOS:
 brew install pandoc 
 brew install imagemagick
 brew install ghostscript
+brew install jq
 brew install --cask mactex
 npm install --global mermaid-filter @mermaid-js/mermaid-cli
 brew install inkscape
