@@ -51,7 +51,7 @@ The HOPR packet consists of two primary parts:
 2. **Ticket**: contains payment and proof-of-relay information for the next hop on the path. The ticket structure enables probabilistic micropayments to
    incentivise relay nodes. Tickets are described in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md).
 
-These two parts are concatenated to form the complete HOPR packet, which has a fixed size regardless of the actual payload length to prevent traffic analysis based on packet size. This fixed sized is achieved by padding payloads which fall below the maximum size in bytes.
+These two parts are concatenated to form the complete HOPR packet, which has a fixed size regardless of the actual payload length to prevent traffic analysis based on packet size. This fixed size is achieved by padding payloads which fall below the maximum size in bytes.
 
 **This document describes version 1.0.0 of the HOPR packet format and protocol.**
 
@@ -197,7 +197,7 @@ The meta packet consists of the following components:
 - `Header` (an instantiation of the Sphinx mix header)
 - padded and encrypted payload `EncPayload`
 
-The above order of these components is canonical and MUST be followed when a packet is serialized to its binary form. The definitions of the above
+The above order of these components is canonical and MUST be followed when a packet is serialised to its binary form. The definitions of the above
 components follow in the next sections.
 
 The `Alpha` value is obtained from the Shared secrets generation phase.
@@ -239,11 +239,11 @@ Let `ID_i` be a public key identifier of `P_i` (by using the mapper), and `|T|` 
 
 Let `RoutingInfoLen` be equal to `1 + |ID| + |T| + |PoRString|`.
 
-Allocate a zeroized `HdrExt` buffer of `1 + |Pseudonym| + 4 * RoutingInfoLen` bytes and another zeroed buffer `OATag` of `|T|` bytes.
+Allocate a zeroised `HdrExt` buffer of `1 + |Pseudonym| + 4 * RoutingInfoLen` bytes and another zeroed buffer `OATag` of `|T|` bytes.
 
 For each i = 1 up to N+1 do:
 
-1. Initialize PRG with `SharedSecret_{N-i+2}`
+1. Initialise PRG with `SharedSecret_{N-i+2}`
 2. If i is equal to 1
    - Set `HdrExt[0]` to `HeaderPrefix_0`
    - Copy all bytes of `Pseudonym` to `HdrExt` at offset 1
@@ -253,7 +253,7 @@ For each i = 1 up to N+1 do:
    - If N > 0, generate _filler bytes_ given the list of Shared secrets as follows:
      - Allocate a zeroed buffer Filler of `(N-1)* RoutingInfoLen`
      - For each j from 1 to N-1:
-       - Initialize a new PRG instance with `SharedSecret_j`
+       - Initialise a new PRG instance with `SharedSecret_j`
        - Seek the PRG to position `1 + |Pseudonym| + (4 - j) * RoutingInfoLen`
        - XOR RoutingInfoLen bytes of the PRG to Filler from offset 0 up to `j * RoutingInfoLen`
        - Destroy the PRG instance
@@ -531,7 +531,7 @@ for all `i` as |ID|.
 1. Generate `K_tag` = KDF("HASH_KEY_TAG", 0, `SharedSecret_i`)
 2. Compute `oa_tag_c` = OA(`K_tag`, `header`)
 3. If `oa_tag_c` != `oa_tag`, the entire packet MUST be rejected.
-4. Initialize PRG with `SharedSecret_i` and XOR PRG bytes to `header`
+4. Initialise PRG with `SharedSecret_i` and XOR PRG bytes to `header`
 5. The first byte of the transformed `header` represents the `HeaderPrefix`:
    - Verify that the first 3 most significant bits represent the supported version (`001`), otherwise the entire packet MUST be rejected.
    - If 3 least significant bits are not all zeros (meaning this node not the recipient):

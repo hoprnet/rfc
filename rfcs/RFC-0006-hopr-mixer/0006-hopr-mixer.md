@@ -155,7 +155,7 @@ An implementation should prioritise:
 - **statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies (e.g., exponential/Poisson as in Loopix [01])
   provide better resistance to pattern inference
 - **queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behaviour when full (e.g., drop-tail
-  oldest/newest, randomized drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
+  oldest/newest, randomised drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
 
 ### 5.3. Monitoring and Metrics
 
@@ -176,7 +176,7 @@ These metrics aid in:
 
 The mixer defends against:
 
-- **timing correlation attacks**: Randomized delays make linking input/output packets by timing significantly harder
+- **timing correlation attacks**: Randomised delays make linking input/output packets by timing significantly harder
 - **statistical traffic analysis**: Random delays reduce pattern predictability but do not eliminate all analysis
 - **queue manipulation**: Authenticated packet handling prevents injection attacks
 
