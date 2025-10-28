@@ -217,7 +217,7 @@ case "$rfc_month_num" in
   "10") rfc_month="October" ;;
   "11") rfc_month="November" ;;
   "12") rfc_month="December" ;;
-  *)    rfc_month="Unknown" ;;
+  *)    echo "❌ Unknown month: $rfc_month_num"; exit 1 ;;
 esac
 
 echo "Title:  $rfc_title"
@@ -228,9 +228,9 @@ echo "Version:  $rfc_version"
 
 # Prepend metadata macro to .tex file (macOS/BSD sed syntax)
 sed "${SED_I[@]}" "1i\\
-\\\rfcnumber{${rfc_month} ${rfc_year}}\\
+\\\rfcnumber{${rfc_number}}\\
 \\\rfctitle{${rfc_title}}\\
-\\\rfcdate{${rfc_date}}\\
+\\\rfcdate{${rfc_month} ${rfc_year}}\\
 \\\rfcauthor{${rfc_author}}\\
 " "$OUTDIR/$NAME-pandoc.tex"
 
