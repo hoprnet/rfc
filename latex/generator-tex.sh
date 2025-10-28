@@ -228,7 +228,7 @@ echo "Version:  $rfc_version"
 
 # Prepend metadata macro to .tex file (macOS/BSD sed syntax)
 sed "${SED_I[@]}" "1i\\
-\\\rfcnumber{${rfc_month} ${rfc_year}; ${rfc_version}}\\
+\\\rfcnumber{${rfc_month} ${rfc_year}}\\
 \\\rfctitle{${rfc_title}}\\
 \\\rfcdate{${rfc_date}}\\
 \\\rfcauthor{${rfc_author}}\\
