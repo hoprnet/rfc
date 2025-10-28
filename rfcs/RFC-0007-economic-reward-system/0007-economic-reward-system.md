@@ -2,11 +2,11 @@
 
 - **RFC Number:** 0007
 - **Title:** Economic Reward System
-- **Status:** Draft
+- **Status:** Implementation
 - **Author(s):** Jean Demeusy (@jeandemeusy)
 - **Created:** 2025-08-25
 - **Updated:** 2025-10-27
-- **Version:** v0.2.0 (Draft)
+- **Version:** v0.3.0 (Implementation)
 - **Supersedes:** none
 - **Related Links:** none
 
