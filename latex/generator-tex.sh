@@ -197,15 +197,38 @@ rfc_title=$(grep -m1 '^- \*\*Title:\*\*' "$FULLPATH" | sed 's/^- \*\*Title:\*\* 
 rfc_author=$(grep -m1 '^- \*\*Author(s):\*\*' "$FULLPATH" | sed 's/^- \*\*Author(s):\*\* *//' || echo "UNDEFINED")
 rfc_number=$(grep -m1 '^- \*\*RFC Number:\*\*' "$FULLPATH" | sed 's/^- \*\*RFC Number:\*\* *//' || echo "UNDEFINED")
 rfc_date=$(grep -m1 '^- \*\*Updated:\*\*' "$FULLPATH" | sed 's/^- \*\*Updated:\*\* *//' || echo "UNDEFINED")
+rfc_version=$(grep -m1 '^- \*\*Version:\*\*' "$FULLPATH" | sed 's/^- \*\*Version:\*\* *//' | awk '{print $1}' || echo "UNDEFINED")
+
+# Extract year and month number from rfc_date (expects YYYY-MM-DD)
+rfc_year=$(echo "$rfc_date" | cut -d'-' -f1)
+rfc_month_num=$(echo "$rfc_date" | cut -d'-' -f2)
+
+# Convert month number to month name
+case "$rfc_month_num" in
+  "01") rfc_month="January" ;;
+  "02") rfc_month="February" ;;
+  "03") rfc_month="March" ;;
+  "04") rfc_month="April" ;;
+  "05") rfc_month="May" ;;
+  "06") rfc_month="June" ;;
+  "07") rfc_month="July" ;;
+  "08") rfc_month="August" ;;
+  "09") rfc_month="September" ;;
+  "10") rfc_month="October" ;;
+  "11") rfc_month="November" ;;
+  "12") rfc_month="December" ;;
+  *)    rfc_month="Unknown" ;;
+esac
 
 echo "Title:  $rfc_title"
 echo "Author: $rfc_author"
 echo "Number: $rfc_number"
-echo "Date:   $rfc_date"
+echo "Date:   $rfc_date, $rfc_month $rfc_year"
+echo "Version:  $rfc_version"
 
 # Prepend metadata macro to .tex file (macOS/BSD sed syntax)
 sed "${SED_I[@]}" "1i\\
-\\\rfcnumber{${rfc_number}}\\
+\\\rfcnumber{${rfc_month} ${rfc_year}; ${rfc_version}}\\
 \\\rfctitle{${rfc_title}}\\
 \\\rfcdate{${rfc_date}}\\
 \\\rfcauthor{${rfc_author}}\\
