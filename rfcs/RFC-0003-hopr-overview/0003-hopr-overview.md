@@ -35,13 +35,13 @@ In the contemporary digital environment, privacy-preserving communication has be
 expression, and maintaining confidentiality in both personal and professional contexts. Conventional internet protocols provide inadequate protection
 for privacy, as metadata and traffic patterns can be analysed to infer sensitive information about users and their communications.
 
-The HOPR protocol addresses these privacy challenges by implementing a decentralized mix network that:
+The HOPR protocol addresses these privacy challenges by implementing a decentralised mix network that:
 
 - **Provides metadata privacy**: Unlike traditional communication networks that expose communication patterns, HOPR obscures sender-receiver
   relationships through traffic mixing and onion routing [01, 02]
 - **Offers economic incentives**: Node operators are compensated for relaying traffic, thereby creating an economically sustainable privacy
   infrastructure
-- **Ensures decentralization**: No single entity controls the network, mitigating the risks of censorship and eliminating single points of failure
+- **Ensures decentralisation**: No single entity controls the network, mitigating the risks of censorship and eliminating single points of failure
 - **Maintains accessibility**: Applications can integrate HOPR's privacy capabilities without requiring users to understand complex cryptographic
   concepts
 
@@ -124,7 +124,7 @@ section provides a high-level overview of the protocol components and their inte
 
 ### 5.1 Protocol Architecture
 
-The HOPR protocol is organized into five layers, arranged as follows:
+The HOPR protocol is organised into five layers, arranged as follows:
 
 ```
 ┌─────────────────────────────────────┐
