@@ -143,7 +143,7 @@ Channels are uniquely identified by the `channel_id` above. The fixed‑length b
 
 ### 4.1. Payment channel life-cycle
 
-A payment channel between nodes A -> B MUST always be initiated by node A. It MUST be initialized with a non-zero `balance`, a `ticket_index` equal to
+A payment channel between nodes A -> B MUST always be initiated by node A. It MUST be initialised with a non-zero `balance`, a `ticket_index` equal to
 `0`, `channel_epoch` equal to `1` and `status` equal to `Open`. To prevent spamming, the funding `balance` MUST be larger than `MIN_USED_BALANCE` and
 smaller than `MAX_USED_BALANCE`.
 
@@ -200,7 +200,7 @@ Ticket {
 }
 ```
 
-All multi-byte unsigned integers MUST use big-endian encoding when serialized.
+All multi-byte unsigned integers MUST use big-endian encoding when serialised.
 
 The `ECPoint` is an encoding of an Elliptic curve point on the chosen curve `E` that corresponds to a cryptographic challenge. Such challenge is later
 solved by the ticket recipient once it forwards the attached packet to the next downstream node.
@@ -209,7 +209,7 @@ The encoding (for serialization) of the `ECPoint` MUST be unique and MAY be irre
 `E` is not recoverable, but the encoding uniquely identifies the said point.
 
 The `ECDSASignature` SHOULD use the [ERC-2098 encoding](https://eips.ethereum.org/EIPS/eip-2098), the public key recovery bit is stored in the most
-significant bit of the `s` value (which is guaranteed to be unused). Both `r` and `s` use big-endian encoding when serialized.
+significant bit of the `s` value (which is guaranteed to be unused). Both `r` and `s` use big-endian encoding when serialised.
 
 ```
 ECDSASignature {
@@ -349,7 +349,7 @@ receives a `HOPR_Packet` structure, the `Ticket` is separated and its processing
 Failure to validate in any of the verification steps MUST result in discarding the ticket and the corresponding `HOPR_Packet`, and interrupting the
 processing further.
 
-If the extracted `Ticket` structure cannot be deserialized, the corresponding `HOPR_Packet` MUST be discarded. If the `Ticket` has been issued for an
+If the extracted `Ticket` structure cannot be deserialised, the corresponding `HOPR_Packet` MUST be discarded. If the `Ticket` has been issued for an
 unknown channel, or it does not correspond to the channel between the packet sender and the node where it is being processed, or the channel is in the
 `CLOSED` state, the corresponding `HOPR_Packet` MUST be discarded.
 

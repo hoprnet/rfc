@@ -1,7 +1,7 @@
-# RFC-0001: RFC Life Cycle, Process and Structure
+# RFC-0001: RFC Lifecycle, Process and Structure
 
 - **RFC Number:** 0001
-- **Title:** RFC Life Cycle, Process and Structure
+- **Title:** RFC Lifecycle, Process and Structure
 - **Status:** Finalised
 - **Author(s):** Qianchen Yu (@QYuQianchen), Tino Breddin (@tolbrino)
 - **Created:** 2025-02-20
@@ -40,9 +40,9 @@ allocated.
 
 ## 4. Specification
 
-### 4.1. RFC Life Cycle Stages
+### 4.1. RFC Lifecycle Stages
 
-#### 4.1.1. Mermaid Diagram for RFC Life Cycle Stages
+#### 4.1.1. Mermaid Diagram for RFC Lifecycle Stages
 
 ```mermaid
 graph TD
@@ -168,71 +168,59 @@ RFCs MUST use two distinct reference styles:
 
 All RFCs MUST include the following sections:
 
-1. **Metadata Preface** (as defined in 4.4.1)
-2. **Abstract** - Brief summary of the RFC's purpose and scope
-3. **References** - External citations (if any)
+1. **Metadata Preface**: A list of information about the RFC and its status, as defined in 4.4.1
+2. **Abstract**: Brief summary of the RFC's purpose and scope
+3. **References**: External citations (if any)
 
 #### 4.4.4. Terminology Formatting Standards
 
 All RFCs MUST follow consistent terminology formatting to ensure clarity and professionalism:
 
-- **Format**: Use bold with colons for term definitions: `**Term**: definition`
-- **Capitalization**: Capitalize the first word of each term: `**Node**`, `**Relay node**`, `**Session protocol**`
+- **Format**: Use bold with colons for term definitions: **Term**: definition
+- **Capitalisation**: Capitalise the first word of each term: **Node**, **Relay node**, **Session protocol**
 - **Punctuation**: Always use colons after terms in definition lists
 - **Consistency**: Apply the same formatting throughout each RFC and across all RFCs
 
 Examples:
-```
 - **Node**: a process that implements the HOPR protocol and participates in the mixnet
 - **Relay node**: a node that forwards messages from one node to another in the mixnet
 - **Session protocol**: the protocol layer that provides reliable message delivery over HOPR packets
-```
 
 Incorrect examples:
-```
 - _Node_: (should use bold instead of italics)
-- **Node**: (should capitalize first word)
+- **Node**: (should capitalise first word)
 - **Node** (should include colon)
 - "Node": (should not use quotation marks)
-```
 
 ## 5. Design Considerations
 
-- Modular RFCs SHOULD be preferred.
-- The PR system MUST be the primary mechanism for contribution, review, and errata handling.
+- Modular RFCs SHOULD be preferred
+- The PR system MUST be the primary mechanism for contribution, review, and errata handling
 
 ## 6. Compatibility
 
-- New RFCs MUST maintain backward compatibility unless explicitly stated.
-- Errata MUST NOT introduce backward-incompatible changes.
-- Breaking changes MUST be reflected in a major version increment (`v2.0.0`).
+- New RFCs MUST maintain backward compatibility unless explicitly stated
+- Errata MUST NOT introduce backward-incompatible changes
+- Breaking changes MUST be reflected in a major version increment (`v2.0.0`)
 
 ## 7. Security Considerations
 
-- A security review phase MUST be completed before finalisation.
-- Errata MUST undergo security review if impacting critical components.
+- A security review phase MUST be completed before finalisation
+- Errata MUST undergo security review if impacting critical components
 
-## 8. Drawbacks
-
-- Strict naming conventions MAY limit creative flexibility.
-
-## 9. Alternatives
-
-- Collaborative document editing tools, e.g., HackMD.
-
-## 10. Unresolved Questions
+## 8. Unresolved Questions
 
 - Handling emergency RFCs
 - Enforcing cross-RFC dependencies
 - Formal approval timeline for errata
 
-## 11. Future Work
+## 9. Future Work
 
 - Automated validation tools
 - CI/CD integration for automated versioning and errata checks
 - Web interface for publishing RFCs
 
-## 12. References
+## 10. References
 
 [01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
 
