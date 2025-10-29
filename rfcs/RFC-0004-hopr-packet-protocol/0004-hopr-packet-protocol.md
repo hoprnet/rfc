@@ -670,4 +670,4 @@ _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 [05] Anderson, R., & Biham, E. (1996). Two practical and provably secure block ciphers: BEAR and LION. _In International Workshop on Fast Software
 Encryption (pp. 113-120). Berlin, Heidelberg: Springer Berlin Heidelberg._
 
-[06] Connor, J., Aumasson, J.-P., Neves, S., Wilcox-O’Hearn, Z. (2021). [BLAKE 3 one function, fast everywhere](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf)
+[06] Connor, J., Aumasson, J.-P., Neves, S., & Wilcox-O’Hearn, Z. (2021). [BLAKE 3 one function, fast everywhere](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf)
