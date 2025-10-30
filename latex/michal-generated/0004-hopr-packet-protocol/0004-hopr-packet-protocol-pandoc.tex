@@ -275,7 +275,7 @@ In the next step, shared secrets for individual hops on the forward path
 are generated, as described in Section 2.2 in {[}01{]}:
 
 Assume the length of the path is \codebubble{N} (between 0 and 3) and
-each hop's public key is \codebubble{Phop\_i}. The public key of the
+each hop's public key is \\ \codebubble{Phop\_i}. The public key of the
 destination is \codebubble{Pdst}.
 
 Let the extended path be a list of \codebubble{Phop\_i} and
@@ -434,6 +434,8 @@ The input for the header creation is:
   Sender pseudonym (represented as a sequence of bytes)
 \end{itemize}
 
+\clearpage
+
 Let \codebubble{HeaderPrefix\_i} be a single byte, where:
 
 \begin{itemize}
@@ -454,7 +456,7 @@ Let \codebubble{HeaderPrefix\_i} be a single byte, where:
 \end{itemize}
 
 For example, the binary representation of \codebubble{HeaderPrefix\_3}
-with \codebubble{ReplyFlag} set and \codebubble{NoAckFlag} not set looks
+with \codebubble{ReplyFlag} set and \\ \codebubble{NoAckFlag} not set looks
 like this:
 
 \begin{codebubbleenv}
@@ -524,13 +526,13 @@ For each i = 1 up to N+1 do:
         \codebubble{1 + |Pseudonym| + (4 - j) * RoutingInfoLen}
       \item
         XOR RoutingInfoLen bytes of the PRG to Filler from offset 0 up
-        to \codebubble{j * RoutingInfoLen}
+        to \\ \codebubble{j * RoutingInfoLen}
       \item
         Destroy the PRG instance
       \end{itemize}
     \end{itemize}
   \item
-    Copy the Filler bytes to \codebubble{HdrExt} at offset
+    Copy the Filler bytes to \codebubble{HdrExt} at offset \\
     \codebubble{1 + |Pseudonym| + (5 - N) * RoutingInfoLen}
   \end{itemize}
 \item
@@ -539,7 +541,7 @@ For each i = 1 up to N+1 do:
   \begin{itemize}
   \tightlist
   \item
-    Copy bytes of \codebubble{HdrExt} from offset 0 up to
+    Copy bytes of \codebubble{HdrExt} from offset 0 up to \\
     \codebubble{1 + |Pseudonym| + 3 * RoutingInfoLen} to offset
     \codebubble{RoutingInfoLen} in \codebubble{HdrExt}
   \item
@@ -554,7 +556,7 @@ For each i = 1 up to N+1 do:
     Copy bytes of \codebubble{PoRString\_\{N-i+2\}} to
     \codebubble{HdrExt} starting at offset \codebubble{1 + |ID| + |T|}
   \item
-    XOR PRG bytes to \codebubble{HdrExt} from offset 0 up to
+    XOR PRG bytes to \codebubble{HdrExt} from offset 0 up to \\
     \codebubble{1 + |Pseudonym| + 3 * RoutingInfoLen}
   \end{itemize}
 \item
@@ -566,7 +568,7 @@ For each i = 1 up to N+1 do:
   and copy its output of \codebubble{|T|} bytes to \codebubble{OATag}
 \end{enumerate}
 
-The output is the contents of \codebubble{HdrExt} from offset 0 up to
+The output is the contents of \codebubble{HdrExt} from offset 0 up to \\
 \codebubble{1 + |Pseudonym| + 3 * RoutingInfoLen} and the
 \codebubble{OATag}:
 
@@ -678,7 +680,7 @@ consists of just \codebubble{Psrc}.
   given in section 3.2.
 \item
   Generate PoR for the given extended return path: list of
-  \codebubble{PoRStrings\_i} and \codebubble{PoRValues}
+  \codebubble{PoRStrings\_i} and \\ \codebubble{PoRValues}
 \item
   Generate Reply packet \codebubble{Header} for the extended return path
   as in section 3.4.1:
@@ -741,12 +743,12 @@ ReplyOpener {
 \end{codebubbleenv}
 
 The sender keeps the \codebubble{ReplyOpener} (MUST be indexed by the
-chosen pseudonym), and puts the \codebubble{SURB} in the forward packet
+chosen pseudonym), \\and puts the \codebubble{SURB} in the forward packet
 payload.
 
 \paragraph{3.4.4. Payload padding}\label{payload-padding}
 
-The packet payload MUST be padded in accordance with {[}01{]} to exactly
+The packet payload MUST be padded in accordance with {[}01{]} to exactly \\
 \codebubble{PacketMax + |PaddingTag|} bytes.
 
 The process works as follows:
@@ -809,8 +811,8 @@ HOPR_Packet {
 The packet is then sent to the peer represented by the first public key
 of the forward path.
 
-Note that the size of the packet is exactly
-\codebubble{|HOPR\_Packet| = |Alpha| + |Header| + |PacketMax| + |PaddingTag| + |ticket|}.
+Note that the size of the packet is exactly \\
+\codebubble{|HOPR\_Packet| = |Alpha| + |Header| + |PacketMax| + |PaddingTag| + |ticket|}. \\
 It can also be referred to as the size of the logical meta packet plus
 \codebubble{|ticket|}.
 
@@ -926,14 +928,14 @@ This section describes the behaviour of processing a
 key \codebubble{Phop} of the peer processing the packet.
 
 Upon reception of a byte-sequence that is at least
-\codebubble{|HOPR\_Packet|} bytes long, the \codebubble{|Ticket|} is
+\codebubble{|HOPR\_Packet|} bytes long, \\the \codebubble{|Ticket|} is
 separated from the sequence. As per section 2.4, the order of the fields
 in \codebubble{HOPR\_Packet} is canonical, therefore the
 \codebubble{Ticket} starts exactly at \textbar HOPR\_Packet\textbar{} -
 \textbar Ticket\textbar{} byte-offset.
 
 The resulting Meta packet is processed first, and if this processing is
-successful, the \codebubble{Ticket} is validated as well, as defined in
+successful, \\the \codebubble{Ticket} is validated as well, as defined in
 \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}.
 
 If any of the operations fail, the packet MUST be rejected, and
@@ -966,24 +968,24 @@ additionally transformed so that it conforms to a valid field scalar
 usable in step 4.
 
 Should the process fail in any of these steps (due to invalid EC point
-or field scalar), the process MUST terminate with an error and the
+or field scalar), \\the process MUST terminate with an error and the
 entire packet MUST be rejected.
 
 Also derive the \codebubble{ReplayTag} = KDF(``HASH\_KEY\_PACKET\_TAG'',
-\codebubble{SharedSecret\_i}). Verify that \codebubble{ReplayTag} has
+\codebubble{SharedSecret\_i}). \\Verify that \codebubble{ReplayTag} has
 not yet been seen by this node, and if yes, the packet MUST be rejected.
 
 \subsubsection{5.2. Header processing}\label{header-processing}
 
 In the next steps, the \codebubble{Header} (field \codebubble{header})
-is processed using the derived \codebubble{SharedSecret\_i}.
+is processed using the derived\\ \codebubble{SharedSecret\_i}.
 
 As per section 3.4.1, the \codebubble{Header} consists of two byte
-sequences of fixed length: the \codebubble{header} and
+sequences of fixed length: \\the \codebubble{header} and
 \codebubble{oa\_tag}. Let \textbar T\textbar{} be the fixed byte-length
 of \codebubble{oa\_tag} and \textbar Header\textbar{} be the fixed
 byte-length of \codebubble{header}. Also denote
-\textbar PoRString\_i\textbar, which are equal for all \codebubble{i},
+\textbar PoRString\_i\textbar, which are equal for all \codebubble{i},\\
 as \textbar PoRString\textbar. Likewise, \textbar ID\_i\textbar{} for
 all \codebubble{i} as \textbar ID\textbar.
 
@@ -1010,7 +1012,7 @@ all \codebubble{i} as \textbar ID\textbar.
   \tightlist
   \item
     Verify that the first 3 most significant bits represent the
-    supported version (\codebubble{001}), otherwise the entire packet
+    supported version \\(\codebubble{001}), otherwise the entire packet
     MUST be rejected.
   \item
     If 3 least significant bits are not all zeros (meaning this node not
@@ -1023,17 +1025,17 @@ all \codebubble{i} as \textbar ID\textbar.
       \codebubble{HeaderPrefix}
     \item
       Set \codebubble{ID\_i} =
-      \codebubble{header[|HeaderPrefix|..|HeaderPrefix| + |ID|}{]}
+      \codebubble{header[|HeaderPrefix|..|HeaderPrefix| + |ID|]}
     \end{itemize}
   \item
     \codebubble{Tag\_i} =
     \codebubble{header[|HeaderPrefix| + |ID| .. |HeaderPrefix| + |ID| + |T|]}
   \item
     \codebubble{PoRString\_i} =
-    \codebubble{header[|HeaderPrefix|+ |ID| + |T|..|HeaderPrefix| + |ID| + |PoRString|]}
+    \codebubble{header[|HeaderPrefix|+ |ID| + |T|..|HeaderPrefix|\\ + |ID| + |PoRString|]}
   \item
-    Shift \codebubble{header} by
-    \codebubble{|HeaderPrefix| + |ID| + |T| .. |HeaderPrefix| + |ID| + |PoRString|}
+    Shift \codebubble{header} by \\
+    \codebubble{|HeaderPrefix| + |ID| + |T| .. |HeaderPrefix| + |ID| + |PoRString|} \\
     bytes left (discarding those bytes)
   \item
     Seek the PRG to the position \codebubble{|Header|}
@@ -1047,7 +1049,7 @@ all \codebubble{i} as \textbar ID\textbar.
     \tightlist
     \item
       Recover \codebubble{pseudonym} as
-      \codebubble{header[|HeaderPrefix| .. |HeaderPrefix| + |Pseudonym|]}
+      \codebubble{header[|HeaderPrefix| .. |HeaderPrefix|\\ + |Pseudonym|]}
     \item
       Recover the 5th and 4th most significant bit
       (\codebubble{NoAckFlag} and \codebubble{ReplyFlag})
@@ -1076,8 +1078,8 @@ new_payload = PRP(Kprp, encrypted_payload)
 \paragraph{5.3.1. Forwarded packet}\label{forwarded-packet}
 
 If the processed header indicated that the packet is destined for
-another node, the \codebubble{new\_payload} is the
-\codebubble{encrypted\_payload: EncryptedPayload}. The updated
+another node, \\the \codebubble{new\_payload} is the
+\codebubble{encrypted\_payload: EncryptedPayload}. The updated\\
 \codebubble{header} and \codebubble{alpha} values from the previous
 steps are used to construct the forwarded packet. A new
 \codebubble{ticket} structure is created for the recipient (as described
@@ -1085,6 +1087,8 @@ in \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}),
 while the current \codebubble{ticket} structure MUST be verified (as
 also described in
 \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}).
+
+\clearpage
 
 The forwarded packet MUST have the identical structure:
 
@@ -1100,7 +1104,7 @@ HOPR_Packet {
 \paragraph{5.3.2. Final packet}\label{final-packet}
 
 If the processed header indicated that this node is the final
-destination of the packet, the \codebubble{ReplyFlag} is used to
+destination of the packet, \\the \codebubble{ReplyFlag} is used to
 indicate subsequent processing.
 
 \subparagraph{5.3.2.1. Forward packet}\label{forward-packet}
@@ -1119,7 +1123,7 @@ find the corresponding \codebubble{ReplyOpener}. If it is not found, the
 packet MUST be rejected.
 
 Once the \codebubble{ReplyOpener} is found, the
-\codebubble{rp\_shared\_secrets} are used to decrypt the
+\codebubble{rp\_shared\_secrets} are used to decrypt the\\
 \codebubble{new\_payload}:
 
 For each \codebubble{SharedSecret\_k} in
@@ -1141,8 +1145,8 @@ new_payload = PRP(Kprp, new_payload)
 
 This will invert the PRP transformations done at each forwarding hop.
 Finally, the additional reply PRP transformation has to be inverted
-(using \codebubble{sender\_key} from the \codebubble{ReplyOpener} and
-\codebubble{pseudonym} ):
+(using \codebubble{sender\_key} from the \\ \codebubble{ReplyOpener} and
+\codebubble{pseudonym} ):\\
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -1189,7 +1193,7 @@ acknowledged.
 The acknowledgement of the successfully processed packet is created as
 per \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}
 using \codebubble{SharedKey\_i+1\_ack} =
-\codebubble{HS(SharedSecret\_i, "HASH\_ACK\_KEY")}. The
+\codebubble{HS(SharedSecret\_i, "HASH\_ACK\_KEY")}. \\The
 \codebubble{SharedKey\_i+1\_ack} is the scalar in the field of the
 elliptic curve chosen in
 \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}. The
@@ -1197,7 +1201,7 @@ acknowledgement is sent back to the previous hop.
 
 This is done by creating and sending a standard forward packet directly
 to the node the original packet was received from. The
-\codebubble{NoAckFlag} on this packet MUST be set. The
+\codebubble{NoAckFlag} on this packet MUST be set. \\The
 \codebubble{user\_payload} of the packet contains the encoded
 \codebubble{Acknowledgement} structure as defined in
 \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}. The
@@ -1207,6 +1211,8 @@ If the packet processing was not successful at any point, a random
 acknowledgement MUST be generated (as defined in
 \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}) and
 sent to the previous hop.
+
+\clearpage
 
 \subsection{6. Appendix A}\label{appendix-a}
 
@@ -1230,7 +1236,7 @@ primitives:
   \codebubble{K}: \codebubble{KDF(C,K,S) = blake3\_kdf(C, S || K)}. If
   \codebubble{S} is omitted: \codebubble{KDF(C,K) = blake3\_kdf(C,K)}.
 \item
-  HS is instantiated via \codebubble{hash\_to\_field} using
+  HS is instantiated via \codebubble{hash\_to\_field} using \\
   \codebubble{secp256k1\_XMD:SHA3-256\_SSWU\_RO\_} as defined in
   {[}04{]}. \codebubble{S} is used a the secret input, and
   \codebubble{T} as an additional domain separator.
@@ -1239,21 +1245,21 @@ primitives:
 \subsection{7. References}\label{references}
 
 {[}01{]} Danezis, G., \& Goldberg, I. (2009).
-\href{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{Sphinx: A
-Compact and Provably Secure Mix Format}. \emph{2009 30th IEEE Symposium
+{Sphinx: A Compact and Provably Secure Mix Format}. \emph{2009 30th IEEE Symposium
 on Security and Privacy}, 262-277.
+\href{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{\underline{https://cypherpunks.ca/~iang/pubs/Sphinx\_Oakland09.pdf}}
 
 {[}02{]} Bradner, S. (1997).
-\href{https://datatracker.ietf.org/doc/html/rfc2119}{Key words for use
-in RFCs to Indicate Requirement Levels}. \emph{IETF RFC 2119}.
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
 
 {[}03{]} Nir, Y., \& Langley, A. (2015).
-\href{https://www.rfc-editor.org/rfc/rfc7539.html}{ChaCha20 and Poly1305
-for IETF Protocols}. \emph{IETF RFC 7539}.
+{ChaCha20 and Poly1305 for IETF Protocols}. \\ \emph{IETF RFC 7539}.
+\href{https://www.rfc-editor.org/rfc/rfc7539.html}{\underline{https://www.rfc-editor.org/rfc/rfc7539.html}}
 
 {[}04{]} Faz-Hernandez, A., et al.~(2023).
-\href{https://www.rfc-editor.org/rfc/rfc9380.html}{Hashing to Elliptic
-Curves}. \emph{IETF RFC 9380}.
+{Hashing to Elliptic Curves}. \emph{IETF RFC 9380}.
+\href{https://www.rfc-editor.org/rfc/rfc9380.html}{\underline{https://www.rfc-editor.org/rfc/rfc9380.html}}
 
 {[}05{]} Anderson, R., \& Biham, E. (1996). Two practical and provably
 secure block ciphers: BEAR and LION. \emph{In International Workshop on
@@ -1261,6 +1267,5 @@ Fast Software Encryption (pp.~113-120). Berlin, Heidelberg: Springer
 Berlin Heidelberg.}
 
 {[}06{]} Connor, J., Aumasson, J.-P., Neves, S., \& Wilcox-O'Hearn, Z.
-(2021).
-\href{https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf}{BLAKE
-3 one function, fast everywhere}
+(2021). {BLAKE 3 one function, fast everywhere}
+\href{https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf}{\underline{https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf}}

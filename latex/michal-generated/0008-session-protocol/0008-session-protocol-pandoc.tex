@@ -325,6 +325,8 @@ Values
 \codebubble{0}-\codebubble{63} (1-64 segments) \\
 \end{longtable}
 
+\clearpage
+
 \paragraph{4.3.3 Segmentation Rules}\label{segmentation-rules}
 
 \begin{longtable}[]{@{}
@@ -383,6 +385,8 @@ identifier \\
 \textbf{Maximum Payload Length} & \codebubble{C - 4} bytes & Maximum
 message payload size \\
 \end{longtable}
+
+\clearpage
 
 \subsubsection{4.4 Retransmission Request
 Message}\label{retransmission-request-message}
@@ -517,6 +521,8 @@ Rules
 identifiers & See Acknowledgement Rules table below \\
 \end{longtable}
 
+\clearpage
+
 \paragraph{4.5.2 Acknowledgement Rules}\label{acknowledgement-rules}
 
 \begin{longtable}[]{@{}
@@ -564,6 +570,8 @@ Machine}\label{reliable-socket-state-machine}
 \pandocbounded{\includegraphics[width=\maxwidth,keepaspectratio,alt={Mermaid Diagram 6}]{0008-session-protocol/mermaid_6.png}}
 \caption{Mermaid Diagram 6}
 \end{figure}
+
+\clearpage
 
 \subsubsection{4.7 Timing and Reliability
 Parameters}\label{timing-and-reliability-parameters}
@@ -668,6 +676,8 @@ retransmitted:
 \caption{Mermaid Diagram 8}
 \end{figure}
 
+\clearpage
+
 \paragraph{4.9.3 Multiple Frame Acknowledgement (Reliable
 Mode)}\label{multiple-frame-acknowledgement-reliable-mode}
 
@@ -690,6 +700,8 @@ Graceful session termination with acknowledgement:
 \caption{Mermaid Diagram 10}
 \end{figure}
 
+\clearpage
+
 \paragraph{4.9.5 Session Termination (Unreliable
 Mode)}\label{session-termination-unreliable-mode}
 
@@ -707,7 +719,7 @@ Immediate session termination without acknowledgement:
 Limitation}\label{maximum-segments-limitation}
 
 The protocol limits frames to 64 segments due to the 6-bit sequence
-length field. This provides a good balance among:
+length field. \\ This provides a good balance among:
 
 \begin{itemize}
 \tightlist
@@ -836,13 +848,13 @@ Recommendations}\label{testing-recommendations}
 \subsection{10. References}\label{references}
 
 {[}01{]} Postel, J. (1981).
-\href{https://datatracker.ietf.org/doc/html/rfc793}{Transmission Control
-Protocol}. \emph{IETF RFC 793}.
+{Transmission Control Protocol}. \emph{IETF RFC 793}.
+\href{https://datatracker.ietf.org/doc/html/rfc793}{\underline{https://datatracker.ietf.org/doc/html/rfc793}}
 
 {[}02{]} Bormann, C. \& Hoffman, P. (2013).
-\href{https://datatracker.ietf.org/doc/html/rfc7049}{Concise Binary
-Object Representation (CBOR)}. \emph{IETF RFC 7049}.
+{Concise Binary Object Representation (CBOR)}. \emph{IETF RFC 7049}.
+\href{https://datatracker.ietf.org/doc/html/rfc7049}{\underline{https://datatracker.ietf.org/doc/html/rfc7049}}
 
 {[}03{]} Postel, J. (1980).
-\href{https://datatracker.ietf.org/doc/html/rfc768}{User Datagram
-Protocol}. \emph{IETF RFC 768}.
+{User Datagram Protocol}. \emph{IETF RFC 768}.
+\href{https://datatracker.ietf.org/doc/html/rfc768}{\underline{https://datatracker.ietf.org/doc/html/rfc768}}

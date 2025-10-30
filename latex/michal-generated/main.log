@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.10.15)  30 OCT 2025 18:36
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.10.15)  30 OCT 2025 19:03
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1517,7 +1517,12 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-[19])
+[19]
+Underfull \hbox (badness 2318) in paragraph at lines 177--180
+\TU/SFUIText-Regular(0)/m/it/8 Mix Format. 2009 30th IEEE Symposium on Security and Privacy, 262-277. 
+ []
+
+)
 
 [20]
 \openout2 = `0003-hopr-overview/0003-hopr-overview-pandoc.aux'.
@@ -1546,37 +1551,49 @@ Underfull \hbox (badness 1152) in paragraph at lines 110--115
 [24]
 
 [25]
-Underfull \hbox (badness 1097) in paragraph at lines 339--344
+Underfull \hbox (badness 1097) in paragraph at lines 346--351
 []\TU/SourceCodePro-SemiBold(0)/m/n/8 Configurable delays\TU/SFUIText-Regular(0)/m/it/8 : supports configurable minimum delay and delay 
  []
 
 
 
 [26]
-Underfull \hbox (badness 2310) in paragraph at lines 393--398
+Underfull \hbox (badness 2310) in paragraph at lines 400--405
 []\TU/SourceCodePro-SemiBold(0)/m/n/8 Payment channels\TU/SFUIText-Regular(0)/m/it/8 : unidirectional payment channels enable efficient 
  []
 
 
 
 [27]
-Underfull \hbox (badness 1584) in paragraph at lines 473--477
+Underfull \hbox (badness 1584) in paragraph at lines 480--484
 []\TU/SourceCodePro-SemiBold(0)/m/n/8 Extensibility\TU/SFUIText-Regular(0)/m/it/8 : the modular design allows for protocol extensions and 
  []
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
 
 [28]
-Underfull \hbox (badness 2005) in paragraph at lines 501--505
-[]\TU/SFUIText-Regular(0)/m/it/8 [05] Pfitzmann, A., & Köhntopp, M. (2001). [][]Anonymity, Unobservability, and 
+Underfull \hbox (badness 5133) in paragraph at lines 488--492
+\TU/SFUIText-Regular(0)/m/it/8 [01] Chaum, D. (1981). Untraceable Electronic Mail, Return Addresses, 
  []
 
 
-Underfull \hbox (badness 1762) in paragraph at lines 501--505
-\TU/SFUIText-Regular(0)/m/it/8 Pseudonymity—A Proposal for Terminology[][]. In Designing Privacy Enhancing 
+Underfull \hbox (badness 6236) in paragraph at lines 488--492
+\TU/SFUIText-Regular(0)/m/it/8 and Digital Pseudonyms. Communications of the ACM, 24(2), 84-90. 
+ []
+
+
+Underfull \hbox (badness 2318) in paragraph at lines 498--502
+\TU/SFUIText-Regular(0)/m/it/8 Mix Format. 2009 30th IEEE Symposium on Security and Privacy, 262-277. 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 503--507
+\TU/SFUIText-Regular(0)/m/it/8 [04] Poon, J., & Dryja, T. 
+ []
+
+
+Underfull \hbox (badness 2005) in paragraph at lines 508--512
+\TU/SFUIText-Regular(0)/m/it/8 [05] Pfitzmann, A., & Köhntopp, M. (2001). Anonymity, Unobservability, and 
  []
 
 )
@@ -1608,7 +1625,9 @@ Underfull \hbox (badness 1762) in paragraph at lines 501--505
 
 [37]
 
-[38]
+[38
+
+]
 
 [39]
 
@@ -1628,17 +1647,28 @@ Underfull \vbox (badness 2134) has occurred while \output is active []
 [45]
 
 [46]
-Underfull \vbox (badness 4886) has occurred while \output is active []
-
-
 
 [47]
 
-[48]
+[48
 
-[49])
+]
 
-[50]
+[49]
+Underfull \hbox (badness 2318) in paragraph at lines 1247--1251
+\TU/SFUIText-Regular(0)/m/it/8 Mix Format. 2009 30th IEEE Symposium on Security and Privacy, 262-277. 
+ []
+
+)
+Underfull \hbox (badness 10000) in paragraph at lines 1269--68
+\TU/SFUIText-Regular(0)/m/it/8 function, fast everywhere 
+ []
+
+
+
+[50
+
+]
 \openout2 = `0005-proof-of-relay/0005-proof-of-relay-pandoc.aux'.
 
  (./0005-proof-of-relay/0005-proof-of-relay-pandoc.tex
@@ -1679,11 +1709,13 @@ Underfull \hbox (badness 1590) in paragraph at lines 329--331
 
 
 [56]
-
-[57]
-Underfull \vbox (badness 1178) has occurred while \output is active []
+Underfull \vbox (badness 3219) has occurred while \output is active []
 
 
+
+[57
+
+]
 
 [58]
 
@@ -1694,7 +1726,7 @@ Underfull \vbox (badness 1178) has occurred while \output is active []
 [61]
 
 [62]
-Underfull \hbox (badness 1286) in paragraph at lines 777--782
+Underfull \hbox (badness 1286) in paragraph at lines 779--784
 \TU/SFUIText-Regular(0)/m/it/8 Per section 4.3.3 in [][]RFC-0004[][], each packet without []\TU/SourceCodePro-Regular(0)/m/n/8 NoAckFlag[] \TU/SFUIText-Regular(0)/m/it/8 set MUST be 
  []
 
@@ -1739,7 +1771,9 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 [74]
 
-[75]
+[75
+
+]
 Missing character: There is no ∈ (U+2208) in font [./fonts/SourceCodePro-Regular.ttf]/OT:script=latn;language=dflt;!
 Missing character: There is no ∈ (U+2208) in font [./fonts/SourceCodePro-Regular.ttf]/OT:script=latn;language=dflt;!
 
@@ -1748,13 +1782,23 @@ Missing character: There is no ∈ (U+2208) in font [./fonts/SourceCodePro-Regul
 
 [77]
 
-[78])
+[78
 
-[79]
+]
+
+[79])
+Underfull \hbox (badness 2452) in paragraph at lines 455--68
+\TU/SFUIText-Regular(0)/m/it/8 [01] Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., & Danezis, G. (2017). 
+ []
+
+
+Underfull \hbox (badness 1163) in paragraph at lines 455--68
+\TU/SFUIText-Regular(0)/m/it/8 The Loopix Anonymity System. 26th USENIX Security Symposium, 1199-1216. 
+ []
+
+
 
 [80
-
-
 
 ]
 \openout2 = `0007-economic-reward-system/0007-economic-reward-system-pandoc.aux'.
@@ -1762,6 +1806,9 @@ Missing character: There is no ∈ (U+2208) in font [./fonts/SourceCodePro-Regul
  (./0007-economic-reward-system/0007-economic-reward-system-pandoc.tex
 
 [81
+
+
+
 
 ]
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -1809,9 +1856,13 @@ File: 0007-economic-reward-system/mermaid_5.png Graphic file (type bmp)
 
 [92]
 
-[93])
+[93
 
-[94]
+])
+
+[94
+
+]
 \openout2 = `0008-session-protocol/0008-session-protocol-pandoc.aux'.
 
  (./0008-session-protocol/0008-session-protocol-pandoc.tex
@@ -1851,22 +1902,27 @@ Overfull \hbox (1.36212pt too wide) in paragraph at lines 324--324
 
 
 [99]
-Overfull \hbox (7.91211pt too wide) in paragraph at lines 338--339
+Overfull \hbox (7.91211pt too wide) in paragraph at lines 340--341
 []\TU/SFUIText-Regular(0)/m/n/7 Requirement  
  []
 
 
-Overfull \hbox (2.0193pt too wide) in paragraph at lines 380--380
+Overfull \hbox (2.0193pt too wide) in paragraph at lines 382--382
 []|\TU/SFUIText-Regular(0)/m/n/7 4,294,967,295|  
  []
 
+
+
+[100
+
+]
 File: 0008-session-protocol/mermaid_3.png Graphic file (type bmp)
 <0008-session-protocol/mermaid_3.png>
 
 
-[100]
+[101
 
-[101]
+]
 File: 0008-session-protocol/mermaid_4.png Graphic file (type bmp)
 <0008-session-protocol/mermaid_4.png>
 
@@ -1876,18 +1932,17 @@ File: 0008-session-protocol/mermaid_5.png Graphic file (type bmp)
 <0008-session-protocol/mermaid_5.png>
 
 
-[103]
+[103
+
+]
 
 [104]
 File: 0008-session-protocol/mermaid_6.png Graphic file (type bmp)
 <0008-session-protocol/mermaid_6.png>
 
-Underfull \vbox (badness 7397) has occurred while \output is active []
-
-
 
 [105]
-Overfull \hbox (12.72725pt too wide) in paragraph at lines 612--613
+Overfull \hbox (12.72725pt too wide) in paragraph at lines 620--621
 []|\TU/SFUIText-Regular(0)/m/n/7 Implementation-defined|  
  []
 
@@ -1895,25 +1950,42 @@ File: 0008-session-protocol/mermaid_7.png Graphic file (type bmp)
 <0008-session-protocol/mermaid_7.png>
 
 
-[106]
+[106
+
+]
 File: 0008-session-protocol/mermaid_8.png Graphic file (type bmp)
 <0008-session-protocol/mermaid_8.png>
-File: 0008-session-protocol/mermaid_9.png Graphic file (type bmp)
-<0008-session-protocol/mermaid_9.png>
 
 
 [107]
+File: 0008-session-protocol/mermaid_9.png Graphic file (type bmp)
+<0008-session-protocol/mermaid_9.png>
 File: 0008-session-protocol/mermaid_10.png Graphic file (type bmp)
 <0008-session-protocol/mermaid_10.png>
+
+
+[108
+
+]
 File: 0008-session-protocol/mermaid_11.png Graphic file (type bmp)
 <0008-session-protocol/mermaid_11.png>
 
 
-[108]
+[109
 
-[109]
+]
 
-[110])
+[110]
+Underfull \hbox (badness 7468) in paragraph at lines 850--853
+\TU/SFUIText-Regular(0)/m/it/8 [01] Postel, J. (1981). Transmission Control Protocol. IETF RFC 793. 
+ []
+
+)
+Underfull \hbox (badness 10000) in paragraph at lines 858--68
+[]\TU/SFUIText-Regular(0)/m/it/8 [03] Postel, J. (1980). User Datagram Protocol. IETF RFC 768. 
+ []
+
+
 
 [111]
 
@@ -1936,37 +2008,39 @@ Underfull \hbox (badness 1210) in paragraph at lines 46--52
 ]
 
 [114]
+
+[115]
 File: 0009-session-start-protocol/mermaid_1.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_1.png>
 
 
-[115]
+[116
 
-[116]
+]
 File: 0009-session-start-protocol/mermaid_2.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_2.png>
 
-Overfull \hbox (1.87102pt too wide) in paragraph at lines 294--294
+Overfull \hbox (1.87102pt too wide) in paragraph at lines 296--296
 \TU/SFUIText-Regular(0)/m/n/7 bytes|  
  []
 
 
-Overfull \hbox (11.81937pt too wide) in paragraph at lines 296--296
+Overfull \hbox (11.81937pt too wide) in paragraph at lines 298--298
 []|\TU/SourceCodePro-SemiBold(0)/m/n/7 Capabilities|  
  []
 
 
-Overfull \hbox (3.41936pt too wide) in paragraph at lines 298--298
+Overfull \hbox (3.41936pt too wide) in paragraph at lines 300--300
 []|\TU/SourceCodePro-SemiBold(0)/m/n/7 Additional 
  []
 
 
-Overfull \hbox (1.87102pt too wide) in paragraph at lines 298--298
+Overfull \hbox (1.87102pt too wide) in paragraph at lines 300--300
 \TU/SFUIText-Regular(0)/m/n/7 bytes|  
  []
 
 
-Overfull \hbox (10.3715pt too wide) in paragraph at lines 301--301
+Overfull \hbox (10.3715pt too wide) in paragraph at lines 303--303
 []|\TU/SFUIText-Regular(0)/m/n/7 Variable|  
  []
 
@@ -1976,53 +2050,53 @@ Overfull \hbox (10.3715pt too wide) in paragraph at lines 301--301
 File: 0009-session-start-protocol/mermaid_3.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_3.png>
 
-Overfull \hbox (1.41393pt too wide) in paragraph at lines 367--367
+Overfull \hbox (1.41393pt too wide) in paragraph at lines 370--370
 \TU/SFUIText-Regular(0)/m/n/7 bytes|  
  []
 
 
-Overfull \hbox (9.91441pt too wide) in paragraph at lines 370--370
+Overfull \hbox (9.91441pt too wide) in paragraph at lines 373--373
 []|\TU/SFUIText-Regular(0)/m/n/7 Variable|  
  []
 
+
+
+[118
+
+]
 File: 0009-session-start-protocol/mermaid_4.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_4.png>
 
-
-[118]
-Overfull \hbox (8.66138pt too wide) in paragraph at lines 408--408
+Overfull \hbox (8.66138pt too wide) in paragraph at lines 411--411
 []|\TU/SourceCodePro-SemiBold(0)/m/n/7 Challenge|  
  []
 
 
-Overfull \hbox (2.41583pt too wide) in paragraph at lines 408--408
+Overfull \hbox (2.41583pt too wide) in paragraph at lines 411--411
 \TU/SFUIText-Regular(0)/m/n/7 bytes|  
  []
 
 
-Overfull \hbox (4.55432pt too wide) in paragraph at lines 424--425
+
+[119]
+Overfull \hbox (4.55432pt too wide) in paragraph at lines 429--430
 []\TU/SFUIText-Regular(0)/m/n/7 Code  
  []
 
 File: 0009-session-start-protocol/mermaid_5.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_5.png>
 
-Overfull \vbox (49.92719pt too high) has occurred while \output is active []
-
-
-
-[119]
-Overfull \hbox (2.87454pt too wide) in paragraph at lines 478--478
+Overfull \hbox (2.87454pt too wide) in paragraph at lines 483--483
 []|\TU/SourceCodePro-SemiBold(0)/m/n/7 Additional 
  []
 
 
-Overfull \hbox (1.65863pt too wide) in paragraph at lines 478--478
+Overfull \hbox (1.65863pt too wide) in paragraph at lines 483--483
 \TU/SFUIText-Regular(0)/m/n/7 bytes|  
  []
 
 
-Overfull \hbox (10.15912pt too wide) in paragraph at lines 481--481
+Overfull \hbox (10.15912pt too wide) in paragraph at lines 486--486
 []|\TU/SFUIText-Regular(0)/m/n/7 Variable|  
  []
 
@@ -2030,52 +2104,68 @@ File: 0009-session-start-protocol/mermaid_6.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_6.png>
 
 
-[120]
-Overfull \hbox (2.78546pt too wide) in paragraph at lines 530--531
+[120
+
+]
+
+[121]
+Overfull \hbox (2.78546pt too wide) in paragraph at lines 537--538
 []\TU/SFUIText-Regular(0)/m/n/7 Requirement 
  []
 
+
+
+[122
+
+]
 File: 0009-session-start-protocol/mermaid_7.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_7.png>
-
-
-[121]
 File: 0009-session-start-protocol/mermaid_8.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_8.png>
+
+
+[123
+
+]
 File: 0009-session-start-protocol/mermaid_9.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_9.png>
-
-
-[122]
 File: 0009-session-start-protocol/mermaid_10.png Graphic file (type bmp)
 <0009-session-start-protocol/mermaid_10.png>
 
 
-[123]
+[124
 
-[124]
+]
 
 [125]
 
 [126]
-Underfull \hbox (badness 1122) in paragraph at lines 824--826
+
+[127]
+Underfull \hbox (badness 1122) in paragraph at lines 835--837
 \TU/SFUIText-Regular(0)/m/it/8 The following attack vectors exist when the protocol is used without adequate 
  []
 
 
 
-[127]
-Underfull \hbox (badness 2119) in paragraph at lines 869--873
+[128]
+Underfull \hbox (badness 2119) in paragraph at lines 882--886
 []\TU/SourceCodePro-SemiBold(0)/m/n/8 Unpredictable session identifiers\TU/SFUIText-Regular(0)/m/it/8 : Generate session IDs using 
  []
 
 
 
-[128])
+[129
 
-[129]
+])
 
 [130
+
+]
+
+[131]
+
+[132
 
 
 
@@ -2089,36 +2179,32 @@ Underfull \hbox (badness 1308) in paragraph at lines 65--71
 
 
 
-[131
+[133
 
 ]
 
-[132]
-
-[133]
-
 [134]
+
+[135]
+
+[136]
 Underfull \hbox (badness 1448) in paragraph at lines 259--262
 \TU/SFUIText-Regular(0)/m/it/8 traversing three hops (out, relay, and back). This represents a complete 
  []
 
 
 
-[135]
+[137]
 File: 0010-automatic-path-discovery/mermaid_1.png Graphic file (type bmp)
 <0010-automatic-path-discovery/mermaid_1.png>
-
-
-[136]
-
-[137]
-File: 0010-automatic-path-discovery/mermaid_2.png Graphic file (type bmp)
-<0010-automatic-path-discovery/mermaid_2.png>
 
 
 [138]
 
 [139]
+File: 0010-automatic-path-discovery/mermaid_2.png Graphic file (type bmp)
+<0010-automatic-path-discovery/mermaid_2.png>
+
 
 [140]
 
@@ -2132,20 +2218,31 @@ File: 0010-automatic-path-discovery/mermaid_2.png Graphic file (type bmp)
 
 [145]
 
-[146]
+[146
+
+]
 
 [147]
-Underfull \hbox (badness 2469) in paragraph at lines 851--854
-[]\TU/SourceCodePro-SemiBold(0)/m/n/8 Formal slashing logic\TU/SFUIText-Regular(0)/m/it/8 : Define a formal slashing mechanism with 
- []
+
+[148
+
+]
+Underfull \vbox (badness 1442) has occurred while \output is active []
 
 
-
-[148])
 
 [149]
 
-[150
+[150]
+Underfull \hbox (badness 2469) in paragraph at lines 855--858
+[]\TU/SourceCodePro-SemiBold(0)/m/n/8 Formal slashing logic\TU/SFUIText-Regular(0)/m/it/8 : Define a formal slashing mechanism with 
+ []
+
+)
+
+[151]
+
+[152
 
 
 
@@ -2159,20 +2256,20 @@ Underfull \hbox (badness 5519) in paragraph at lines 6--6
 
 
 
-[151
+[153
 
 ]
 
-[152]
+[154]
 Underfull \hbox (badness 1742) in paragraph at lines 148--152
 []\TU/SourceCodePro-Regular(0)/m/n/8 0x0000000000000001[]\TU/SFUIText-Regular(0)/m/it/8 : reserved for the session start protocol (session 
  []
 
 
 
-[153])
+[155])
 
-[154] (./main.aux (./0001-rfc-process/0001-rfc-process-pandoc.aux) (./0002-mixnet-keywords/0002-mixnet-keywords-pandoc.aux) (./0003-hopr-overview/0003-hopr-overview-pandoc.aux) (./0004-hopr-packet-protocol/0004-hopr-packet-protocol-pandoc.aux) (./0005-proof-of-relay/0005-proof-of-relay-pandoc.aux) (./0006-hopr-mixer/0006-hopr-mixer-pandoc.aux) (./0007-economic-reward-system/0007-economic-reward-system-pandoc.aux) (./0008-session-protocol/0008-session-protocol-pandoc.aux) (./0009-session-start-protocol/0009-session-start-protocol-pandoc.aux) (./0010-automatic-path-discovery/0010-automatic-path-discovery-pandoc.aux) (./0011-application-protocol/0011-application-protocol-pandoc.aux))
+[156] (./main.aux (./0001-rfc-process/0001-rfc-process-pandoc.aux) (./0002-mixnet-keywords/0002-mixnet-keywords-pandoc.aux) (./0003-hopr-overview/0003-hopr-overview-pandoc.aux) (./0004-hopr-packet-protocol/0004-hopr-packet-protocol-pandoc.aux) (./0005-proof-of-relay/0005-proof-of-relay-pandoc.aux) (./0006-hopr-mixer/0006-hopr-mixer-pandoc.aux) (./0007-economic-reward-system/0007-economic-reward-system-pandoc.aux) (./0008-session-protocol/0008-session-protocol-pandoc.aux) (./0009-session-start-protocol/0009-session-start-protocol-pandoc.aux) (./0010-automatic-path-discovery/0010-automatic-path-discovery-pandoc.aux) (./0011-application-protocol/0011-application-protocol-pandoc.aux))
  ***********
 LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-09-02>
@@ -2188,12 +2285,12 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: F0C92D7E91C8DAB778238B082314BD26;37261.
  ) 
 Here is how much of TeX's memory you used:
- 36876 strings out of 468389
- 795269 string characters out of 5440619
- 1336029 words of memory out of 5000000
- 64701 multiletter control sequences out of 15000+600000
- 632026 words of font info for 81 fonts, out of 8000000 for 9000
+ 36878 strings out of 468389
+ 795375 string characters out of 5440619
+ 1337030 words of memory out of 5000000
+ 64702 multiletter control sequences out of 15000+600000
+ 632034 words of font info for 82 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  117i,13n,120p,2263b,979s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.pdf (154 pages).
+Output written on main.pdf (156 pages).

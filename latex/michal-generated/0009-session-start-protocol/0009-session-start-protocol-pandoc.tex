@@ -160,6 +160,8 @@ multi-byte integer fields use network byte order (big-endian) encoding
 to ensure consistent interpretation across different architectures and
 implementations.
 
+\clearpage
+
 \subsubsection{4.2 Message Format}\label{message-format}
 
 All session start protocol messages share a common header structure that
@@ -240,7 +242,7 @@ applies to the following fields:
   \textbf{Length} field (2 bytes) in the common message format
 \item
   \textbf{Challenge} field (8 bytes) in \codebubble{StartSession},
-  \codebubble{SessionEstablished}, and \codebubble{SessionError}
+  \codebubble{SessionEstablished}, and \\ \codebubble{SessionError}
   messages
 \item
   \textbf{Additional Data} field (4 bytes) in \codebubble{StartSession}
@@ -256,7 +258,7 @@ applies to the following fields:
 \end{itemize}
 
 This requirement ensures consistent interpretation across different
-architectures (e.g., x86, ARM, RISC-V) and prevents interoperability
+architectures \\(e.g., x86, ARM, RISC-V) and prevents interoperability
 issues between implementations.
 
 \subsubsection{4.3 StartSession Message}\label{startsession-message}
@@ -299,9 +301,10 @@ Capability Flags table; unrecognised bits SHOULD be ignored \\
 to \codebubble{0x00000000} if unused; interpretation depends on
 capabilities \\
 \textbf{Target} & Variable & CBOR-encoded session target & Examples:
-\codebubble{"127.0.0.1:1234"},
-\codebubble{"wss://relay.example.com:443"} \\
+\codebubble{"127.0.0.1:1234"}, \codebubble{"wss://relay.example.com:443"} 
 \end{longtable}
+
+\clearpage
 
 \paragraph{4.3.1 Capability Flags}\label{capability-flags}
 
@@ -412,6 +415,8 @@ message & MUST exactly match the challenge from the initiating
 below \\
 \end{longtable}
 
+\clearpage
+
 \paragraph{4.5.1 Error Codes}\label{error-codes}
 
 \begin{longtable}[]{@{}
@@ -490,6 +495,8 @@ match an established session ID \\
 \caption{Mermaid Diagram 6}
 \end{figure}
 
+\clearpage
+
 \subsubsection{4.8 Protocol Constants}\label{protocol-constants}
 
 \begin{longtable}[]{@{}
@@ -554,6 +561,8 @@ error conditions gracefully \\
 SHOULD be configurable (default: 30s) \\
 \end{longtable}
 
+\clearpage
+
 \subsubsection{4.10 Example Message
 Exchanges}\label{example-message-exchanges}
 
@@ -578,6 +587,8 @@ Session establishment failing due to resource exhaustion:
 \pandocbounded{\includegraphics[width=\maxwidth,keepaspectratio,alt={Mermaid Diagram 8}]{0009-session-start-protocol/mermaid_8.png}}
 \caption{Mermaid Diagram 8}
 \end{figure}
+
+\clearpage
 
 \paragraph{4.10.3 Session Establishment
 Timeout}\label{session-establishment-timeout}
@@ -836,7 +847,7 @@ adequate transport-level security:
   Transport-level security is required.
 \item
   \textbf{Information disclosure}: Session targets may expose service
-  information (e.g., destination addresses) if not encrypted at the
+  information \\(e.g., destination addresses) if not encrypted at the
   transport layer.
 \item
   \textbf{Resource exhaustion}: Attackers can flood exit nodes with
@@ -847,6 +858,8 @@ adequate transport-level security:
   to guess valid session identifiers and hijack established sessions.
   Session IDs MUST be generated unpredictably.
 \end{itemize}
+
+\clearpage
 
 \subsubsection{7.3 Mitigation Strategies}\label{mitigation-strategies}
 
@@ -902,6 +915,8 @@ Potential areas for future protocol enhancements include:
   quality-of-service metrics.
 \end{itemize}
 
+\clearpage
+
 \subsection{9. Implementation Notes}\label{implementation-notes}
 
 \subsubsection{9.1 Testing
@@ -938,8 +953,8 @@ Implementations SHOULD include comprehensive tests covering:
 \subsection{10. References}\label{references}
 
 {[}01{]} Bormann, C. \& Hoffman, P. (2013).
-\href{https://datatracker.ietf.org/doc/html/rfc7049}{Concise Binary
-Object Representation (CBOR)}. \emph{IETF RFC 7049}.
+{Concise Binary Object Representation (CBOR)}. \emph{IETF RFC 7049}.
+\href{https://datatracker.ietf.org/doc/html/rfc7049}{\underline{https://datatracker.ietf.org/doc/html/rfc7049}}
 
 \subsection{11. Appendix 1}\label{appendix-1}
 
