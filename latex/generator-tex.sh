@@ -48,7 +48,7 @@ echo "== Extract + render (single pass) =="
 : > "$DST_MD"
 
 
-cat > puppeteer-config.json <<'JSON'
+cat > ./generated/puppeteer-config.json <<'JSON'
 {
   "args": ["--no-sandbox", "--disable-setuid-sandbox"]
 }
@@ -66,7 +66,7 @@ while IFS= read -r line; do
     done
     PNG_FILE="$OUTDIR/mermaid_${MERMAID_IDX}.png"
     echo "Rendering mermaid block $MERMAID_IDX -> $(basename "$PNG_FILE")"
-    if mmdc -i "$MERM_FILE" -o "$PNG_FILE" --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4  --puppeteerConfigFile puppeteer-config.json; then
+    if mmdc -i "$MERM_FILE" -o "$PNG_FILE" --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4  --puppeteerConfigFile ./generated/puppeteer-config.json; then
       RENDERED=$((RENDERED+1))
       # Grayscale conversion (disabled for now)
       # if [ "$GRAYSCALE_OK" -eq 1 ]; then
@@ -250,5 +250,5 @@ echo "Markdown: $DST_MD"
 echo "LaTeX:    $OUTDIR/$NAME-pandoc.tex"
 echo "Images:"
 ls -1 "$OUTDIR"/mermaid_*.png 2>/dev/null || echo "None"
-rm puppeteer-config.json
+rm ./generated/puppeteer-config.json
 echo "Done: $OUTDIR/$NAME-pandoc.tex"
