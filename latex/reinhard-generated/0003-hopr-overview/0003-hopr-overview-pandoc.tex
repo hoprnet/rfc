@@ -99,6 +99,12 @@ solution for privacy-preserving communication.
 
 \subsection{3. Terminology}\label{terminology}
 
+The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
+NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
+``OPTIONAL'' in this document are to be interpreted as described in
+{[}03{]} when, and only when, they appear in all capitals, as shown
+here.
+
 All terminology used in this document, including general mix network
 concepts and HOPR-specific definitions, is provided in
 \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
@@ -161,7 +167,7 @@ provide privacy protection. Path construction involves three phases:
   these trade-offs according to application needs.
 \item
   \textbf{Onion routing}: messages are encrypted in multiple layers
-  using the Sphinx packet format {[}02, 03{]}, with each relay node able
+  using the Sphinx packet format {[}02, 04{]}, with each relay node able
   to decrypt only one layer to reveal the next hop whilst keeping the
   sender, final destination, and full path hidden.
 \end{enumerate}
@@ -187,7 +193,7 @@ operation and encourage node participation:
 \item
   \textbf{Payment channels}: unidirectional payment channels between
   nodes enable efficient microtransactions without high blockchain fees
-  {[}04{]}. Channels are established on-chain but allow many off-chain
+  {[}05{]}. Channels are established on-chain but allow many off-chain
   payments, settling only periodically or when channels close.
 \item
   \textbf{Staking rewards}: nodes that stake tokens and maintain open
@@ -207,20 +213,20 @@ its layered security approach:
 \item
   \textbf{Sender anonymity}: relay nodes cannot determine the original
   sender of a message due to onion routing. Each node only knows the
-  immediate previous hop, not the ultimate source {[}05{]}.
+  immediate previous hop, not the ultimate source {[}06{]}.
 \item
   \textbf{Receiver anonymity}: intermediate nodes cannot identify the
   final recipient of a message. Only the exit node knows the final
-  destination, but not the original sender {[}05{]}.
+  destination, but not the original sender {[}06{]}.
 \item
   \textbf{Unlinkability}: observers cannot link multiple messages from
-  the same sender or to the same receiver {[}05{]}. Different messages
+  the same sender or to the same receiver {[}06{]}. Different messages
   may take different paths, and the encryption prevents correlation.
 \item
   \textbf{Traffic analysis resistance}: random delays introduced by the
   mixer component
   (\href{../RFC-0006-hopr-mixer/0006-hopr-mixer.md}{RFC-0006}) and
-  packet mixing prevent timing correlation attacks {[}06{]}. This
+  packet mixing prevent timing correlation attacks {[}07{]}. This
   ensures that an observer cannot correlate incoming and outgoing
   packets based on timing patterns.
 \end{itemize}
@@ -267,6 +273,7 @@ protocol multiplexing\\
 \textbf{HOPR packet protocol}: Onion routing and
 encryption\\
 \textbf{Transport layer}: Network communication
+\end{itemize}
 
 \subsubsection{5.2 Core Protocol
 Components}\label{core-protocol-components}
@@ -287,13 +294,13 @@ onion routing:
   routing process.
 \item
   \textbf{Sphinx-based design}: based on the Sphinx packet format
-  {[}03{]} with extensions for incentivisation. Sphinx provides compact
+  {[}04{]} with extensions for incentivisation. Sphinx provides compact
   headers and strong cryptographic guarantees about packet
   unlinkability.
 \item
   \textbf{Fixed packet size}: all packets have identical size (including
   header, payload, and proof-of-relay information) to prevent traffic
-  analysis based on packet size {[}06{]}. To achieve this,
+  analysis based on packet size {[}07{]}. To achieve this,
   variable-length messages are padded to the maximum size.
 \item
   \textbf{Single-use reply blocks (SURBs)}: SURBs enable recipients to
@@ -339,7 +346,7 @@ traffic analysis resistance through temporal mixing:
 \item
   \textbf{Temporal mixing}: introduces random delays to packets before
   forwarding, breaking timing correlations between incoming and outgoing
-  packets {[}01, 06{]}. This prevents attackers from linking packets
+  packets {[}01, 07{]}. This prevents attackers from linking packets
   based on timing patterns.
 \item
   \textbf{Configurable delays}: supports configurable minimum delay and
@@ -397,7 +404,7 @@ incentivises network participation through multiple mechanisms:
   and providing economic security.
 \item
   \textbf{Payment channels}: unidirectional payment channels enable
-  efficient micropayments between nodes {[}04{]}. Channels are funded
+  efficient micropayments between nodes {[}05{]}. Channels are funded
   on-chain but support many off-chain transactions, minimising
   blockchain costs.
 \item
@@ -453,8 +460,6 @@ flow:
   content.
 \end{enumerate}
 
-\\
-
 \subsubsection{5.4 Integration Points}\label{integration-points}
 
 The HOPR protocol provides multiple integration points to support
@@ -490,28 +495,29 @@ various applications and use cases:
 {Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms}.
 \emph{Communications of the ACM, 24}(2), 84-90.
 \href{https://www.freehaven.net/anonbib/cache/chaum-mix.pdf}{\underline{https://www.freehaven.net/anonbib/cache/chaum-mix.pdf}}
-\\
+
 {[}02{]} Reed, M. G., Syverson, P. F., \& Goldschlag, D. M. (1998).
 {Anonymous Connections and Onion Routing}. \emph{IEEE Journal on Selected Areas in
 Communications, 16}(4), 482-494.
 \href{https://www.onion-router.net/Publications/JSAC-1998.pdf}{\underline{https://www.onion-router.net/Publications/JSAC-1998.pdf}}
-\\
-{[}03{]} Danezis, G., \& Goldberg, I. (2009).
+
+{[}03{]} Bradner, S. (1997). {Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
+
+{[}04{]} Danezis, G., \& Goldberg, I. (2009).
 {Sphinx: A Compact and Provably Secure Mix Format}. \emph{2009 30th IEEE Symposium
 on Security and Privacy}, 262-277.
-\href{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{\underline{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}}
-\\
-{[}04{]} Poon, J., \& Dryja, T. (2016).
-{The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments}. Lightning
-Network Whitepaper.
+\href{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{\underline{https://cypherpunks.ca/~iang/pubs/Sphinx\_Oakland09.pdf}}
+
+{[}05{]} Poon, J., \& Dryja, T. (2016). The Bitcoin Lightning Network:\\Scalable Off-Chain Instant Payments. Lightning Network Whitepaper.
 \href{https://lightning.network/lightning-network-paper.pdf}{\underline{https://lightning.network/lightning-network-paper.pdf}}
-\\
-{[}05{]} Pfitzmann, A., \& Köhntopp, M. (2001).
+
+{[}06{]} Pfitzmann, A., \& Köhntopp, M. (2001).
 {Anonymity, Unobservability, and Pseudonymity---A Proposal for Terminology}. In
 \emph{Designing Privacy Enhancing Technologies} (pp.~1-9). Springer.
 \href{https://www.freehaven.net/anonbib/cache/terminology.pdf}{\underline{https://www.freehaven.net/anonbib/cache/terminology.pdf}}
-\\
-{[}06{]} Raymond, J. F. (2001).
+
+{[}07{]} Raymond, J. F. (2001).
 {Traffic Analysis: Protocols, Attacks, Design Issues, and Open Problems}. In
 \emph{Designing Privacy Enhancing Technologies} (pp.~10-29). Springer.
 \href{https://www.freehaven.net/anonbib/cache/raymond-thesis.pdf}{\underline{https://www.freehaven.net/anonbib/cache/raymond-thesis.pdf}}

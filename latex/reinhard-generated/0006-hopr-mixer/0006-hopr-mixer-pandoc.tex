@@ -79,18 +79,34 @@ The HOPR mixer addresses this attack vector by:
 
 \subsection{3. Terminology}\label{terminology}
 
-Terms defined in
-\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002} are
-used. Additional mixer-specific terms include:
+The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
+NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
+``OPTIONAL'' in this document are to be interpreted as described in
+{[}01{]} when, and only when, they appear in all capitals, as shown
+here.
 
-\emph{mixing delay}: A random time interval added to a packet's transit
+All terminology used in this document, including general mix network
+concepts and HOPR-specific definitions, is provided in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
+That document serves as the authoritative reference for the terminology
+and conventions adopted across the HOPR RFC series. 
+
+Additional mixer-specific terms include:
+
+\begin{itemize}
+\tightlist
+\item
+\textbf{mixing delay}: A random time interval added to a packet's transit
 time through a node to prevent timing correlation attacks.
 
-\emph{release timestamp}: The calculated time at which a delayed packet
+\textbf{release timestamp}: The calculated time at which a delayed packet
 should be forwarded from the mixer.
 
-\emph{mixing buffer}: A priority queue that holds packets ordered by
+\textbf{mixing buffer}: A priority queue that holds packets ordered by
 their release timestamps.
+\end{itemize}
+
+\clearpage
 
 \subsection{4. Specification}\label{specification}
 
@@ -111,8 +127,6 @@ steps:
 \item
   Release packets when their delay expires
 \end{enumerate}
-
-\clearpage
 
 \subsubsection{4.2. Configuration
 Parameters}\label{configuration-parameters}
@@ -184,7 +198,7 @@ be met:
 Different mixing strategies produce different results. A uniform
 distribution will provide a simple baseline that is easy to implement
 and analyse. More advanced strategies like Poisson mixing (as used in
-Loopix {[}01{]}) can provide stronger anonymity properties by making
+Loopix {[}02{]}) can provide stronger anonymity properties by making
 packet timings less distinguishable from cover traffic patterns, but
 require careful parameter tuning and integration with cover traffic
 generation.
@@ -301,7 +315,7 @@ Limits}\label{abuse-resistance-and-resource-limits}
 \item
   \textbf{statistical analysis}: Uniform distribution is a simple
   baseline; stronger timing strategies (e.g., exponential/Poisson as in
-  Loopix {[}01{]}) provide better resistance to pattern inference
+  Loopix {[}02{]}) provide better resistance to pattern inference
 \item
   \textbf{queue bounds and DoS}: The mixer MUST use a bounded buffer
   with backpressure. Implementations MUST define behaviour when full
@@ -309,10 +323,7 @@ Limits}\label{abuse-resistance-and-resource-limits}
   sends) and expose metrics/alerts to prevent memory exhaustion attacks.
 \end{itemize}
 
-\clearpage
-
-\subsubsection{5.3. Monitoring and
-Metrics}\label{monitoring-and-metrics}
+\subsubsection{5.3. Monitoring and Metrics}\label{monitoring-and-metrics}
 
 The mixer should track:
 
@@ -410,7 +421,7 @@ Alternative mixing strategies considered:
   \textbf{stop-and-go mixing}: Fixed delays at each hop (predictable
   patterns)
 \item
-  \textbf{poisson mixing}: As implemented in Loopix {[}01{]}, uses
+  \textbf{poisson mixing}: As implemented in Loopix {[}02{]}, uses
   Poisson-distributed delays that make real traffic harder to
   distinguish from cover traffic. This can provide stronger anonymity
   properties but requires careful parameter tuning and integration with
@@ -442,17 +453,18 @@ to implement and analyse.
 \item
   \textbf{poisson mixing implementation}: Implement Poisson mixing
   (exponentially distributed per-packet delays derived from a Poisson
-  process) as described in Loopix {[}01{]} to provide stronger anonymity
+  process) as described in Loopix {[}02{]} to provide stronger anonymity
   properties when combined with cover traffic
 \item
   Performance optimizations for hardware acceleration
 \end{itemize}
 
-\clearpage
-
 \subsection{11. References}\label{references}
+{[}01{]} Bradner, S. (1997).
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
 
-{[}01{]} Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., \&
+{[}02{]} Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., \&
 Danezis, G. (2017). {The Loopix Anonymity System}. \emph{26th USENIX Security Symposium},
 1199-1216.
 \href{https://arxiv.org/pdf/1703.00536.pdf}{\underline{https://arxiv.org/pdf/1703.00536.pdf}}

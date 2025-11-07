@@ -115,8 +115,7 @@ padding payloads which fall below the maximum size in bytes.
 \textbf{This document describes version 1.0.0 of the HOPR packet format
 and protocol.}
 
-\subsubsection{2.1. Conventions and
-terminology}\label{conventions-and-terminology}
+\subsubsection{2.1. Terminology}\label{terminology}
 
 The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
 NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
@@ -124,9 +123,11 @@ NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
 {[}02{]} when, and only when, they appear in all capitals, as shown
 here.
 
-Terms defined in
-\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002} are
-used throughout this document. Additionally, the following
+All terminology used in this document, including general mix network
+concepts and HOPR-specific definitions, is provided in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
+That document serves as the authoritative reference for the terminology
+and conventions adopted across the HOPR RFC series. Additionally, the following
 packet-protocol-specific terms are defined:
 
 \textbf{Peer public/private key} (also \textbf{pubkey} or
@@ -434,8 +435,6 @@ The input for the header creation is:
   Sender pseudonym (represented as a sequence of bytes)
 \end{itemize}
 
-\clearpage
-
 Let \codebubble{HeaderPrefix\_i} be a single byte, where:
 
 \begin{itemize}
@@ -638,7 +637,7 @@ The process of generating a single SURB is very similar to the process
 of creating the forward packet header.
 
 As the \codebubble{SURB} is sent to the packet recipient, it also has
-its counterpart, called \codebubble{ReplyOpener}. The
+its counterpart, called \\ \codebubble{ReplyOpener}. The
 \codebubble{ReplyOpener} is generated alongside the SURB and is stored
 at the sender (indexed by its pseudonym) and used later to decrypt the
 reply packet delivered to the sender using the associated SURB.
@@ -1247,25 +1246,23 @@ primitives:
 {[}01{]} Danezis, G., \& Goldberg, I. (2009).
 {Sphinx: A Compact and Provably Secure Mix Format}. \emph{2009 30th IEEE Symposium
 on Security and Privacy}, 262-277.
-\href{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{\underline{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}}
+\href{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{\underline{https://cypherpunks.ca/~iang/pubs/Sphinx\_Oakland09.pdf}}
 
 {[}02{]} Bradner, S. (1997).
 {Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
 \href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
 
 {[}03{]} Nir, Y., \& Langley, A. (2015).
-{ChaCha20 and Poly1305 for IETF Protocols}. \\ \emph{IETF RFC 7539}.
+{ChaCha20 and Poly1305 for IETF Protocols}.\\ \emph{IETF RFC 7539}.
 \href{https://www.rfc-editor.org/rfc/rfc7539.html}{\underline{https://www.rfc-editor.org/rfc/rfc7539.html}}
 
 {[}04{]} Faz-Hernandez, A., et al.~(2023).
 {Hashing to Elliptic Curves}. \emph{IETF RFC 9380}.
 \href{https://www.rfc-editor.org/rfc/rfc9380.html}{\underline{https://www.rfc-editor.org/rfc/rfc9380.html}}
 
-{[}05{]} Anderson, R., \& Biham, E. (1996). Two practical and provably
-secure block ciphers: BEAR and LION. \emph{In International Workshop on
+{[}05{]} Anderson, R., \& Biham, E. (1996). Two practical and provably secure block ciphers: BEAR and LION. \emph{In International Workshop on
 Fast Software Encryption (pp.~113-120). Berlin, Heidelberg: Springer
 Berlin Heidelberg.}
 
 {[}06{]} Connor, J., Aumasson, J.-P., Neves, S., \& Wilcox-O'Hearn, Z.
-(2021). {BLAKE 3 one function, fast everywhere}
-\href{https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf}{\underline{https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf}}
+(2021). {BLAKE 3 one function, fast everywhere.} \href{https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf}{\underline{https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf}}

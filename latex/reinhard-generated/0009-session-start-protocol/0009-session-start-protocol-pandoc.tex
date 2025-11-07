@@ -88,10 +88,20 @@ transports while being optimised for the HOPR mixnet.
 
 \subsection{3. Terminology}\label{terminology}
 
-Terms defined in
-\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002} are
-used throughout this specification. Additionally, this document defines
-the following session start protocol-specific terms:
+The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
+NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
+``OPTIONAL'' in this document are to be interpreted as described in
+{[}01{]} when, and only when, they appear in all capitals, as shown
+here.
+
+All terminology used in this document, including general mix network
+concepts and HOPR-specific definitions, is provided in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
+That document serves as the authoritative reference for the terminology
+and conventions adopted across the HOPR RFC series. 
+
+Additionally, this document defines the following session start protocol-specific 
+terms:
 
 \begin{itemize}
 \item
@@ -103,7 +113,7 @@ the following session start protocol-specific terms:
 \item
   \textbf{session target}: The destination or purpose of a session,
   typically representing an address or service identifier. Session
-  targets are encoded using CBOR format {[}01{]} to allow flexible
+  targets are encoded using CBOR format {[}02{]} to allow flexible
   representation of various endpoint types (e.g., IPv4/IPv6 addresses
   with ports, service URIs).
 \item
@@ -159,8 +169,6 @@ supports both successful and failed session establishment scenarios. All
 multi-byte integer fields use network byte order (big-endian) encoding
 to ensure consistent interpretation across different architectures and
 implementations.
-
-\clearpage
 
 \subsubsection{4.2 Message Format}\label{message-format}
 
@@ -228,6 +236,8 @@ failure \\
 \codebubble{0x03} & KeepAlive & Maintains session liveness \\
 \end{longtable}
 
+\clearpage
+
 \paragraph{4.2.2 Byte Order}\label{byte-order}
 
 All multi-byte integer fields and values in the session start protocol
@@ -260,6 +270,8 @@ applies to the following fields:
 This requirement ensures consistent interpretation across different
 architectures \\(e.g., x86, ARM, RISC-V) and prevents interoperability
 issues between implementations.
+
+\clearpage
 
 \subsubsection{4.3 StartSession Message}\label{startsession-message}
 
@@ -334,8 +346,7 @@ Description
 7 & Reserved & Reserved for future use \\
 \end{longtable}
 
-\subsubsection{4.4 SessionEstablished
-Message}\label{sessionestablished-message}
+\subsubsection{4.4 SessionEstablished Message}\label{sessionestablished-message}
 
 The \codebubble{SessionEstablished} message confirms successful session
 establishment. The exit node sends this message in response to a valid
@@ -374,6 +385,8 @@ from the initiating \codebubble{StartSession} request \\
 Assigned by exit node; MUST be unique within exit node's session
 namespace \\
 \end{longtable}
+
+\clearpage
 
 \subsubsection{4.5 SessionError Message}\label{sessionerror-message}
 
@@ -950,13 +963,7 @@ Implementations SHOULD include comprehensive tests covering:
   messages are correctly generated and handled.
 \end{itemize}
 
-\subsection{10. References}\label{references}
-
-{[}01{]} Bormann, C. \& Hoffman, P. (2013).
-{Concise Binary Object Representation (CBOR)}. \emph{IETF RFC 7049}.
-\href{https://datatracker.ietf.org/doc/html/rfc7049}{\underline{https://datatracker.ietf.org/doc/html/rfc7049}}
-
-\subsection{11. Appendix 1}\label{appendix-1}
+\subsection{10. Appendix 1}\label{appendix-1}
 
 Within the HOPR protocol, a session is identified uniquely via the HOPR
 session ID. This consists of 10 pseudo-random bytes as a prefix and a
@@ -974,3 +981,13 @@ The suffix (\codebubble{123456}) represents an application tag that
 identifies sessions within the reserved range in the application
 protocol
 (\href{../RFC-0011-application-protocol/0011-application-protocol.md}{RFC-0011}).
+
+\subsection{11. References}\label{references}
+
+{[}01{]} Bradner, S. (1997).
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
+
+{[}02{]} Bormann, C. \& Hoffman, P. (2013).
+{Concise Binary Object Representation (CBOR)}. \emph{IETF RFC 7049}.
+\href{https://datatracker.ietf.org/doc/html/rfc7049}{\underline{https://datatracker.ietf.org/doc/html/rfc7049}}

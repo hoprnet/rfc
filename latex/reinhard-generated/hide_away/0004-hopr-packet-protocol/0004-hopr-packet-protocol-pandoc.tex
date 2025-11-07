@@ -1,0 +1,1271 @@
+\rfcnumber{0004}
+\rfctitle{HOPR Packet Protocol}
+\rfcdate{October 2025}
+\rfcauthor{Lukas Pohanka (@NumberFour8)}
+\section{RFC-0004: HOPR Packet
+Protocol}\label{rfc-0004-hopr-packet-protocol}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{RFC Number:} 0004
+\item
+  \textbf{Title:} HOPR Packet Protocol
+\item
+  \textbf{Status:} Finalised
+\item
+  \textbf{Author(s):} Lukas Pohanka (@NumberFour8)
+\item
+  \textbf{Created:} 2025-03-19
+\item
+  \textbf{Updated:} 2025-10-27
+\item
+  \textbf{Version:} v1.0.0 (Finalised)
+\item
+  \textbf{Supersedes:} none
+\item
+  \textbf{Related Links:}
+  \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002},
+  \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005},
+  \href{../RFC-0006-hopr-mixer/0006-hopr-mixer.md}{RFC-0006},
+  \href{../RFC-0007-economic-reward-system/0007-economic-reward-system.md}{RFC-0007},
+  \href{../RFC-0008-session-protocol/0008-session-protocol.md}{RFC-0008},
+  \href{../RFC-0011-application-protocol/0011-application-protocol.md}{RFC-0011}
+\end{itemize}
+
+\subsection{1. Abstract}\label{abstract}
+
+This RFC describes the wire format of a HOPR packet and its encoding and
+decoding protocols. The HOPR packet format is heavily based on the
+Sphinx packet format {[}01{]}, as it aims to fulfill a similar set of
+goals: providing anonymous, indistinguishable packets that hide path
+length and ensure unlinkability of messages. The HOPR packet format
+extends Sphinx by adding information to support incentivisation of
+individual relay nodes through the Proof of Relay mechanism.
+
+The Proof of Relay (PoR) mechanism is described in
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}. This
+RFC focuses on the packet structure and cryptographic operations
+required for packet creation, forwarding, and processing.
+
+\subsection{2. Introduction}\label{introduction}
+
+The HOPR packet format is the fundamental building block of the HOPR
+protocol, enabling the construction of the HOPR mix network. The format
+is designed to create indistinguishable packets sent between source and
+destination through a set of relay nodes, as defined in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002},
+thereby achieving unlinkability of messages between sender and
+destination.
+
+In the HOPR protocol, relay nodes SHOULD perform packet mixing as
+described in \href{../RFC-0006-hopr-mixer/0006-hopr-mixer.md}{RFC-0006}
+to provide additional protection against timing analysis. The packet
+format is built on the Sphinx packet format {[}01{]} but adds per-hop
+information to enable incentivisation of relay nodes (except the last
+hop) for their relay services. Incentivisation of the final hop is
+handled separately through the economic reward system described in
+\href{../RFC-0007-economic-reward-system/0007-economic-reward-system.md}{RFC-0007}.
+
+The HOPR packet format does not require a reliable underlying transport
+or in-order delivery, making it suitable for deployment over UDP or
+other connectionless protocols. Packet payloads are encrypted; however,
+payload authenticity and integrity are not guaranteed by this layer and
+MAY be provided by overlay protocols such as the session protocol
+(\href{../RFC-0008-session-protocol/0008-session-protocol.md}{RFC-0008}).
+The packet format is optimised to minimise overhead and maximise payload
+capacity within the fixed packet size constraint.
+
+The HOPR packet consists of two primary parts:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Meta packet} (also called the \textbf{Sphinx packet}): carries
+  the routing information for the selected path and the encrypted
+  payload. The meta packet includes:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    An \codebubble{Alpha} value (ephemeral public key) for establishing
+    shared secrets
+  \item
+    A \codebubble{Header} containing routing information and per-hop
+    instructions
+  \item
+    An encrypted payload (\codebubble{EncPayload}) containing the actual
+    message data
+  \end{itemize}
+
+  The meta packet structure and processing are described in detail in
+  sections 3 and 5 of this RFC.
+\item
+  \textbf{Ticket}: contains payment and proof-of-relay information for
+  the next hop on the path. The ticket structure enables probabilistic
+  micropayments to incentivise relay nodes. Tickets are described in
+  \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}.
+\end{enumerate}
+
+These two parts are concatenated to form the complete HOPR packet, which
+has a fixed size regardless of the actual payload length to prevent
+traffic analysis based on packet size. This fixed size is achieved by
+padding payloads which fall below the maximum size in bytes.
+
+\textbf{This document describes version 1.0.0 of the HOPR packet format
+and protocol.}
+
+\subsubsection{2.1. Conventions and
+terminology}\label{conventions-and-terminology}
+
+The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
+NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
+``OPTIONAL'' in this document are to be interpreted as described in
+{[}02{]} when, and only when, they appear in all capitals, as shown
+here.
+
+Terms defined in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002} are
+used throughout this document. Additionally, the following
+packet-protocol-specific terms are defined:
+
+\textbf{Peer public/private key} (also \textbf{pubkey} or
+\textbf{privkey}): part of a cryptographic key pair owned by a peer. The
+public key is used to establish shared secrets for onion encryption,
+whilst the private key is kept secret and used to decrypt packets
+destined for that peer.
+
+\textbf{Extended path}: a forward or return path that includes the final
+destination or original sender respectively. For a forward path of
+\codebubble{N} hops, the extended path contains \codebubble{N} relay
+nodes plus the destination node (\codebubble{N+1} nodes total). For a
+return path, it contains \codebubble{N} relay nodes plus the original
+sender.
+
+\textbf{Pseudonym}: a randomly generated identifier of the sender used
+to enable reply messages. The pseudonym MAY be prefixed with a static
+prefix to allow the sender to be identified across multiple messages
+whilst maintaining anonymity. The length of any static prefix MUST NOT
+exceed half of the entire pseudonym's size. The pseudonym used in the
+forward message MUST be identical to the pseudonym used in any reply
+message to enable proper routing.
+
+\textbf{Public key identifier}: a compact identifier of each peer's
+public key. The size of such an identifier SHOULD be strictly smaller
+than the size of the corresponding public key to reduce header overhead.
+Implementations MAY use truncated hashes of public keys as identifiers.
+
+\textbf{\textbar x\textbar{}}: denotes the binary representation length
+of \codebubble{x} in bytes. This notation is used throughout the
+specification to indicate field sizes.
+
+If character strings (delimited via double-quotes, such as
+\codebubble{"xyz-abc-123"}) are used in place of byte strings, their
+ASCII single-byte encoding is assumed. Non-ASCII character strings are
+not used throughout this document.
+
+\subsubsection{2.2. Global packet format
+parameters}\label{global-packet-format-parameters}
+
+The HOPR packet format requires certain cryptographic primitives in
+place, namely:
+
+\begin{itemize}
+\tightlist
+\item
+  an Elliptic Curve (EC) group where the Elliptic Curve Diffie-Hellman
+  Problem (ECDLP) is hard. The peer public keys correspond to points on
+  the chosen EC. The peer private keys correspond to scalars of the
+  corresponding finite field.
+\item
+  Pseudo-Random Permutation (PRP), commonly represented by a symmetric
+  cipher
+\item
+  Pseudo-Random Generator (PRG), commonly represented by a stream cipher
+  or a block cipher in stream mode
+\item
+  One-time authenticator \codebubble{OA(K, M)} where K denotes a
+  one-time key and M is the message being authenticated
+\item
+  a Key Derivation Function (KDF) allowing:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    generation of secret key material from a high-entropy pre-key K,
+    context string C, and a salt S: \codebubble{KDF(C, K, S)}. KDF will
+    perform the necessary expansion to match the size required by the
+    output. The Salt \codebubble{S} argument is optional and MAY be
+    omitted.
+  \item
+    if the above is applied to an EC point as \codebubble{K}, the point
+    MUST be in its compressed form.
+  \end{itemize}
+\item
+  Hash to Field (Scalar) operation \codebubble{HS(S,T)} which computes a
+  field element of the elliptic curve from
+  \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005},
+  given the secret \codebubble{S} and a tag \codebubble{T}.
+\end{itemize}
+
+The concrete instantiations of these primitives are discussed in
+Appendix 1. All the primitives MUST have corresponding security bounds
+(e.g., they all have 128-bit security) and the generated key material
+MUST also satisfy the required bounds of the primitives.
+
+The global value of \codebubble{PacketMax} is the maximum size of the
+data in bytes allowed inside the packet payload.
+
+\subsection{3. Forward packet creation}\label{forward-packet-creation}
+
+The REQUIRED inputs for packet creation are as follows:
+
+\begin{itemize}
+\tightlist
+\item
+  User's packet payload (as a sequence of bytes)
+\item
+  Sender pseudonym (as a sequence of bytes)
+\item
+  forward path and an OPTIONAL list of one or more return paths
+\end{itemize}
+
+The input MAY also contain:
+
+\begin{itemize}
+\tightlist
+\item
+  unique bidirectional map between peer pubkeys and public key
+  identifiers (\emph{mapper})
+\end{itemize}
+
+Note that the mapper MAY only contain public key identifier mappings of
+pubkeys from forward and return paths.
+
+The packet payload MUST be between 0 and \codebubble{PacketMax} bytes in
+length.
+
+The sender pseudonym MUST be randomly generated for each packet header
+but MAY contain a static prefix.
+
+The forward and return paths MAY be represented by public keys of
+individual hops. Alternatively, the paths MAY be represented by public
+key identifiers and mapped using the mapper as needed.
+
+The size of the forward and return paths (number of hops) MUST be
+between 0 and 3.
+
+\subsubsection{3.1. Partial ticket
+creation}\label{partial-ticket-creation}
+
+The creation of the HOPR packet starts with the creation of the partial
+ticket structure as defined in
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}. If
+ticket creation fails at this point, the packet creation process MUST be
+terminated.
+
+The ticket is created almost completely, apart from the Challenge field,
+which can be populated only after the Proof of Relay values have been
+fully created for the packet.
+
+\subsubsection{3.2. Generating the Shared
+secrets}\label{generating-the-shared-secrets}
+
+In the next step, shared secrets for individual hops on the forward path
+are generated, as described in Section 2.2 in {[}01{]}:
+
+Assume the length of the path is \codebubble{N} (between 0 and 3) and
+each hop's public key is \\ \codebubble{Phop\_i}. The public key of the
+destination is \codebubble{Pdst}.
+
+Let the extended path be a list of \codebubble{Phop\_i} and
+\codebubble{Pdst} (for \codebubble{i = 1 .. N}). For \codebubble{N = 0},
+the extended path consists of just \codebubble{Pdst}.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  A new random ephemeral key pair is generated, \codebubble{Epriv} and
+  \codebubble{Epub} respectively.
+\item
+  Set \codebubble{Alpha} = \codebubble{Epub} and \codebubble{Coeff} =
+  \codebubble{Epriv}
+\item
+  For each (i-th) public key \codebubble{P\_i} the Extended path:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \codebubble{SharedPreSecret\_i} = \codebubble{Coeff} *
+    \codebubble{P\_i}
+  \item
+    \codebubble{SharedSecret\_i} = KDF(``HASH\_KEY\_SPHINX\_SECRET'',
+    \codebubble{SharedPreSecret\_i}, \codebubble{P\_i})
+  \item
+    if \codebubble{i == N}, quit the loop
+  \item
+    \codebubble{B\_i = KDF("HASH\_KEY\_SPHINX\_BLINDING", SharedPreSecret\_i, Alpha)}
+  \item
+    \codebubble{Alpha = B\_i \* Alpha}
+  \item
+    \codebubble{Coeff = B\_i \* Coeff}
+  \end{itemize}
+\item
+  Return \codebubble{Alpha} and the list of \codebubble{SharedSecret\_i}
+\end{enumerate}
+
+For path of length \codebubble{N}, the list length of the Shared secrets
+is \codebubble{N+1}.
+
+In some instantiations, an invalid elliptic curve point may be
+encountered anywhere during step 3. In such case the computation MUST
+fail with an error. The process then MAY restart from step 1.
+
+After \codebubble{KDF\_expand}, the \codebubble{B\_i} MAY be
+additionally transformed so that it conforms to a valid field scalar.
+Should that operation fail, the computation MUST fail with an error and
+the process then MAY restart from step 1.
+
+The returned \codebubble{Alpha} value MAY be encoded to an equivalent
+representation (such as using elliptic curve point compression), so that
+space is preserved.
+
+\subsubsection{3.3. Generating the Proof of
+Relay}\label{generating-the-proof-of-relay}
+
+The packet generation continues with per-hop proof generation of relay
+values, Ticket challenge, and Acknowledgement challenge for the first
+downstream node. This generation is done for each hop on the path.
+
+This is described in
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005} and
+is a two-step process.
+
+The first step uses the List of shared secrets for the extended path as
+input. As a result, there is a list of length N, where each entry
+contains:
+
+\begin{itemize}
+\tightlist
+\item
+  Ticket challenge for the hop i+1 on the extended path
+\item
+  Hint value for the i-th hop
+\end{itemize}
+
+Both values in each list entry are elliptic curve points. The Ticket
+challenge value MAY be transformed via a one-way cryptographic hash
+function, whose output MAY be truncated. See
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005} on
+how such representation is instantiated.
+
+This list consists of \codebubble{PoRStrings\_i} entries.
+
+In the second step of the PoR generation, the input is the first Shared
+secret from the List and optionally the second Shared secret (if the
+extended path is longer than 1). It outputs additional two entries:
+
+\begin{itemize}
+\tightlist
+\item
+  Acknowledgement challenge for the first hop
+\item
+  Ticket challenge for the first ticket
+\end{itemize}
+
+Also, here, both values are EC points, where the latter MAY be
+represented via the same one-way representation.
+
+This tuple is called \codebubble{PoRValues} and is used to finalise the
+partial Ticket: the Ticket challenge fills in the missing part in the
+\codebubble{Ticket}.
+
+\subsubsection{3.4. Forward meta packet
+creation}\label{forward-meta-packet-creation}
+
+At this point, there is enough information to generate the meta packet,
+which is a logical construct that does not contain the
+\codebubble{ticket} yet.
+
+The meta packet consists of the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  \codebubble{Alpha} value
+\item
+  \codebubble{Header} (an instantiation of the Sphinx mix header)
+\item
+  padded and encrypted payload \codebubble{EncPayload}
+\end{itemize}
+
+The above order of these components is canonical and MUST be followed
+when a packet is serialised to its binary form. The definitions of the
+above components follow in the next sections.
+
+The \codebubble{Alpha} value is obtained from the Shared secrets
+generation phase.
+
+The \codebubble{Header} is created differently depending on whether this
+packet is a forward packet or a reply packet.
+
+The creation of the \codebubble{EncPayload} depends on whether the
+packet is routed via the forward path or return path.
+
+\paragraph{3.4.1. Header creation}\label{header-creation}
+
+The header creation also closely follows {[}01{]} Section 3.2. Its
+creation is almost identical whether it is being created for the forward
+or return path.
+
+The input for the header creation is:
+
+\begin{itemize}
+\tightlist
+\item
+  Extended path (of peer public keys \codebubble{P\_i})
+\item
+  Shared secrets from previous steps (\codebubble{SharedSecret\_i})
+\item
+  PoRStrings (each entry denoted a \codebubble{PoRString\_i} of equal
+  lengths)
+\item
+  Sender pseudonym (represented as a sequence of bytes)
+\end{itemize}
+
+\clearpage
+
+Let \codebubble{HeaderPrefix\_i} be a single byte, where:
+
+\begin{itemize}
+\tightlist
+\item
+  The first 3 most significant bits indicate the version, and currently
+  MUST be set to \codebubble{001}.
+\item
+  The 4th most significant bit indicates the \codebubble{NoAckFlag}. It
+  MUST be set to 1 when the recipient SHOULD NOT acknowledge the packet.
+\item
+  The 5th most significant bit indicates the \codebubble{ReplyFlag} and
+  MUST be set to 1 if the header is created for the return path,
+  otherwise it MUST be zero.
+\item
+  The last remaining 3 bits represent the number \codebubble{i}, in
+  \emph{most significant bits first} format.
+\end{itemize}
+
+For example, the binary representation of \codebubble{HeaderPrefix\_3}
+with \codebubble{ReplyFlag} set and \\ \codebubble{NoAckFlag} not set looks
+like this:
+
+\begin{codebubbleenv}
+HeaderPrefix_3 = 0 0 1 0 1 0 1 1
+\end{codebubbleenv}
+
+The \codebubble{HeaderPrefix\_i} MUST not be computed for
+\codebubble{i > 7}.
+
+Let \codebubble{ID\_i} be a public key identifier of \codebubble{P\_i}
+(by using the mapper), and \codebubble{|T|} denote the output's size of
+a chosen one-time authenticator. Since \codebubble{ID\_i} MUST be all of
+equal lengths for each \codebubble{i}, denote this length
+\codebubble{|ID|}. Similarly, \codebubble{|PoRString\_i|} MUST have also
+all equal lengths of \codebubble{|PoRString|}.
+
+Let \codebubble{RoutingInfoLen} be equal to
+\codebubble{1 + |ID| + |T| + |PoRString|}.
+
+Allocate a zeroised \codebubble{HdrExt} buffer of
+\codebubble{1 + |Pseudonym| + 4 * RoutingInfoLen} bytes and another
+zeroed buffer \codebubble{OATag} of \codebubble{|T|} bytes.
+
+For each i = 1 up to N+1 do:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Initialise PRG with \codebubble{SharedSecret\_\{N-i+2\}}
+\item
+  If i is equal to 1
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Set \codebubble{HdrExt[0]} to \codebubble{HeaderPrefix\_0}
+  \item
+    Copy all bytes of \codebubble{Pseudonym} to \codebubble{HdrExt} at
+    offset 1
+  \item
+    Fill \codebubble{HdrExt} from offset \codebubble{1 + |Pseudonym|} up
+    to \codebubble{(5 - N) * RoutingInfoLen} with uniformly randomly
+    generated bytes.
+  \item
+    Perform an exclusive-OR (XOR) of bytes generated by the PRG with
+    HdrExt, starting from offset 0 up to
+    \codebubble{1 + |Pseudonym| + (5 - N) * RoutingInfoLen}
+  \item
+    If N \textgreater{} 0, generate \emph{filler bytes} given the list
+    of Shared secrets as follows:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Allocate a zeroed buffer Filler of
+      \codebubble{(N-1)* RoutingInfoLen}
+    \item
+      For each j from 1 to N-1:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Initialise a new PRG instance with \codebubble{SharedSecret\_j}
+      \item
+        Seek the PRG to position
+        \codebubble{1 + |Pseudonym| + (4 - j) * RoutingInfoLen}
+      \item
+        XOR RoutingInfoLen bytes of the PRG to Filler from offset 0 up
+        to \\ \codebubble{j * RoutingInfoLen}
+      \item
+        Destroy the PRG instance
+      \end{itemize}
+    \end{itemize}
+  \item
+    Copy the Filler bytes to \codebubble{HdrExt} at offset \\
+    \codebubble{1 + |Pseudonym| + (5 - N) * RoutingInfoLen}
+  \end{itemize}
+\item
+  If i is greater than 1:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Copy bytes of \codebubble{HdrExt} from offset 0 up to \\
+    \codebubble{1 + |Pseudonym| + 3 * RoutingInfoLen} to offset
+    \codebubble{RoutingInfoLen} in \codebubble{HdrExt}
+  \item
+    Set \codebubble{HdrExt[0]} to \codebubble{HeaderPrefix\_\{i-1\}}
+  \item
+    Copy \codebubble{ID\_\{N-i+2\}} to \codebubble{HdrExt} starting at
+    offset 1
+  \item
+    Copy \codebubble{OATag} to \codebubble{HdrExt} starting at offset
+    \codebubble{1 + |ID|}
+  \item
+    Copy bytes of \codebubble{PoRString\_\{N-i+2\}} to
+    \codebubble{HdrExt} starting at offset \codebubble{1 + |ID| + |T|}
+  \item
+    XOR PRG bytes to \codebubble{HdrExt} from offset 0 up to \\
+    \codebubble{1 + |Pseudonym| + 3 * RoutingInfoLen}
+  \end{itemize}
+\item
+  Compute \codebubble{K\_tag} = KDF(``HASH*KEY\_TAG'',
+  \codebubble{SharedSecret*\{N-i+2\}})
+\item
+  Compute
+  \codebubble{OA(K\_tag, HdrExt[0 .. 1 + |Pseudonym| + 3 * RoutingInfoLen)}
+  and copy its output of \codebubble{|T|} bytes to \codebubble{OATag}
+\end{enumerate}
+
+The output is the contents of \codebubble{HdrExt} from offset 0 up to \\
+\codebubble{1 + |Pseudonym| + 3 * RoutingInfoLen} and the
+\codebubble{OATag}:
+
+\begin{codebubbleenv}
+Header {
+  header: [u8; 1 + |Pseudonym| + 3 * RoutingInfoLen]
+  oa_tag: [u8; |T|]
+}
+\end{codebubbleenv}
+
+\paragraph{3.4.2. Forward payload
+creation}\label{forward-payload-creation}
+
+The packet payload consists of the User payload given at the beginning
+of section 2. However, if any non-zero number of return paths has been
+given as well, the packet payload MUST consist of that many Single Use
+Reply Blocks (SURBs) that are prepended to the User payload.
+
+The total size of the packet payload MUST not exceed
+\codebubble{PacketMax} bytes, and therefore the size of the User payload
+and the number of SURBs are bounded.
+
+A packet MAY only contain SURBs and no User payload. There MUST NOT be
+more than 15 SURBs in a single packet. The packet MAY contain additional
+packet signals for the recipient, typically the upper 4 bits of the SURB
+count field MAY serve this purpose.
+
+For the above reasons, the forward payload MUST consist of:
+
+\begin{itemize}
+\tightlist
+\item
+  the number of SURBs
+\item
+  all SURBs (if the number was non-zero)
+\item
+  User's payload
+\end{itemize}
+
+\begin{codebubbleenv}
+PacketPayload {
+  signals: u4,
+  num_surbs: u4,
+  surbs: [Surb; num_surbs]
+  user_payload: [u8; <variable length>]
+}
+\end{codebubbleenv}
+
+The \codebubble{signals} and \codebubble{num\_surbs} fields MAY be
+encoded as a single byte, where the most-significant 4 bits represent
+the \codebubble{signals} and the least-significant 4 bits represent the
+\codebubble{num\_surbs}. When no signals are passed, the
+\codebubble{signals} field MUST be zero.
+
+The user payload usually consists of the Application layer protocol as
+described in
+\href{../RFC-0011-application-protocol/0011-application-protocol.md}{RFC-0011},
+but it can be arbitrary.
+
+\paragraph{3.4.3. Generating SURBs}\label{generating-surbs}
+
+The Single Use Reply Block is always generated by the sender for its
+chosen pseudonym. Its purpose is to allow reply packet generation sent
+on the return path from the recipient back to the sender.
+
+The process of generating a single SURB is very similar to the process
+of creating the forward packet header.
+
+As the \codebubble{SURB} is sent to the packet recipient, it also has
+its counterpart, called \codebubble{ReplyOpener}. The
+\codebubble{ReplyOpener} is generated alongside the SURB and is stored
+at the sender (indexed by its pseudonym) and used later to decrypt the
+reply packet delivered to the sender using the associated SURB.
+
+Both the \codebubble{SURB} and the \codebubble{ReplyOpener} are always
+bound to the chosen sender pseudonym.
+
+Inputs for creating a \codebubble{SURB} and the
+\codebubble{ReplyOpener}:
+
+\begin{itemize}
+\tightlist
+\item
+  return path
+\item
+  sender pseudonym
+\end{itemize}
+
+OPTIONALLY, also a unique bidirectional map between peer pubkeys and
+public key identifiers (\emph{mapper}) is given.
+
+The generation of \codebubble{SURB} and its corresponding
+\codebubble{ReplyOpener} is as follows:
+
+Assume the length of the return path is N (between 0 and 3) and each
+hop's public key is \codebubble{Phop\_i}. The public key of the sender
+is \codebubble{Psrc}.
+
+Let the extended return path be a list of \codebubble{Phop\_i} and
+\codebubble{Psrc} (for i = 1 .. N). For N = 0, the Extended return path
+consists of just \codebubble{Psrc}.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Generate a Shared secret list (\codebubble{SharedSecret\_i}) for the
+  extended return path and the corresponding \codebubble{Alpha} value as
+  given in section 3.2.
+\item
+  Generate PoR for the given extended return path: list of
+  \codebubble{PoRStrings\_i} and \\ \codebubble{PoRValues}
+\item
+  Generate Reply packet \codebubble{Header} for the extended return path
+  as in section 3.4.1:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The list of \codebubble{PoRStrings\_i} and list of
+    \codebubble{SharedSecret\_i} from steps 1 and 2 are used
+  \item
+    The 5th bit of the \codebubble{HeaderPrefix} is set to 1 (see
+    section 3.4.1)
+  \end{itemize}
+\item
+  Generate random cryptographic key material, for at least the selected
+  security boundary (\codebubble{SenderKey} as a sequence of bytes)
+\end{enumerate}
+
+\codebubble{SURB} MUST consist of:
+
+\begin{itemize}
+\tightlist
+\item
+  \codebubble{SenderKey}
+\item
+  \codebubble{Header} (for the return path)
+\item
+  public key identifier of the first return path hop
+\item
+  \codebubble{PoRValues}
+\item
+  \codebubble{Alpha} value (for the return path)
+\end{itemize}
+
+\begin{codebubbleenv}
+SURB {
+  alpha: Alpha,
+  header: Header,
+  sender_key: [u8; <variable length>]
+  first_hop_ident: [u8; <variable length>]
+  por_values: PoRValues
+}
+\end{codebubbleenv}
+
+The corresponding \codebubble{ReplyOpener} MUST consist of:
+
+\begin{itemize}
+\tightlist
+\item
+  \codebubble{SenderKey}
+\item
+  Shared secret list (\codebubble{SharedSecret\_i})
+\end{itemize}
+
+\begin{codebubbleenv}
+ReplyOpener {
+  sender_key: [u8; <variable length>]
+  rp_shared_secrets: [SharedSecret; N+1]
+}
+\end{codebubbleenv}
+
+The sender keeps the \codebubble{ReplyOpener} (MUST be indexed by the
+chosen pseudonym), \\and puts the \codebubble{SURB} in the forward packet
+payload.
+
+\paragraph{3.4.4. Payload padding}\label{payload-padding}
+
+The packet payload MUST be padded in accordance with {[}01{]} to exactly \\
+\codebubble{PacketMax + |PaddingTag|} bytes.
+
+The process works as follows:
+
+The payload MUST always be prepended with a \codebubble{PaddingTag}. The
+\codebubble{PaddingTag} SHOULD be 1 byte long.
+
+If the length of the payload is still less than
+\codebubble{PacketMax + |PaddingTag|} bytes, zero bytes MUST be
+prepended until the length is exactly
+\codebubble{PacketMax + |PaddingTag|} bytes.
+
+\begin{codebubbleenv}
+PaddedPayload {
+  zeros: [0u8; PacketMax - |PacketPayload|],
+  padding_tag: u8,
+  payload: PacketPayload
+}
+\end{codebubbleenv}
+
+\paragraph{3.4.5. Payload encryption}\label{payload-encryption}
+
+The encryption of the padded payload follows the same procedure from
+{[}01{]}.
+
+For each i=1 up to N:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Generate \codebubble{Kprp} = KDF(``HASH\_KEY\_PRP'',
+  \codebubble{SharedSecret\_i})
+\item
+  Transform the \codebubble{PaddedPayload} using PRP:
+\end{enumerate}
+
+\begin{codebubbleenv}
+EncPayload = PRP(Kprp, PaddedPayload)
+\end{codebubbleenv}
+
+The Meta packet is formed from \codebubble{Alpha}, \codebubble{Header},
+and \codebubble{EncPayload}.
+
+\subsubsection{3.5. Final forward packet
+overview}\label{final-forward-packet-overview}
+
+The final structure of the HOPR packet format MUST consist of the
+logical meta packet with the \codebubble{ticket} attached:
+
+\begin{codebubbleenv}
+HOPR_Packet {
+  alpha: Alpha,
+  header: Header,
+  encrypted_payload: EncPayload,
+  ticket: Ticket
+}
+\end{codebubbleenv}
+
+The packet is then sent to the peer represented by the first public key
+of the forward path.
+
+Note that the size of the packet is exactly \\
+\codebubble{|HOPR\_Packet| = |Alpha| + |Header| + |PacketMax| + |PaddingTag| + |ticket|}. \\
+It can also be referred to as the size of the logical meta packet plus
+\codebubble{|ticket|}.
+
+\subsection{4. Reply packet creation}\label{reply-packet-creation}
+
+Upon receiving a forward packet, the forward packet recipient SHOULD
+create a reply packet using one of the SURBs. This is possible only if
+the recipient received a SURB (with this or any previous forward
+packets) from an equal pseudonym.
+
+The recipient MAY use any SURB with the same pseudonym; however, in such
+a case the SURBs MUST be used in the reverse order in which they were
+received.
+
+The sender of the forward packet MAY use a fixed random prefix of the
+pseudonym to identify itself across multiple forward packets. In such a
+case, the SURBs indexed with pseudonyms with the same prefix SHOULD be
+used in random order to construct reply packets.
+
+The following inputs are REQUIRED to create the reply packet:
+
+\begin{itemize}
+\tightlist
+\item
+  User's packet payload (as a sequence of bytes)
+\item
+  Pseudonym of the forward packet sender
+\item
+  Single Use Reply Block (\codebubble{SURB}) corresponding to the above
+  pseudonym
+\end{itemize}
+
+OPTIONALLY, a unique bidirectional map between peer pubkeys and public
+key identifiers (\emph{mapper}) is also given.
+
+The final reply packet is a \codebubble{HOPR\_Packet} and the means of
+getting the values needed for its construction are given in the next
+sections.
+
+\subsubsection{4.1. Reply packet ticket
+creation}\label{reply-packet-ticket-creation}
+
+The \codebubble{PoRValues} and first reply hop key identifiers are
+extracted from the used \codebubble{SURB}.
+
+The mapper is used to map the key identifier
+(\codebubble{first\_hop\_ident}) to the public key of the first reply
+hop, which is then used to retrieve the required ticket information.
+
+The Challenge from the \codebubble{PoRValues} (\codebubble{por\_values})
+in the \codebubble{SURB} is used to construct the complete
+\codebubble{Ticket} for the first hop.
+
+\subsubsection{4.2. Reply meta packet
+creation}\label{reply-meta-packet-creation}
+
+The \codebubble{Alpha} value (\codebubble{alpha} field) and the packet
+\codebubble{Header} (\codebubble{header} field) are extracted from the
+used \codebubble{SURB}.
+
+\paragraph{4.2.1. Reply payload creation}\label{reply-payload-creation}
+
+The reply payload is constructed as \codebubble{PacketPayload} in
+section 3.4.2. However, the reply payload MUST not contain any SURBs.
+
+\begin{codebubbleenv}
+PacketPayload {
+  signals: u4,
+  num_surbs: u4,   // = zero
+  surbs: [Surb; 0] // empty
+  user_payload: [u8; <variable length>]
+}
+\end{codebubbleenv}
+
+The \codebubble{PacketPayload} then MUST be padded to get
+\codebubble{PaddedPayload} as described in section 3.4.4.
+
+\paragraph{4.2.2. Reply payload
+encryption}\label{reply-payload-encryption}
+
+The \codebubble{SenderKey} (\codebubble{sender\_key} field) is extracted
+from the used \codebubble{SURB}.
+
+The \codebubble{PaddedPayload} of the reply packet MUST be encrypted as
+follows:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Generate \codebubble{Kprp\_reply} = KDF(``HASH\_KEY\_REPLY\_PRP'',
+  \codebubble{SenderKey}, \codebubble{Pseudonym})
+\item
+  Transform the \codebubble{PaddedPayload} using PRP:
+\end{enumerate}
+
+\begin{codebubbleenv}
+EncPayload = PRP(Kprp_reply, PaddedPayload)
+\end{codebubbleenv}
+
+This finalises all the fields of the \codebubble{HOPR\_Packet} for the
+reply. The \codebubble{HOPR\_Packet} is sent to the peer represented by
+a public key, corresponding to \codebubble{first\_hop\_ident} extracted
+from the \codebubble{SURB} (that is the first peer on the return path).
+For this operation, the mapper MAY be used to get the actual public key
+to route the packet.
+
+\subsection{5. Packet processing}\label{packet-processing}
+
+This section describes the behaviour of processing a
+\codebubble{HOPR\_Packet} instance when received by a peer (hop). Let
+\codebubble{Phop\_priv} be the private key corresponding to the public
+key \codebubble{Phop} of the peer processing the packet.
+
+Upon reception of a byte-sequence that is at least
+\codebubble{|HOPR\_Packet|} bytes long, \\the \codebubble{|Ticket|} is
+separated from the sequence. As per section 2.4, the order of the fields
+in \codebubble{HOPR\_Packet} is canonical, therefore the
+\codebubble{Ticket} starts exactly at \textbar HOPR\_Packet\textbar{} -
+\textbar Ticket\textbar{} byte-offset.
+
+The resulting Meta packet is processed first, and if this processing is
+successful, \\the \codebubble{Ticket} is validated as well, as defined in
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}.
+
+If any of the operations fail, the packet MUST be rejected, and
+subsequently, it MUST be acknowledged. See Section 5.4.
+
+\subsubsection{5.1. Advancing the Alpha
+value}\label{advancing-the-alpha-value}
+
+To recover the \codebubble{SharedSecret\_i}, the \codebubble{Alpha}
+value MUST be transformed using the following transformation:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Compute \codebubble{SharedPreKey\_i} = \codebubble{Phop\_priv} *
+  \codebubble{Alpha}
+\item
+  \codebubble{SharedSecret\_i} = KDF(``HASH\_KEY\_SPHINX\_SECRET'',
+  \codebubble{SharedPreKey\_i}, \codebubble{Phop})
+\item
+  \codebubble{B\_i} = KDF(``HASH\_KEY\_SPHINX\_BLINDING'',
+  \codebubble{SharedPreKey\_i}, \codebubble{Alpha})
+\item
+  \codebubble{Alpha} = \codebubble{B\_i} * \codebubble{Alpha}
+\end{enumerate}
+
+Similarly, as in section 3.2, the \codebubble{B\_i} in step 3 MAY be
+additionally transformed so that it conforms to a valid field scalar
+usable in step 4.
+
+Should the process fail in any of these steps (due to invalid EC point
+or field scalar), \\the process MUST terminate with an error and the
+entire packet MUST be rejected.
+
+Also derive the \codebubble{ReplayTag} = KDF(``HASH\_KEY\_PACKET\_TAG'',
+\codebubble{SharedSecret\_i}). \\Verify that \codebubble{ReplayTag} has
+not yet been seen by this node, and if yes, the packet MUST be rejected.
+
+\subsubsection{5.2. Header processing}\label{header-processing}
+
+In the next steps, the \codebubble{Header} (field \codebubble{header})
+is processed using the derived\\ \codebubble{SharedSecret\_i}.
+
+As per section 3.4.1, the \codebubble{Header} consists of two byte
+sequences of fixed length: \\the \codebubble{header} and
+\codebubble{oa\_tag}. Let \textbar T\textbar{} be the fixed byte-length
+of \codebubble{oa\_tag} and \textbar Header\textbar{} be the fixed
+byte-length of \codebubble{header}. Also denote
+\textbar PoRString\_i\textbar, which are equal for all \codebubble{i},\\
+as \textbar PoRString\textbar. Likewise, \textbar ID\_i\textbar{} for
+all \codebubble{i} as \textbar ID\textbar.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Generate \codebubble{K\_tag} = KDF(``HASH\_KEY\_TAG'', 0,
+  \codebubble{SharedSecret\_i})
+\item
+  Compute \codebubble{oa\_tag\_c} = OA(\codebubble{K\_tag},
+  \codebubble{header})
+\item
+  If \codebubble{oa\_tag\_c} != \codebubble{oa\_tag}, the entire packet
+  MUST be rejected.
+\item
+  Initialise PRG with \codebubble{SharedSecret\_i} and XOR PRG bytes to
+  \codebubble{header}
+\item
+  The first byte of the transformed \codebubble{header} represents the
+  \codebubble{HeaderPrefix}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Verify that the first 3 most significant bits represent the
+    supported version \\(\codebubble{001}), otherwise the entire packet
+    MUST be rejected.
+  \item
+    If 3 least significant bits are not all zeros (meaning this node not
+    the recipient):
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Let \codebubble{i} be the 3 least significant bits of
+      \codebubble{HeaderPrefix}
+    \item
+      Set \codebubble{ID\_i} =
+      \codebubble{header[|HeaderPrefix|..|HeaderPrefix| + |ID|]}
+    \end{itemize}
+  \item
+    \codebubble{Tag\_i} =
+    \codebubble{header[|HeaderPrefix| + |ID| .. |HeaderPrefix| + |ID| + |T|]}
+  \item
+    \codebubble{PoRString\_i} =
+    \codebubble{header[|HeaderPrefix|+ |ID| + |T|..|HeaderPrefix|\\ + |ID| + |PoRString|]}
+  \item
+    Shift \codebubble{header} by \\
+    \codebubble{|HeaderPrefix| + |ID| + |T| .. |HeaderPrefix| + |ID| + |PoRString|} \\
+    bytes left (discarding those bytes)
+  \item
+    Seek the PRG to the position \codebubble{|Header|}
+  \item
+    Apply the PRG keystream to \codebubble{header}
+  \item
+    Otherwise, if all 3 least significant bits are all zeroes, it means
+    this node is the recipient:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Recover \codebubble{pseudonym} as
+      \codebubble{header[|HeaderPrefix| .. |HeaderPrefix|\\ + |Pseudonym|]}
+    \item
+      Recover the 5th and 4th most significant bit
+      (\codebubble{NoAckFlag} and \codebubble{ReplyFlag})
+    \end{itemize}
+  \end{itemize}
+\end{enumerate}
+
+\subsubsection{5.3. Packet processing}\label{packet-processing-1}
+
+In the next step, the \codebubble{encrypted\_payload} is decrypted:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Generate \codebubble{Kprp} = KDF(``HASH\_KEY\_PRP'',
+  \codebubble{SharedSecret\_i})
+\item
+  Transform the \codebubble{encrypted\_payload} using PRP:
+\end{enumerate}
+
+\begin{codebubbleenv}
+new_payload = PRP(Kprp, encrypted_payload)
+\end{codebubbleenv}
+
+\paragraph{5.3.1. Forwarded packet}\label{forwarded-packet}
+
+If the processed header indicated that the packet is destined for
+another node, \\the \codebubble{new\_payload} is the
+\codebubble{encrypted\_payload: EncryptedPayload}. The updated\\
+\codebubble{header} and \codebubble{alpha} values from the previous
+steps are used to construct the forwarded packet. A new
+\codebubble{ticket} structure is created for the recipient (as described
+in \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}),
+while the current \codebubble{ticket} structure MUST be verified (as
+also described in
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}).
+
+\clearpage
+
+The forwarded packet MUST have the identical structure:
+
+\begin{codebubbleenv}
+HOPR_Packet {
+  alpha: Alpha,
+  header: Header,
+  encrypted_payload: EncPayload,
+  ticket: Ticket
+}
+\end{codebubbleenv}
+
+\paragraph{5.3.2. Final packet}\label{final-packet}
+
+If the processed header indicated that this node is the final
+destination of the packet, \\the \codebubble{ReplyFlag} is used to
+indicate subsequent processing.
+
+\subparagraph{5.3.2.1. Forward packet}\label{forward-packet}
+
+If the \codebubble{ReplyFlag} is set to 0, the packet is a forward (not
+a reply) packet.
+
+The \codebubble{new\_payload} MUST be the \codebubble{PaddedPayload}.
+
+\subparagraph{5.3.2.2. Reply packet}\label{reply-packet}
+
+If the \codebubble{ReplyFlag} is set to 1, it indicates that this is a
+reply packet that requires further processing. The
+\codebubble{pseudonym} extracted during header processing is used to
+find the corresponding \codebubble{ReplyOpener}. If it is not found, the
+packet MUST be rejected.
+
+Once the \codebubble{ReplyOpener} is found, the
+\codebubble{rp\_shared\_secrets} are used to decrypt the\\
+\codebubble{new\_payload}:
+
+For each \codebubble{SharedSecret\_k} in
+\codebubble{rp\_shared\_secrets} do:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Generate \codebubble{Kprp} = KDF(``HASH\_KEY\_PRP'',
+  \codebubble{SharedSecret\_k})
+\item
+  Transform the \codebubble{new\_payload} using PRP:
+\end{enumerate}
+
+\begin{codebubbleenv}
+new_payload = PRP(Kprp, new_payload)
+\end{codebubbleenv}
+
+This will invert the PRP transformations done at each forwarding hop.
+Finally, the additional reply PRP transformation has to be inverted
+(using \codebubble{sender\_key} from the \\ \codebubble{ReplyOpener} and
+\codebubble{pseudonym} ):\\
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Generate \codebubble{Kprp\_reply} = KDF(``HASH\_KEY\_REPLY\_PRP'',
+  \codebubble{sender\_key}, \codebubble{pseudonym})
+\item
+  Transform the \codebubble{new\_payload} as using PRP:
+\end{enumerate}
+
+\begin{codebubbleenv}
+new_payload = PRP(Kprp_reply, new_payload)
+\end{codebubbleenv}
+
+The \codebubble{new\_payload} now MUST be \codebubble{PaddedPayload}.
+
+\paragraph{5.3.3. Interpreting the
+payload}\label{interpreting-the-payload}
+
+In any case, the \codebubble{new\_payload} is
+\codebubble{PaddedPayload}.
+
+The \codebubble{zeros} are removed until the \codebubble{padding\_tag}
+is found. If it cannot be found, the packet MUST be rejected. The
+\codebubble{payload: PacketPayload} is extracted. If
+\codebubble{num\_surbs} \textgreater{} 0, the contained SURBs SHOULD be
+stored to be used for future reply packet creation, indexed by the
+\codebubble{pseudonym} extracted during header processing.
+
+The \codebubble{user\_payload} can then be used by the upper protocol
+layer.
+
+\subsubsection{5.4. Ticket verification and
+acknowledgement}\label{ticket-verification-and-acknowledgement}
+
+In the next step the \codebubble{ticket} MUST be pre-verified using the
+\codebubble{SharedSecret\_i}, as defined in
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}. If
+the packet was not destined for this node (not final) OR the packet is
+final and the \codebubble{NoAckFlag} is 0, the packet MUST be
+acknowledged.
+
+The acknowledgement of the successfully processed packet is created as
+per \href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}
+using \codebubble{SharedKey\_i+1\_ack} =
+\codebubble{HS(SharedSecret\_i, "HASH\_ACK\_KEY")}. \\The
+\codebubble{SharedKey\_i+1\_ack} is the scalar in the field of the
+elliptic curve chosen in
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}. The
+acknowledgement is sent back to the previous hop.
+
+This is done by creating and sending a standard forward packet directly
+to the node the original packet was received from. The
+\codebubble{NoAckFlag} on this packet MUST be set. \\The
+\codebubble{user\_payload} of the packet contains the encoded
+\codebubble{Acknowledgement} structure as defined in
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}. The
+\codebubble{num\_surbs} of this packet MUST be set to 0.
+
+If the packet processing was not successful at any point, a random
+acknowledgement MUST be generated (as defined in
+\href{../RFC-0005-proof-of-relay/0005-proof-of-relay.md}{RFC-0005}) and
+sent to the previous hop.
+
+\clearpage
+
+\subsection{6. Appendix A}\label{appendix-a}
+
+The current version is instantiated using the following cryptographic
+primitives:
+
+\begin{itemize}
+\tightlist
+\item
+  Curve25519 elliptic curve with the corresponding scalar field
+\item
+  PRP is instantiated using Lioness wide-block cipher {[}05{]} over
+  ChaCha20 and Blake3
+\item
+  PRG is instantiated using ChaCha20 {[}03{]}
+\item
+  OA is instantiated with Poly1305 {[}03{]}
+\item
+  KDF is instantiated using Blake3 in KDF mode {[}06{]}, where the
+  optional salt \codebubble{S} is prepended to the key material
+  \codebubble{K}: \codebubble{KDF(C,K,S) = blake3\_kdf(C, S || K)}. If
+  \codebubble{S} is omitted: \codebubble{KDF(C,K) = blake3\_kdf(C,K)}.
+\item
+  HS is instantiated via \codebubble{hash\_to\_field} using \\
+  \codebubble{secp256k1\_XMD:SHA3-256\_SSWU\_RO\_} as defined in
+  {[}04{]}. \codebubble{S} is used a the secret input, and
+  \codebubble{T} as an additional domain separator.
+\end{itemize}
+
+\subsection{7. References}\label{references}
+
+{[}01{]} Danezis, G., \& Goldberg, I. (2009).
+{Sphinx: A Compact and Provably Secure Mix Format}. \emph{2009 30th IEEE Symposium
+on Security and Privacy}, 262-277.
+\href{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{\underline{https://cypherpunks.ca/~iang/pubs/Sphinx\_Oakland09.pdf}}
+
+{[}02{]} Bradner, S. (1997).
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
+
+{[}03{]} Nir, Y., \& Langley, A. (2015).
+{ChaCha20 and Poly1305 for IETF Protocols}. \\ \emph{IETF RFC 7539}.
+\href{https://www.rfc-editor.org/rfc/rfc7539.html}{\underline{https://www.rfc-editor.org/rfc/rfc7539.html}}
+
+{[}04{]} Faz-Hernandez, A., et al.~(2023).
+{Hashing to Elliptic Curves}. \emph{IETF RFC 9380}.
+\href{https://www.rfc-editor.org/rfc/rfc9380.html}{\underline{https://www.rfc-editor.org/rfc/rfc9380.html}}
+
+{[}05{]} Anderson, R., \& Biham, E. (1996). Two practical and provably
+secure block ciphers: BEAR and LION. \emph{In International Workshop on
+Fast Software Encryption (pp.~113-120). Berlin, Heidelberg: Springer
+Berlin Heidelberg.}
+
+{[}06{]} Connor, J., Aumasson, J.-P., Neves, S., \& Wilcox-O'Hearn, Z.
+(2021). {BLAKE 3 one function, fast everywhere}
+\href{https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf}{\underline{https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf}}

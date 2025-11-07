@@ -89,6 +89,18 @@ once a session is established.
 
 \subsection{3. Terminology}\label{terminology}
 
+The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
+NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
+``OPTIONAL'' in this document are to be interpreted as described in
+{[}03{]} when, and only when, they appear in all capitals, as shown
+here.
+
+All terminology used in this document, including general mix network
+concepts and HOPR-specific definitions, is provided in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
+That document serves as the authoritative reference for the terminology
+and conventions adopted across the HOPR RFC series.
+
 Terms defined in
 \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002} are
 used. Additionally, this document defines the following
@@ -159,7 +171,7 @@ The protocol supports two operational modes:
 \tightlist
 \item
   \textbf{Unreliable Mode}: Fast, stateless operation similar to UDP
-  {[}03{]}
+  {[}04{]}
 \item
   \textbf{Reliable Mode}: Stateful operation with acknowledgements and
   retransmissions
@@ -235,6 +247,8 @@ segments \\
 receipt \\
 \end{longtable}
 
+\clearpage
+
 \paragraph{4.2.2 Byte Order}\label{byte-order}
 
 All multi-byte integer fields and values in the Session Data Protocol
@@ -296,6 +310,8 @@ Flags table below \\
 (\codebubble{C - 10}) bytes \\
 \end{longtable}
 
+\clearpage
+
 \paragraph{4.3.2 Sequence Flags Bitmap}\label{sequence-flags-bitmap}
 
 \begin{longtable}[]{@{}
@@ -324,8 +340,6 @@ Values
 5-0 & \textbf{Segment Count} & Total segments in frame minus 1 &
 \codebubble{0}-\codebubble{63} (1-64 segments) \\
 \end{longtable}
-
-\clearpage
 
 \paragraph{4.3.3 Segmentation Rules}\label{segmentation-rules}
 
@@ -425,6 +439,8 @@ Format
 Missing Bitmap table below \\
 \end{longtable}
 
+\clearpage
+
 \paragraph{4.4.2 Missing Bitmap Format}\label{missing-bitmap-format}
 
 \begin{longtable}[]{@{}
@@ -486,6 +502,8 @@ Description
 be requested \\
 \end{longtable}
 
+\clearpage
+
 \subsubsection{4.5 Frame Acknowledgement
 Message}\label{frame-acknowledgement-message}
 
@@ -520,8 +538,6 @@ Rules
 \textbf{Frame ID List} & 4 bytes each & List of fully received frame
 identifiers & See Acknowledgement Rules table below \\
 \end{longtable}
-
-\clearpage
 
 \paragraph{4.5.2 Acknowledgement Rules}\label{acknowledgement-rules}
 
@@ -652,6 +668,8 @@ All numeric values in the examples below are shown in their logical
 representation. Frame IDs and other multi-byte integers are encoded in
 big-endian format on the wire.
 
+\clearpage
+
 \paragraph{4.9.1 Simple Frame Transmission (Unreliable
 Mode)}\label{simple-frame-transmission-unreliable-mode}
 
@@ -749,6 +767,8 @@ Frame IDs MUST be monotonically increasing to enable:
 The Session MUST terminate when a Frame ID of 0 is encountered by the
 receiving side, indicating an overflow.
 
+\clearpage
+
 \subsubsection{5.3 Retransmission Request
 Design}\label{retransmission-request-design}
 
@@ -818,6 +838,8 @@ Limiting retransmission requests to the first 8 segments per frame:
   Frame IDs are predictable and MUST NOT be used for security
 \end{itemize}
 
+\clearpage
+
 \subsection{8. Future Work}\label{future-work}
 
 \begin{itemize}
@@ -855,6 +877,10 @@ Recommendations}\label{testing-recommendations}
 {Concise Binary Object Representation (CBOR)}. \emph{IETF RFC 7049}.
 \href{https://datatracker.ietf.org/doc/html/rfc7049}{\underline{https://datatracker.ietf.org/doc/html/rfc7049}}
 
-{[}03{]} Postel, J. (1980).
+{[}03{]} Bradner, S. (1997).
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
+
+{[}04{]} Postel, J. (1980).
 {User Datagram Protocol}. \emph{IETF RFC 768}.
 \href{https://datatracker.ietf.org/doc/html/rfc768}{\underline{https://datatracker.ietf.org/doc/html/rfc768}}

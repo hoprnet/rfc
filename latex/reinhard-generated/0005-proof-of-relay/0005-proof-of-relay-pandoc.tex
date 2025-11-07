@@ -71,8 +71,18 @@ incentive-compatible system.
 
 \subsection{3. Terminology}\label{terminology}
 
-This document builds upon standard terminology established in
+The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
+NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
+``OPTIONAL'' in this document are to be interpreted as described in
+{[}01{]} when, and only when, they appear in all capitals, as shown
+here.
+
+All terminology used in this document, including general mix network
+concepts and HOPR-specific definitions, is provided in
 \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
+That document serves as the authoritative reference for the terminology
+and conventions adopted across the HOPR RFC series.
+
 References to ``HOPR packets'' or ``mixnet packets'' refer to a
 particular structure (\codebubble{HOPR\_Packet}) defined in
 \href{../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md}{RFC-0004}.
@@ -106,11 +116,6 @@ terms:
 \end{itemize}
 
 The above terms are formally defined in the following sections.
-
-The key words ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
-NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
-``OPTIONAL'' in this document are to be interpreted as described in
-{[}01{]}.
 
 \subsubsection{3.1. Cryptographic and security
 parameters}\label{cryptographic-and-security-parameters}
@@ -349,8 +354,6 @@ A ticket:
   MUST NOT contain information about packet's destination
   (\codebubble{C})
 \end{enumerate}
-
-\clearpage
 
 \subsubsection{5.1. Ticket structure
 encoding}\label{ticket-structure-encoding}
@@ -1232,7 +1235,7 @@ HOPR protocol.
     prevention).
   \item
     Derive VRF parameters over
-    \codebubble{(verified\_hash, redeemer, domainSeparator)}.
+    \codebubble{(verified\_hash, redeemer, domainSeparator)}
   \item
     The resulting RedeemableTicket MAY be submitted on-chain if winning
     (see §3).
