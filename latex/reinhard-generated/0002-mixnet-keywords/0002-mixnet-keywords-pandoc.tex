@@ -44,15 +44,6 @@ a single source of truth for the terminology used in the HOPR ecosystem.
 
 \subsection{3. Terminology}\label{terminology}
 
-The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
-NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
-``OPTIONAL'' in this document are to be interpreted as described in
-{[}01{]} when, and only when, they appear in all capitals, as shown
-here.
-
-The terminology defined in this document serves as the authoritative reference for the terminology
-and conventions adopted across the HOPR RFC series.
-
 \begin{itemize}
 \item
   \textbf{Mixnet} (also known as a \textbf{Mix network}): a routing
@@ -64,15 +55,15 @@ and conventions adopted across the HOPR RFC series.
   \textbf{Node}: a process that implements the HOPR protocol and
   participates in the mixnet. Nodes can be run by anyone. A node can be
   a sender, destination, or a relay node that helps to relay messages
-  through the network. Also referred to as ``peer'' {[}02, 03{]}.
+  through the network. Also referred to as ``peer'' {[}01, 02{]}.
 \item
   \textbf{Sender}: the node that initiates communication by sending out
   a packet through the mixnet. This is typically an application that
-  wants to send a message anonymously {[}02, 03{]}.
+  wants to send a message anonymously {[}01, 02{]}.
 \item
   \textbf{Destination}: the node that receives a message sent through
-  the mixnet. Also referred to as ``receiver'' in some contexts {[}02,
-  03{]}.
+  the mixnet. Also referred to as ``receiver'' in some contexts {[}01,
+  02{]}.
 \item
   \textbf{Peer}: a node that is connected to another node in the p2p
   network. Each peer has a unique identifier and can communicate with
@@ -82,13 +73,13 @@ and conventions adopted across the HOPR RFC series.
   \textbf{Cover traffic}: artificial data packets introduced into the
   network to obscure traffic patterns with adaptive noise. These data
   packets can be generated on any node and are used to make it harder to
-  distinguish between real user traffic and dummy traffic {[}02, 04{]}.
+  distinguish between real user traffic and dummy traffic {[}01, 03{]}.
 \item
   \textbf{Path}: the route a message takes through the mixnet, defined
   as a sequence of hops between sender and destination. A path can be
   direct from sender to destination, or it can go through multiple relay
   nodes before reaching the destination. Also referred to as ``message
-  path'' {[}02, 03{]}.
+  path'' {[}01, 02{]}.
 \item
   \textbf{Forward path}: a path that is used to deliver a packet only in
   the direction from the sender to the destination.
@@ -99,52 +90,52 @@ and conventions adopted across the HOPR RFC series.
 \item
   \textbf{Relay node}: a node that forwards messages from one node to
   another in the mixnet. Relay nodes help to obscure the sender's
-  identity by routing messages through multiple nodes {[}02, 03{]}.
+  identity by routing messages through multiple nodes {[}01, 02{]}.
 \item
   \textbf{Hop}: a relay node in the message path that is neither the
   sender nor the destination. For example, a 0-hop message is sent
   directly from the sender to the destination, while a 1-hop message
   goes through one relay node before reaching the destination. The terms
-  ``hop'' and ``relay'' are often used interchangeably {[}02, 03{]}.
+  ``hop'' and ``relay'' are often used interchangeably {[}01, 02{]}.
   More hops in the path generally increase the anonymity of the message,
   but also increase latency and cost.
 \item
   \textbf{Mix nodes}: the proxy servers that make up the mixnet. They
   receive messages from multiple senders, shuffle them, and then send
-  them back out in random order {[}02{]}.
+  them back out in random order {[}01{]}.
 \item
   \textbf{Layered encryption}: a technique where a message is wrapped in
   successive layers of encryption. Each intermediary node (or hop) can
   only decrypt its corresponding layer, revealing the next destination
-  in the path {[}02, 05{]}.
+  in the path {[}01, 04{]}.
 \item
   \textbf{Metadata}: data that provides information about other data. In
   the context of mixnets, this includes things such as the sender's and
   destination's IP addresses, the size of the message, and the time it
   was sent or received. Mixnets work to shuffle this metadata to protect
-  user privacy {[}02, 07{]}.
+  user privacy {[}01, 06{]}.
 \item
   \textbf{Onion routing}: a technique for anonymous communication over a
   network. It involves encrypting messages in layers, analogous to the
   layers of an onion, which are then routed through a series of network
-  nodes {[}05{]}.
+  nodes {[}04{]}.
 \item
   \textbf{Public key cryptography}: a cryptographic system that uses
   pairs of keys: public keys, which may be disseminated widely, and
   private keys, which are known only to the owner. This is used to
-  encrypt messages sent through the mixnet {[}02{]}.
+  encrypt messages sent through the mixnet {[}01{]}.
 \item
   \textbf{Sphinx}: a packet format that ensures unlinkability and
   layered encryption. It uses a fixed-size packet structure to resist
-  traffic analysis {[}03{]}.
+  traffic analysis {[}02{]}.
 \item
   \textbf{Symmetric encryption}: a type of encryption where the same key
-  is used to both encrypt and decrypt data {[}06{]}.
+  is used to both encrypt and decrypt data {[}05{]}.
 \item
   \textbf{Traffic analysis}: the process of intercepting and examining
   messages in order to deduce information from patterns in
   communication. Mixnets are designed to make traffic analysis very
-  difficult {[}02{]}.
+  difficult {[}01{]}.
 \item
   \textbf{Forward message}: a packet that is sent along the forward
   path. Also referred to as ``forward packet''.
@@ -179,31 +170,30 @@ and conventions adopted across the HOPR RFC series.
 
 \subsection{4. References}\label{references}
 
-{[}01{]} Bradner, S. (1997).
-{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
-\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
-
-{[}02{]} Chaum, D. (1981). {Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms}.
+{[}01{]} Chaum, D. (1981).
+\href{https://www.freehaven.net/anonbib/cache/chaum-mix.pdf}{Untraceable
+Electronic Mail, Return Addresses, and Digital Pseudonyms}.
 \emph{Communications of the ACM, 24}(2), 84-90.
-\href{https://www.freehaven.net/anonbib/cache/chaum-mix.pdf}{\underline{https://www.freehaven.net/anonbib/cache/chaum-mix.pdf}}
 
-{[}03{]} Danezis, G., \& Goldberg, I. (2009). {Sphinx: A Compact and Provably Secure Mix Format}. \emph{2009 30th IEEE Symposium
+{[}02{]} Danezis, G., \& Goldberg, I. (2009).
+\href{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{Sphinx: A
+Compact and Provably Secure Mix Format}. \emph{2009 30th IEEE Symposium
 on Security and Privacy}, 262-277.
-\href{https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf}{\underline{https://cypherpunks.ca/~iang/pubs/Sphinx\_Oakland09.pdf}}
 
-{[}04{]} K. Sampigethaya and R. Poovendran, A Survey on Mix Networks and
+{[}03{]} K. Sampigethaya and R. Poovendran, A Survey on Mix Networks and
 Their Secure Applications. Proceedings of the IEEE, vol.~94, no. 12, pp.
 2142-2181, Dec.~2006.
 
-{[}05{]} Reed, M. G., Syverson, P. F., \& Goldschlag, D. M. (1998). {Anonymous Connections and Onion Routing}. \emph{IEEE Journal on Selected Areas in
+{[}04{]} Reed, M. G., Syverson, P. F., \& Goldschlag, D. M. (1998).
+\href{https://www.onion-router.net/Publications/JSAC-1998.pdf}{Anonymous
+Connections and Onion Routing}. \emph{IEEE Journal on Selected Areas in
 Communications, 16}(4), 482-494.
-\href{https://www.onion-router.net/Publications/JSAC-1998.pdf}{\underline{https://www.onion-router.net/Publications/JSAC-1998.pdf}}
 
-{[}06{]} Shannon, C. E. (1949). Communication Theory of Secrecy Systems.
+{[}05{]} Shannon, C. E. (1949). Communication Theory of Secrecy Systems.
 \emph{Bell System Technical Journal, 28}(4), 656-715. DOI:
 10.1002/j.1538-7305.1949.tb00928.x
 
-{[}07{]} Cheu, A., Smith, A., Ullman, J., Zeber, D., \& Zhilyaev, M.
+{[}06{]} Cheu, A., Smith, A., Ullman, J., Zeber, D., \& Zhilyaev, M.
 (2019, April). Distributed differential privacy via shuffling. In Annual
 international conference on the theory and applications of cryptographic
 techniques (pp.~375-403). Cham: Springer International Publishing.

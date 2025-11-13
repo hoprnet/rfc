@@ -93,17 +93,9 @@ and the network transport layer (physical connectivity).
 
 \subsection{3. Terminology}\label{terminology}
 
-The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
-NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
-``OPTIONAL'' in this document are to be interpreted as described in
-{[}01{]} when, and only when, they appear in all capitals, as shown
-here.
-
-All terminology used in this document, including general mix network
-concepts and HOPR-specific definitions, is provided in
-\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
-That document serves as the authoritative reference for the terminology
-and conventions adopted across the HOPR RFC series.
+Terms defined in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002} are
+used.
 
 \subsection{4. Specification}\label{specification}
 
@@ -450,7 +442,7 @@ patterns. Implementations SHOULD consider:
   recent failed probes that trigger slashing.
 \item
   \textbf{Slashing duration}: Whether nodes are removed permanently or
-  temporarily \\(with exponential backoff for repeated failures).
+  temporarily (with exponential backoff for repeated failures).
 \item
   \textbf{Recovery mechanism}: Conditions under which previously slashed
   nodes can be re-evaluated and restored to the usable pool.
@@ -579,8 +571,6 @@ telemetry (PPT) mechanism, MUST be implemented using HOPR loopback
 communication to preserve anonymity and prevent relay nodes from
 distinguishing probe traffic from production traffic.
 
-\clearpage
-
 \textbf{Implementation requirements:}
 
 \begin{itemize}
@@ -699,8 +689,6 @@ The collected telemetry for measured paths:
   MAY include additional information such as latency, packet loss rate,
   and throughput, transmitted as message content in the probing payload.
 \end{itemize}
-
-\clearpage
 
 \textbf{Direct peer probing:}
 
@@ -867,6 +855,4 @@ focus on the following areas:
 
 \subsection{12. References}\label{references}
 
-{[}01{]} Bradner, S. (1997).
-{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
-\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
+None.
