@@ -24,7 +24,8 @@ System}\label{rfc-0007-economic-reward-system}
 \item
   \textbf{Supersedes:} none
 \item
-  \textbf{Related Links:} none
+  \textbf{Related Links:}
+  \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002},
 \end{itemize}
 
 \subsection{1. Abstract}\label{abstract}
@@ -57,9 +58,19 @@ useful to the network than well-connected nodes.
 
 \subsection{3. Terminology}\label{terminology}
 
-Terms defined in
-\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002} are
-used. Additionally, this document defines the following economic
+The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
+NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
+``OPTIONAL'' in this document are to be interpreted as described in
+{[}01{]} when, and only when, they appear in all capitals, as shown
+here.
+
+All terminology used in this document, including general mix network
+concepts and HOPR-specific definitions, is provided in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
+That document serves as the authoritative reference for the terminology
+and conventions adopted across the HOPR RFC series.
+
+Additionally, this document defines the following economic
 system-specific terms:
 
 \begin{itemize}
@@ -96,11 +107,6 @@ system-specific terms:
   \textbf{MessageFormat}: a class responsible for encoding message
   metadata and payload as bytes for transmission over the network.
 \end{itemize}
-
-The key words ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
-NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
-``OPTIONAL'' in this document are to be interpreted as described in
-{[}01{]}.
 
 \subsection{4. System Overview}\label{system-overview}
 
@@ -329,6 +335,8 @@ safe & Safe & Associated Gnosis Safe object \\
 \ldots{} & \ldots{} & (Other metadata as provided by subgraph) \\
 \end{longtable}
 
+\clearpage
+
 \subsubsection{Safe}\label{safe}
 
 \begin{longtable}[]{@{}
@@ -403,6 +411,8 @@ linked\_safes & set & Safes associated with this EOA \\
 num\_linked\_safes & int & Number of safes linked \\
 \end{longtable}
 
+\clearpage
+
 \subsubsection{Topology Entry}\label{topology-entry}
 
 \begin{longtable}[]{@{}
@@ -458,11 +468,3 @@ running & bool & Is the peer currently active \\
 {[}01{]} Bradner, S. (1997).
 \href{https://datatracker.ietf.org/doc/html/rfc2119}{Key words for use
 in RFCs to Indicate Requirement Levels}. \emph{IETF RFC 2119}.
-
-\subsection{13. Changelog}\label{changelog}
-
-\begin{itemize}
-\tightlist
-\item
-  2025-06-26: Initial draft.
-\end{itemize}

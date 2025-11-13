@@ -78,9 +78,6 @@ the corresponding public key to reduce header overhead. Implementations MAY use 
 
 **|x|**: denotes the binary representation length of `x` in bytes. This notation is used throughout the specification to indicate field sizes.
 
-If character strings (delimited via double-quotes, such as `"xyz-abc-123"`) are used in place of byte strings, their ASCII single-byte encoding is assumed. 
-Non-ASCII character strings are not used throughout this document.
-
 ### 2.2. Global packet format parameters
 
 The HOPR packet format requires certain cryptographic primitives in place, namely:
@@ -648,12 +645,12 @@ If the packet processing was not successful at any point, a random acknowledgeme
 The current version is instantiated using the following cryptographic primitives:
 
 - Curve25519 elliptic curve with the corresponding scalar field
-- PRP is instantiated using Lioness wide-block cipher [05] over ChaCha20 and Blake3
-- PRG is instantiated using ChaCha20 [03]
-- OA is instantiated with Poly1305 [03]
-- KDF is instantiated using Blake3 in KDF mode [06], where the optional salt `S` is prepended to the key material `K`:
+- PRP is instantiated using Lioness wide-block cipher [04] over ChaCha20 and Blake3
+- PRG is instantiated using ChaCha20 [02]
+- OA is instantiated with Poly1305 [02]
+- KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`:
   `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
-- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [04]. `S` is used a the secret input, and `T` as an
+- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [05]. `S` is used a the secret input, and `T` as an
   additional domain separator.
 
 ## 7. References
@@ -669,5 +666,3 @@ _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 
 [05] Anderson, R., & Biham, E. (1996). Two practical and provably secure block ciphers: BEAR and LION. _In International Workshop on Fast Software
 Encryption (pp. 113-120). Berlin, Heidelberg: Springer Berlin Heidelberg._
-
-[06] Connor, J., Aumasson, J.-P., Neves, S., & Wilcox-O’Hearn, Z. (2021). [BLAKE 3 one function, fast everywhere](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf)
