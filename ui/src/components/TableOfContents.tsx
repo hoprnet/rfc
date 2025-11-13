@@ -16,7 +16,7 @@ export const TableOfContents = () => {
             return (
               <>
                 {item.items.map((subItem) => {
-                  if (subItem.type === "link" && subItem.label.includes("RFC-000")) {
+                  if (subItem.type === "link" && /RFC-\d{4}: /.test(subItem.label)) {
                     return (
                       <li key={subItem.label}>
                         <a
