@@ -8,7 +8,7 @@
 - **Updated:** 2025-10-27
 - **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
-- **Related Links:** none
+- **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md)
 
 ## 1. Abstract
 
@@ -30,8 +30,13 @@ expectations for contributors. This process serves multiple purposes:
 
 ## 3. Terminology
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
+The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01].
+
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
+across the HOPR RFC series.
+
+In addition, the following term is definited for use within this document:
 
 **Draft**: an RFC is considered a draft from the moment it is proposed for review. A draft MUST include a clear summary, contextual background, and
 initial technical details sufficient for evaluation. Drafts MUST follow the v0.x.x versioning scheme, with each version being independently reviewable

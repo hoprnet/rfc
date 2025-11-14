@@ -33,8 +33,11 @@ verification. The PoR mechanism makes the payment conditional on proof of actual
 
 ## 3. Terminology
 
-This document builds upon standard terminology established in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). References to "HOPR
-packets" or "mixnet packets" refer to a particular structure (`HOPR_Packet`) defined in
+The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
+to be interpreted as described in [01] when, and only when, they appear in all capitals, as shown here.
+
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
+across the HOPR RFC series. References to "HOPR packets" or "mixnet packets" refer to a particular structure (`HOPR_Packet`) defined in
 [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md).
 
 In addition, this document defines the following proof-of-relay-specific terms:
@@ -50,9 +53,6 @@ In addition, this document defines the following proof-of-relay-specific terms:
   state. This period allows relay nodes to claim pending rewards before channel closure.
 
 The above terms are formally defined in the following sections.
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
-to be interpreted as described in [01].
 
 ### 3.1. Cryptographic and security parameters
 
