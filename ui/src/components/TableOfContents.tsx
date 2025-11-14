@@ -1,5 +1,9 @@
 import { useDocsSidebar } from "@docusaurus/plugin-content-docs/client";
 import { useHistory, useLocation } from "@docusaurus/router";
+import styled from "@emotion/styled";
+
+const TOC = styled.div`
+`
 
 export const TableOfContents = () => {
   const sidebar = useDocsSidebar();
@@ -7,7 +11,7 @@ export const TableOfContents = () => {
   const history = useHistory();
 
   return (
-    <div>
+    <TOC>
       <ul>
         {sidebar.items.map((item) => {
           if (item.type !== "category") {
@@ -16,7 +20,7 @@ export const TableOfContents = () => {
             return (
               <>
                 {item.items.map((subItem) => {
-                  if (subItem.type === "link" && subItem.label.includes("RFC-000")) {
+                  if (subItem.type === "link" && /RFC-\d{4}: /.test(subItem.label)) {
                     return (
                       <li key={subItem.label}>
                         <a
@@ -37,7 +41,7 @@ export const TableOfContents = () => {
           }
         })}
       </ul>
-    </div>
+    </TOC>
   );
 };
 
