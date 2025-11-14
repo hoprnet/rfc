@@ -26,7 +26,8 @@ Structure}\label{rfc-0001-rfc-lifecycle-process-and-structure}
   \textbf{Supersedes:} none
 \item
   \textbf{Related Links:}
-  \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}
+  \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002},
+
 \end{itemize}
 
 \subsection{1. Abstract}\label{abstract}
@@ -69,7 +70,8 @@ expectations for contributors. This process serves multiple purposes:
 The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
 NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
 ``OPTIONAL'' in this document are to be interpreted as described in
-{[}01{]}.
+{[}01{]} when, and only when, they appear in all capitals, as shown
+here.
 
 All terminology used in this document, including general mix network
 concepts and HOPR-specific definitions, is provided in
@@ -77,7 +79,7 @@ concepts and HOPR-specific definitions, is provided in
 That document serves as the authoritative reference for the terminology
 and conventions adopted across the HOPR RFC series.
 
-In addition, the following term is defined for use within this document:
+In addition, the following term is definited for use within this document:
 
 \textbf{Draft}: an RFC is considered a draft from the moment it is
 proposed for review. A draft MUST include a clear summary, contextual
@@ -166,7 +168,7 @@ RFC-0001-rfc-life-cycle-process/
 \item
   The directory MUST be prefixed with uppercased ``RFC'', followed by
   its RFC number, and a succinct title all in lowercase joined by
-  hyphens. E.g., \codebubble{RFC-0001-rfc-life-cycle-process}
+  hyphens. E.g., \codebubble{RFC-0001-rfc-life-\\ cycle-process}
 \item
   The main file MUST be prefixed with its RFC number and a succinct
   title all in lowercase joined by hyphens. E.g.
@@ -289,15 +291,30 @@ and professionalism:
   and across all RFCs
 \end{itemize}
 
-Examples: - \textbf{Node}: a process that implements the HOPR protocol
-and participates in the mixnet - \textbf{Relay node}: a node that
-forwards messages from one node to another in the mixnet -
-\textbf{Session protocol}: the protocol layer that provides reliable
-message delivery over HOPR packets
+Examples: 
 
-Incorrect examples: - \emph{Node}: (should use bold instead of italics)
-- \textbf{Node}: (should capitalise first word) - \textbf{Node} (should
-include colon) - ``Node'': (should not use quotation marks)
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Node}: a process that implements the HOPR protocol
+and participates in the mixnet 
+\item
+  \textbf{Relay node}: a node that forwards messages from one node to another in the mixnet
+\item
+  \textbf{Session protocol}: the protocol layer that provides reliable message delivery over HOPR packets
+\end{itemize}
+
+Incorrect examples: 
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{Node}: (should use bold instead of italics)
+\item
+  \textbf{Node}: (should capitalise first word) 
+\item
+  \textbf{Node} (should include colon) - ``Node'': (should not use quotation marks)
+\end{itemize}
 
 \subsection{5. Design Considerations}\label{design-considerations}
 
@@ -360,17 +377,12 @@ include colon) - ``Node'': (should not use quotation marks)
 \subsection{10. References}\label{references}
 
 {[}01{]} Bradner, S. (1997).
-\href{https://datatracker.ietf.org/doc/html/rfc2119}{Key words for use
-in RFCs to Indicate Requirement Levels}. \emph{IETF RFC 2119}.
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}. \href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
 
-{[}02{]} \href{https://www.rfc-editor.org/styleguide/}{RFC Editor Style
-Guide}. RFC Editor.
+{[}02{]} {RFC Editor Style Guide}. RFC Editor. \href{https://www.rfc-editor.org/styleguide/}{\underline{https://www.rfc-editor.org/styleguide}}
 
-{[}03{]} \href{https://github.com/rust-lang/rfcs}{Rust RFC Process}.
-Rust Language Team.
+{[}03{]} {Rust RFC Process}. Rust Language Team. \href{https://github.com/rust-lang/rfcs}{\underline{https://github.com/rust-lang/rfcs}}
 
-{[}04{]} \href{https://rfc.zeromq.org}{ZeroMQ RFC Process}. ZeroMQ
-Community.
+{[}04{]} {ZeroMQ RFC Process}. ZeroMQ Community. \href{https://rfc.zeromq.org}{\underline{https://rfc.zeromq.org}}
 
-{[}05{]} \href{https://github.com/vacp2p/rfc-index}{VACP2P RFC Index}.
-Vac Research.
+{[}05{]} {VACP2P RFC Index}. Vac Research. \href{https://github.com/vacp2p/rfc-index}{\underline{https://github.com/vacp2p/rfc-index}}

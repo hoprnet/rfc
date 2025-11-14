@@ -51,11 +51,9 @@ privacy-preserving communication.
 
 ## 3. Terminology
 
-The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
-to be interpreted as described in [03].
-
-All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
-across the HOPR RFC series.
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in
+[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and
+conventions adopted across the HOPR RFC series.
 
 ## 4. Network Overview
 
@@ -85,7 +83,7 @@ Messages in the HOPR network are routed through multi-hop paths to provide priva
    reliable, and have open payment channels.
 2. **Path selection**: senders choose routing paths based on multiple criteria, including privacy requirements, expected latency, relay costs,
    and node reliability. The selection algorithm balances these trade-offs according to application needs.
-3. **Onion routing**: messages are encrypted in multiple layers using the Sphinx packet format [02, 04], with each relay node able to decrypt
+3. **Onion routing**: messages are encrypted in multiple layers using the Sphinx packet format [02, 03], with each relay node able to decrypt
    only one layer to reveal the next hop whilst keeping the sender, final destination, and full path hidden.
 
 ### 4.3 Economic Incentives
@@ -96,7 +94,7 @@ The HOPR network employs economic incentives to ensure sustainable operation and
   winning probability, enabling efficient micropayments without excessive on-chain transactions.
 - **Proof of relay**: cryptographic proofs ensure that relay nodes actually forward messages before receiving payment. This mechanism is detailed in
   [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) and prevents nodes from claiming payment without providing service.
-- **Payment channels**: unidirectional payment channels between nodes enable efficient microtransactions without high blockchain fees [05]. Channels
+- **Payment channels**: unidirectional payment channels between nodes enable efficient microtransactions without high blockchain fees [04]. Channels
   are established on-chain but allow many off-chain payments, settling only periodically or when channels close.
 - **Staking rewards**: nodes that stake tokens and maintain open payment channels receive additional rewards as described in
   [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md), creating incentives for network participation beyond per-message
@@ -107,13 +105,13 @@ The HOPR network employs economic incentives to ensure sustainable operation and
 The network architecture provides several key privacy guarantees through its layered security approach:
 
 - **Sender anonymity**: relay nodes cannot determine the original sender of a message due to onion routing. Each node only knows the immediate
-  previous hop, not the ultimate source [06].
+  previous hop, not the ultimate source [05].
 - **Receiver anonymity**: intermediate nodes cannot identify the final recipient of a message. Only the exit node knows the final destination, but not
-  the original sender [06].
-- **Unlinkability**: observers cannot link multiple messages from the same sender or to the same receiver [06]. Different messages may take different
+  the original sender [05].
+- **Unlinkability**: observers cannot link multiple messages from the same sender or to the same receiver [05]. Different messages may take different
   paths, and the encryption prevents correlation.
 - **Traffic analysis resistance**: random delays introduced by the mixer component ([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and packet
-  mixing prevent timing correlation attacks [07]. This ensures that an observer cannot correlate incoming and outgoing packets based on timing
+  mixing prevent timing correlation attacks [06]. This ensures that an observer cannot correlate incoming and outgoing packets based on timing
   patterns.
 
 These properties hold even against an adversary who controls a subset of the network nodes, as long as at least one honest node exists in each
@@ -159,10 +157,10 @@ processing rules that enable onion routing:
 
 - **Onion encryption**: multi-layer encryption ensures that each relay node can decrypt only one layer to reveal the next hop's address,
   maintaining sender and destination anonymity throughout the routing process.
-- **Sphinx-based design**: based on the Sphinx packet format [04] with extensions for incentivisation. Sphinx provides compact headers and strong
+- **Sphinx-based design**: based on the Sphinx packet format [03] with extensions for incentivisation. Sphinx provides compact headers and strong
   cryptographic guarantees about packet unlinkability.
 - **Fixed packet size**: all packets have identical size (including header, payload, and proof-of-relay information) to prevent traffic analysis
-  based on packet size [07]. To achieve this, variable-length messages are padded to the maximum size.
+  based on packet size [06]. To achieve this, variable-length messages are padded to the maximum size.
 - **Single-use reply blocks (SURBs)**: SURBs enable recipients to send reply messages back to anonymous senders without knowing their identity,
   supporting bidirectional communication whilst preserving anonymity.
 
@@ -211,7 +209,7 @@ through multiple mechanisms:
 
 - **Staking rewards**: nodes that stake tokens receive rewards proportional to their stake, encouraging long-term network commitment and providing
   economic security.
-- **Payment channels**: unidirectional payment channels enable efficient micropayments between nodes [05]. Channels are funded on-chain but support
+- **Payment channels**: unidirectional payment channels enable efficient micropayments between nodes [04]. Channels are funded on-chain but support
   many off-chain transactions, minimising blockchain costs.
 - **Fair distribution**: rewards are distributed equitably based on staked amounts and network participation, ensuring that nodes with open channels
   and good connectivity receive appropriate compensation.
@@ -257,19 +255,17 @@ _Communications of the ACM, 24_(2), 84-90.
 [Anonymous Connections and Onion Routing](https://www.onion-router.net/Publications/JSAC-1998.pdf). _IEEE Journal on Selected Areas in Communications,
 16_(4), 482-494.
 
-[03] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
-
-[04] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf).
+[03] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf).
 _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 
-[05] Poon, J., & Dryja, T. (2016).
+[04] Poon, J., & Dryja, T. (2016).
 [The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments](https://lightning.network/lightning-network-paper.pdf). Lightning Network
 Whitepaper.
 
-[06] Pfitzmann, A., & Köhntopp, M. (2001).
+[05] Pfitzmann, A., & Köhntopp, M. (2001).
 [Anonymity, Unobservability, and Pseudonymity—A Proposal for Terminology](https://www.freehaven.net/anonbib/cache/terminology.pdf). In _Designing
 Privacy Enhancing Technologies_ (pp. 1-9). Springer.
 
-[07] Raymond, J. F. (2001).
+[06] Raymond, J. F. (2001).
 [Traffic Analysis: Protocols, Attacks, Design Issues, and Open Problems](https://www.freehaven.net/anonbib/cache/raymond-thesis.pdf). In _Designing
 Privacy Enhancing Technologies_ (pp. 10-29). Springer.

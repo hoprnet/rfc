@@ -89,18 +89,24 @@ All terminology used in this document, including general mix network
 concepts and HOPR-specific definitions, is provided in
 \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
 That document serves as the authoritative reference for the terminology
-and conventions adopted across the HOPR RFC series.
+and conventions adopted across the HOPR RFC series. 
 
 Additional mixer-specific terms include:
 
-\emph{mixing delay}: A random time interval added to a packet's transit
+\begin{itemize}
+\tightlist
+\item
+\textbf{mixing delay}: A random time interval added to a packet's transit
 time through a node to prevent timing correlation attacks.
 
-\emph{release timestamp}: The calculated time at which a delayed packet
+\textbf{release timestamp}: The calculated time at which a delayed packet
 should be forwarded from the mixer.
 
-\emph{mixing buffer}: A priority queue that holds packets ordered by
+\textbf{mixing buffer}: A priority queue that holds packets ordered by
 their release timestamps.
+\end{itemize}
+
+\clearpage
 
 \subsection{4. Specification}\label{specification}
 
@@ -317,8 +323,7 @@ Limits}\label{abuse-resistance-and-resource-limits}
   sends) and expose metrics/alerts to prevent memory exhaustion attacks.
 \end{itemize}
 
-\subsubsection{5.3. Monitoring and
-Metrics}\label{monitoring-and-metrics}
+\subsubsection{5.3. Monitoring and Metrics}\label{monitoring-and-metrics}
 
 The mixer should track:
 
@@ -455,12 +460,11 @@ to implement and analyse.
 \end{itemize}
 
 \subsection{11. References}\label{references}
-
 {[}01{]} Bradner, S. (1997).
-\href{https://datatracker.ietf.org/doc/html/rfc2119}{Key words for use
-in RFCs to Indicate Requirement Levels}. \emph{IETF RFC 2119}.
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
 
 {[}02{]} Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., \&
-Danezis, G. (2017). \href{https://arxiv.org/pdf/1703.00536.pdf}{The
-Loopix Anonymity System}. \emph{26th USENIX Security Symposium},
+Danezis, G. (2017). {The Loopix Anonymity System}. \emph{26th USENIX Security Symposium},
 1199-1216.
+\href{https://arxiv.org/pdf/1703.00536.pdf}{\underline{https://arxiv.org/pdf/1703.00536.pdf}}

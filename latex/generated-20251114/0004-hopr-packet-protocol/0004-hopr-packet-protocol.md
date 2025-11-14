@@ -60,8 +60,8 @@ These two parts are concatenated to form the complete HOPR packet, which has a f
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [02] when, and only when, they appear in all capitals, as shown here.
 
-All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
-across the HOPR RFC series. Additionally, the following packet-protocol-specific terms are defined:
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used throughout this document. Additionally, the following
+packet-protocol-specific terms are defined:
 
 **Peer public/private key** (also **pubkey** or **privkey**): part of a cryptographic key pair owned by a peer. The public key is used to establish
 shared secrets for onion encryption, whilst the private key is kept secret and used to decrypt packets destined for that peer.
@@ -77,9 +77,6 @@ pseudonym's size. The pseudonym used in the forward message MUST be identical to
 the corresponding public key to reduce header overhead. Implementations MAY use truncated hashes of public keys as identifiers.
 
 **|x|**: denotes the binary representation length of `x` in bytes. This notation is used throughout the specification to indicate field sizes.
-
-If character strings (delimited via double-quotes, such as `"xyz-abc-123"`) are used in place of byte strings, their ASCII single-byte encoding is assumed. 
-Non-ASCII character strings are not used throughout this document.
 
 ### 2.2. Global packet format parameters
 
@@ -648,12 +645,12 @@ If the packet processing was not successful at any point, a random acknowledgeme
 The current version is instantiated using the following cryptographic primitives:
 
 - Curve25519 elliptic curve with the corresponding scalar field
-- PRP is instantiated using Lioness wide-block cipher [05] over ChaCha20 and Blake3
-- PRG is instantiated using ChaCha20 [03]
-- OA is instantiated with Poly1305 [03]
-- KDF is instantiated using Blake3 in KDF mode [06], where the optional salt `S` is prepended to the key material `K`:
+- PRP is instantiated using Lioness wide-block cipher [04] over ChaCha20 and Blake3
+- PRG is instantiated using ChaCha20 [02]
+- OA is instantiated with Poly1305 [02]
+- KDF is instantiated using Blake3 in KDF mode, where the optional salt `S` is prepended to the key material `K`:
   `KDF(C,K,S) = blake3_kdf(C, S || K)`. If `S` is omitted: `KDF(C,K) = blake3_kdf(C,K)`.
-- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [04]. `S` is used a the secret input, and `T` as an
+- HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [05]. `S` is used a the secret input, and `T` as an
   additional domain separator.
 
 ## 7. References
@@ -669,5 +666,3 @@ _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 
 [05] Anderson, R., & Biham, E. (1996). Two practical and provably secure block ciphers: BEAR and LION. _In International Workshop on Fast Software
 Encryption (pp. 113-120). Berlin, Heidelberg: Springer Berlin Heidelberg._
-
-[06] Connor, J., Aumasson, J.-P., Neves, S., & Wilcox-O’Hearn, Z. (2021). [BLAKE 3 one function, fast everywhere](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf)

@@ -36,15 +36,11 @@ The session start protocol is intentionally lightweight and transport-agnostic, 
 
 ## 3. Terminology
 
-The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
-to be interpreted as described in [01] when, and only when, they appear in all capitals, as shown here.
-
-All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
-across the HOPR RFC series. Additionally, this document defines the following session start protocol-specific terms:
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used throughout this specification. Additionally, this document defines the following session start protocol-specific terms:
 
 - **challenge**: A 64-bit random value used to correlate requests and responses in the handshake process. Challenge values MUST be generated using a cryptographically secure pseudo-random number generator (CSPRNG) and are interpreted as big-endian unsigned integers.
 
-- **session target**: The destination or purpose of a session, typically representing an address or service identifier. Session targets are encoded using CBOR format [02] to allow flexible representation of various endpoint types (e.g., IPv4/IPv6 addresses with ports, service URIs).
+- **session target**: The destination or purpose of a session, typically representing an address or service identifier. Session targets are encoded using CBOR format [01] to allow flexible representation of various endpoint types (e.g., IPv4/IPv6 addresses with ports, service URIs).
 
 - **session capabilities**: A bitmap of session features and options negotiated during session establishment. The capabilities field enables peers to agree on optional protocol features, with unrecognised bits being safely ignored to support backward compatibility.
 
@@ -346,7 +342,11 @@ Implementations SHOULD include comprehensive tests covering:
 - **CBOR encoding correctness**: Validate that CBOR encoding and decoding of session IDs and targets is correct and handles all expected data types.
 - **Error handling**: Test all error codes and verify that error messages are correctly generated and handled.
 
-## 10. Appendix 1
+## 10. References
+
+[01] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.
+
+## 11. Appendix 1
 
 Within the HOPR protocol, a session is identified uniquely via the HOPR session ID. This consists of 10 pseudo-random bytes as a prefix and a 64-bit unsigned integer as a suffix. The 64-bit suffix is encoded and interpreted as a big-endian unsigned integer.
 
@@ -355,9 +355,3 @@ In human-readable format, a HOPR session ID has the following syntax:
 `0xabcdefabcdefabcdefab:123456`
 
 The prefix (`0xabcdefabcdefabcdefab`) represents a fixed pseudonym prefix in the HOPR packet protocol (as specified in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)). The suffix (`123456`) represents an application tag that identifies sessions within the reserved range in the application protocol ([RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)).
-
-## 11. References
-
-[01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
-
-[02] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.

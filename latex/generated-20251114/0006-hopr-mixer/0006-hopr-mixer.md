@@ -37,13 +37,7 @@ The HOPR mixer addresses this attack vector by:
 
 ## 3. Terminology
 
-The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
-to be interpreted as described in [01] when, and only when, they appear in all capitals, as shown here.
-
-All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
-across the HOPR RFC series. 
-
-Additional mixer-specific terms include:
+Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additional mixer-specific terms include:
 
 _mixing delay_: A random time interval added to a packet's transit time through a node to prevent timing correlation attacks.
 
@@ -91,7 +85,7 @@ To generate a satisfactory random delay, the following conditions MUST be met:
 - SHOULD use uniform distribution as the baseline; other distributions (e.g., exponential, Poisson) MAY be supported via configuration
 - MUST NOT leak information about delay values through timing side channels
 
-Different mixing strategies produce different results. A uniform distribution will provide a simple baseline that is easy to implement and analyse. More advanced strategies like Poisson mixing (as used in Loopix [02]) can provide stronger anonymity properties by making packet timings less distinguishable from cover traffic
+Different mixing strategies produce different results. A uniform distribution will provide a simple baseline that is easy to implement and analyse. More advanced strategies like Poisson mixing (as used in Loopix [01]) can provide stronger anonymity properties by making packet timings less distinguishable from cover traffic
 patterns, but require careful parameter tuning and integration with cover traffic generation.
 
 #### 4.3.2. Mixing buffer
@@ -158,7 +152,7 @@ An implementation should prioritise:
 ### 5.2. Abuse Resistance and Resource Limits
 
 - **timing attacks**: Random delays must use cryptographically secure randomness
-- **statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies (e.g., exponential/Poisson as in Loopix [02])
+- **statistical analysis**: Uniform distribution is a simple baseline; stronger timing strategies (e.g., exponential/Poisson as in Loopix [01])
   provide better resistance to pattern inference
 - **queue bounds and DoS**: The mixer MUST use a bounded buffer with backpressure. Implementations MUST define behaviour when full (e.g., drop-tail
   oldest/newest, randomised drop, or reject upstream sends) and expose metrics/alerts to prevent memory exhaustion attacks.
@@ -210,7 +204,7 @@ Alternative mixing strategies considered:
 - **batch mixing**: Release packets in fixed-size batches (higher latency)
 - **threshold mixing**: Release when buffer reaches a certain size (variable latency)
 - **stop-and-go mixing**: Fixed delays at each hop (predictable patterns)
-- **poisson mixing**: As implemented in Loopix [02], uses Poisson-distributed delays that make real traffic harder to distinguish from cover traffic.
+- **poisson mixing**: As implemented in Loopix [01], uses Poisson-distributed delays that make real traffic harder to distinguish from cover traffic.
   This can provide stronger anonymity properties but requires careful parameter tuning and integration with cover traffic.
 
 The current continuous mixing approach with uniform distribution is a simple baseline that balances latency and anonymity while being easier to
@@ -225,12 +219,10 @@ implement and analyse.
 
 ## 10. Future Work
 
-- **poisson mixing implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as described in Loopix [02] to provide stronger anonymity properties when combined with cover traffic
+- **poisson mixing implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as described in Loopix [01] to provide stronger anonymity properties when combined with cover traffic
 - Performance optimizations for hardware acceleration
 
 ## 11. References
 
-[01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
-
-[02] Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., & Danezis, G. (2017). [The Loopix Anonymity System](https://arxiv.org/pdf/1703.00536.pdf).
+[01] Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., & Danezis, G. (2017). [The Loopix Anonymity System](https://arxiv.org/pdf/1703.00536.pdf).
 _26th USENIX Security Symposium_, 1199-1216.

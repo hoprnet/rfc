@@ -92,15 +92,19 @@ once a session is established.
 The keywords ``MUST'', ``MUST NOT'', ``REQUIRED'', ``SHALL'', ``SHALL
 NOT'', ``SHOULD'', ``SHOULD NOT'', ``RECOMMENDED'', ``MAY'', and
 ``OPTIONAL'' in this document are to be interpreted as described in
-{[}04{]} when, and only when, they appear in all capitals, as shown
+{[}03{]} when, and only when, they appear in all capitals, as shown
 here.
 
 All terminology used in this document, including general mix network
 concepts and HOPR-specific definitions, is provided in
 \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
 That document serves as the authoritative reference for the terminology
-and conventions adopted across the HOPR RFC series. Additionally, this
-document defines the following session-protocol-specific terms:
+and conventions adopted across the HOPR RFC series.
+
+Terms defined in
+\href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002} are
+used. Additionally, this document defines the following
+session-protocol-specific terms:
 
 \begin{itemize}
 \item
@@ -167,7 +171,7 @@ The protocol supports two operational modes:
 \tightlist
 \item
   \textbf{Unreliable Mode}: Fast, stateless operation similar to UDP
-  {[}03{]}
+  {[}04{]}
 \item
   \textbf{Reliable Mode}: Stateful operation with acknowledgements and
   retransmissions
@@ -243,6 +247,8 @@ segments \\
 receipt \\
 \end{longtable}
 
+\clearpage
+
 \paragraph{4.2.2 Byte Order}\label{byte-order}
 
 All multi-byte integer fields and values in the Session Data Protocol
@@ -303,6 +309,8 @@ Flags table below \\
 \textbf{Segment Data} & Variable & Payload data & 0 to
 (\codebubble{C - 10}) bytes \\
 \end{longtable}
+
+\clearpage
 
 \paragraph{4.3.2 Sequence Flags Bitmap}\label{sequence-flags-bitmap}
 
@@ -392,6 +400,8 @@ identifier \\
 message payload size \\
 \end{longtable}
 
+\clearpage
+
 \subsubsection{4.4 Retransmission Request
 Message}\label{retransmission-request-message}
 
@@ -428,6 +438,8 @@ Format
 \textbf{Missing Bitmap} & 1 byte & Bitmap of missing segments & See
 Missing Bitmap table below \\
 \end{longtable}
+
+\clearpage
 
 \paragraph{4.4.2 Missing Bitmap Format}\label{missing-bitmap-format}
 
@@ -489,6 +501,8 @@ Description
 \textbf{Segment Limit} & MUST & Only the first 8 segments per frame can
 be requested \\
 \end{longtable}
+
+\clearpage
 
 \subsubsection{4.5 Frame Acknowledgement
 Message}\label{frame-acknowledgement-message}
@@ -573,6 +587,8 @@ Machine}\label{reliable-socket-state-machine}
 \caption{Mermaid Diagram 6}
 \end{figure}
 
+\clearpage
+
 \subsubsection{4.7 Timing and Reliability
 Parameters}\label{timing-and-reliability-parameters}
 
@@ -652,6 +668,8 @@ All numeric values in the examples below are shown in their logical
 representation. Frame IDs and other multi-byte integers are encoded in
 big-endian format on the wire.
 
+\clearpage
+
 \paragraph{4.9.1 Simple Frame Transmission (Unreliable
 Mode)}\label{simple-frame-transmission-unreliable-mode}
 
@@ -676,6 +694,8 @@ retransmitted:
 \caption{Mermaid Diagram 8}
 \end{figure}
 
+\clearpage
+
 \paragraph{4.9.3 Multiple Frame Acknowledgement (Reliable
 Mode)}\label{multiple-frame-acknowledgement-reliable-mode}
 
@@ -698,6 +718,8 @@ Graceful session termination with acknowledgement:
 \caption{Mermaid Diagram 10}
 \end{figure}
 
+\clearpage
+
 \paragraph{4.9.5 Session Termination (Unreliable
 Mode)}\label{session-termination-unreliable-mode}
 
@@ -715,7 +737,7 @@ Immediate session termination without acknowledgement:
 Limitation}\label{maximum-segments-limitation}
 
 The protocol limits frames to 64 segments due to the 6-bit sequence
-length field. This provides a good balance among:
+length field. \\ This provides a good balance among:
 
 \begin{itemize}
 \tightlist
@@ -744,6 +766,8 @@ Frame IDs MUST be monotonically increasing to enable:
 
 The Session MUST terminate when a Frame ID of 0 is encountered by the
 receiving side, indicating an overflow.
+
+\clearpage
 
 \subsubsection{5.3 Retransmission Request
 Design}\label{retransmission-request-design}
@@ -814,6 +838,8 @@ Limiting retransmission requests to the first 8 segments per frame:
   Frame IDs are predictable and MUST NOT be used for security
 \end{itemize}
 
+\clearpage
+
 \subsection{8. Future Work}\label{future-work}
 
 \begin{itemize}
@@ -844,17 +870,17 @@ Recommendations}\label{testing-recommendations}
 \subsection{10. References}\label{references}
 
 {[}01{]} Postel, J. (1981).
-\href{https://datatracker.ietf.org/doc/html/rfc793}{Transmission Control
-Protocol}. \emph{IETF RFC 793}.
+{Transmission Control Protocol}. \emph{IETF RFC 793}.
+\href{https://datatracker.ietf.org/doc/html/rfc793}{\underline{https://datatracker.ietf.org/doc/html/rfc793}}
 
 {[}02{]} Bormann, C. \& Hoffman, P. (2013).
-\href{https://datatracker.ietf.org/doc/html/rfc7049}{Concise Binary
-Object Representation (CBOR)}. \emph{IETF RFC 7049}.
+{Concise Binary Object Representation (CBOR)}. \emph{IETF RFC 7049}.
+\href{https://datatracker.ietf.org/doc/html/rfc7049}{\underline{https://datatracker.ietf.org/doc/html/rfc7049}}
 
-{[}03{]} Postel, J. (1980).
-\href{https://datatracker.ietf.org/doc/html/rfc768}{User Datagram
-Protocol}. \emph{IETF RFC 768}.
+{[}03{]} Bradner, S. (1997).
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
 
-{[}04{]} Bradner, S. (1997).
-\href{https://datatracker.ietf.org/doc/html/rfc2119}{Key words for use
-in RFCs to Indicate Requirement Levels}. \emph{IETF RFC 2119}.
+{[}04{]} Postel, J. (1980).
+{User Datagram Protocol}. \emph{IETF RFC 768}.
+\href{https://datatracker.ietf.org/doc/html/rfc768}{\underline{https://datatracker.ietf.org/doc/html/rfc768}}

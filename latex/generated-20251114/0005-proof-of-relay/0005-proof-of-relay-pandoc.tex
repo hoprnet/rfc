@@ -81,9 +81,10 @@ All terminology used in this document, including general mix network
 concepts and HOPR-specific definitions, is provided in
 \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
 That document serves as the authoritative reference for the terminology
-and conventions adopted across the HOPR RFC series. References to ``HOPR
-packets'' or ``mixnet packets'' refer to a particular structure
-(\codebubble{HOPR\_Packet}) defined in
+and conventions adopted across the HOPR RFC series.
+
+References to ``HOPR packets'' or ``mixnet packets'' refer to a
+particular structure (\codebubble{HOPR\_Packet}) defined in
 \href{../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md}{RFC-0004}.
 
 In addition, this document defines the following proof-of-relay-specific
@@ -178,7 +179,7 @@ blockchain transaction for each packet relayed.
 Let A, B, and C be peers participating in the mixnet. Each node
 possesses its own private key (\codebubble{Kpriv\_A},
 \codebubble{Kpriv\_B}, \codebubble{Kpriv\_C}) and the corresponding
-public key (\codebubble{P\_A}, \codebubble{P\_B}, \codebubble{P\_C}).
+public key \\(\codebubble{P\_A}, \codebubble{P\_B}, \codebubble{P\_C}).
 Public keys are publicly exposed to enable packet routing and shared
 secret establishment.
 
@@ -288,12 +289,12 @@ to be paid out to it in return - as a reward for the relaying work. This
 will be described in the later sections.
 
 At any point in time, the channel initiator A can initiate a closure of
-the channel A -\textgreater{} B. Such transition MUST change the
+the channel \\ A -\textgreater{} B. Such transition MUST change the
 \codebubble{status} field to \codebubble{PENDING\_TO\_CLOSE} and this
 change MUST be communicated to B. In such state, the node A MUST NOT be
 allowed to communicate with C via B, but B MUST be allowed to still
 claim any unclaimed rewards from the channel. However, B MUST NOT be
-allowed to claim any rewards after \codebubble{T\_closure} has elapsed
+allowed to claim any rewards after \\\codebubble{T\_closure} has elapsed
 since the transition to PENDING\_TO\_CLOSE. \codebubble{T\_closure} MUST
 be measured in block timestamps, and both parties MUST derive it from
 the same source.
@@ -318,7 +319,7 @@ At any point in time when the channel is at the state other than
 transition the channel A -\textgreater{} B to state \codebubble{CLOSED}.
 Node B SHALL claim unclaimed rewards before the state transition,
 because any unclaimed rewards become unclaimable after the state
-transition, resulting in a loss for node B. To prevent spamming, the
+transition, resulting in a loss for node B. \\To prevent spamming, the
 reward amount MUST be larger than \codebubble{MIN\_USED\_BALANCE} and
 smaller than \codebubble{MAX\_USED\_BALANCE}.
 
@@ -419,7 +420,7 @@ secrets}\label{construction-of-proof-of-relay-por-secrets}
 
 This section uses terms defined in Section 2.2 in
 \href{../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md}{RFC-0004},
-namely the \codebubble{SharedSecret\_i} generated for the
+namely the \\ \codebubble{SharedSecret\_i} generated for the
 \codebubble{i}-th node on the path (\codebubble{i} ranges from 0 (sender
 node) up to \codebubble{n} (destination node), i.e.~\codebubble{n} is
 equal to the path length). Note that for 0-hop path (a direct packet
@@ -435,7 +436,7 @@ Upon packet creation, the sender node creates two structures:
 \tightlist
 \item
   the list of \codebubble{ProofOfRelayString\_i} for each
-  \codebubble{i}-th node on the path for i \textgreater{} 0 up to
+  \codebubble{i}-th node on the path for i \textgreater{} 0 up to \\
   \codebubble{n-1}. For \codebubble{n=1}, the list will be empty
 \item
   the \codebubble{ProofOfRelayValues} structure
@@ -526,7 +527,7 @@ follows for each \codebubble{i} from 0 to \codebubble{n-1}:
   \begin{itemize}
   \tightlist
   \item
-    \codebubble{challenge} is computed as:
+    \codebubble{challenge} is computed as: \\
     \codebubble{challenge = MUL(SharedKey\_i\_own + SharedKey\_i+1\_ack, G)}
     and encoded as \codebubble{ECPoint}
   \item
@@ -539,7 +540,7 @@ follows for each \codebubble{i} from 0 to \codebubble{n-1}:
   \begin{itemize}
   \tightlist
   \item
-    \codebubble{challenge} is computed as:
+    \codebubble{challenge} is computed as: \\
     \codebubble{challenge = MUL(SharedKey\_i\_own + SharedKey\_i+1\_ack, G)}
     and encoded as \codebubble{ECPoint}
   \item
@@ -575,7 +576,7 @@ next hop MUST exist and be in the \codebubble{OPEN} state.
   \codebubble{n} - 1).
 \item
   The \codebubble{index} field MUST be set to the
-  \codebubble{ticket\_index} + 1 from the corresponding
+  \codebubble{ticket\_index} + 1 from the corresponding\\
   \codebubble{Channel}.
 \item
   The \codebubble{index\_offset} MUST be set to 1 in the current
@@ -585,7 +586,7 @@ next hop MUST exist and be in the \codebubble{OPEN} state.
   expected ticket winning probability in the network.
 \item
   The \codebubble{channel\_epoch} MUST be set to the
-  \codebubble{channel\_epoch} from the corresponding
+  \codebubble{channel\_epoch} from the corresponding\\
   \codebubble{Channel}.
 \end{enumerate}
 
@@ -659,7 +660,7 @@ discarding the ticket and the corresponding \codebubble{HOPR\_Packet},
 and interrupting the processing further.
 
 If the extracted \codebubble{Ticket} structure cannot be deserialised,
-the corresponding \codebubble{HOPR\_Packet} MUST be discarded. If the
+the corresponding \\ \codebubble{HOPR\_Packet} MUST be discarded. If the
 \codebubble{Ticket} has been issued for an unknown channel, or it does
 not correspond to the channel between the packet sender and the node
 where it is being processed, or the channel is in the
@@ -698,7 +699,7 @@ discarded \codebubble{HOPR\_Packet} MUST be acknowledged (as per section
 replacement}\label{ticket-validation-and-replacement}
 
 Let \codebubble{corr\_channel} be the \codebubble{Channel} that
-corresponds to the \codebubble{channel\_id} on the \codebubble{Ticket}.
+corresponds to the \codebubble{channel\_id} on the \\ \codebubble{Ticket}.
 This channel MUST exist and not be in the \codebubble{CLOSED} state per
 previous section, otherwise the entire \codebubble{HOPR\_Packet} has
 been discarded.
@@ -721,7 +722,7 @@ the \codebubble{Ticket} MUST be verified as follows:
   the path position)
 \item
   the \codebubble{channel\_epoch} on the \codebubble{Ticket} MUST be the
-  current epoch of the \codebubble{corr\_channel}.
+  current epoch of the \\ \codebubble{corr\_channel}.
 \item
   it MUST be checked that the packet sender has enough funds to cover
   the \codebubble{amount} of the ticket
@@ -743,11 +744,11 @@ The path position is used to derive the number of remaining hops.
 
 If the number of remaining hops is \textgreater{} 1, it MUST be checked
 if a \codebubble{Channel} for the next hop exists from the current node,
-and if it is in the \codebubble{OPEN} state. If not, the corresponding
+and if it is in the \codebubble{OPEN} state. If not, the corresponding\\
 \codebubble{HOPR\_Packet} is discarded and the process is interrupted.
 
 The process of \codebubble{Ticket} creation from section 4.3 then
-applies, either with the \codebubble{Channel} as the next hop channel in
+applies, either with the \codebubble{Channel}\\as the next hop channel in
 a multi-hop ticket (if the number of remaining hops \textgreater{} 1),
 or creates a zero-hop ticket if the number of remaining hops is 1.
 
@@ -757,7 +758,7 @@ The following applies in addition to 4.3:
 \tightlist
 \item
   the \codebubble{amount} on the ticket in the multi-hop case MAY be
-  adjusted (typically the \codebubble{amount} from the previous ticket
+  adjusted (typically the \\ \codebubble{amount} from the previous ticket
   is diminished by the packet price)
 \item
   the \codebubble{challenge} MUST be set to \codebubble{challenge} from
@@ -825,7 +826,7 @@ The \codebubble{signature} field contains the signature of the encoded
 \codebubble{ack\_secret} bytes. The signature is done over
 \codebubble{H(ack\_secret)} using the private key of the acknowledging
 party. For this purpose, the same EC cryptosystem for signing and
-verification as with \codebubble{Ticket} SHOULD be used. The same
+verification as with \codebubble{Ticket}SHOULD be used. The same
 encoding MUST be used for the \codebubble{signature} field as for the
 \codebubble{Ticket}.
 
@@ -864,7 +865,7 @@ The node then searches for a previously stored \emph{unacknowledged}
 \end{itemize}
 
 Let \codebubble{SharedSecret\_i\_own} be the value from 1) in Section
-5.2.1. The \codebubble{response} to the \codebubble{Ticket} challenge
+5.2.1. The \codebubble{response} to the \\ \codebubble{Ticket} challenge
 corresponding to the acknowledged packet is:
 
 \codebubble{response = ack\_secret + SharedSecret\_i\_own}
@@ -995,12 +996,12 @@ claimable.
   signature
 \item
   The \codebubble{Channel} matching \codebubble{channel\_id} MUST exist,
-  MUST NOT be \codebubble{CLOSED}, its \codebubble{channel\_epoch} MUST
-  match with the one on the ticket and SHOULD have \codebubble{balance}
+  MUST NOT be \codebubble{CLOSED}, its \\ \codebubble{channel\_epoch} MUST
+  match with the one on the ticket and SHOULD have \\ \codebubble{balance}
   \textgreater= \codebubble{amount}.
 \item
   The \codebubble{index} on the ticket MUST be greater than or equal to
-  \codebubble{ticket\_index} on the \codebubble{Channel}
+  \codebubble{ticket\_index} on the \\ \codebubble{Channel}
 \item
   The third party applies appropriate encoding to obtain
   \codebubble{H\_P} from \codebubble{P}. It then performs the following
@@ -1022,12 +1023,12 @@ Finally, the \codebubble{h\_check} MUST be equal to \codebubble{h}.
 \setcounter{enumi}{4}
 \item
   The result of \codebubble{MUL(response, G)} MUST be equal to the
-  \codebubble{challenge} from the \codebubble{Ticket}. If unique
+  \codebubble{challenge} from the \\ \codebubble{Ticket}. If unique
   encoding of \codebubble{ECPoint} was used, their encoding MAY be
   compared instead.
 \item
   The \codebubble{luck} value computed using the given \codebubble{V}
-  MUST be less than the \codebubble{encoded\_win\_prob} from the
+  MUST be less than the \\ \codebubble{encoded\_win\_prob} from the
   \codebubble{Ticket}
 \end{enumerate}
 
@@ -1111,7 +1112,7 @@ HOPR protocol.
     issuer's address.
   \item
     \codebubble{verified\_hash} MUST equal
-    \codebubble{Ticket::get\_hash(domainSeparator)};
+    \codebubble{Ticket::get\_hash(domainSeparator)}; \\
     \codebubble{verified\_issuer} MUST equal the recovered signer.
   \end{itemize}
 \item
@@ -1130,7 +1131,7 @@ HOPR protocol.
   \tightlist
   \item
     Produced once the recipient learns the downstream half-key and
-    reconstructs \codebubble{Response}.
+    reconstructs \\ \codebubble{Response}.
   \end{itemize}
 \item
   \textbf{RedeemableTicket} (winning, issuer-verified, VRF-bound)
@@ -1176,7 +1177,7 @@ HOPR protocol.
     \begin{itemize}
     \tightlist
     \item
-      Ticket MUST include all mandatory fields and satisfy bounds
+      Ticket MUST include all mandatory fields and satisfy bounds \\
       (amount ≤ 10\^{}25; index ≤ 2\^{}48; index\_offset ≥ 1;
       channel\_epoch ≤ 2\^{}24).
     \end{itemize}
@@ -1202,7 +1203,7 @@ HOPR protocol.
     On failure, verification MUST be rejected.
   \end{itemize}
 \item
-  \codebubble{VerifiedTicket --into\_unacknowledged(own\_key)--> UnacknowledgedTicket}
+  \codebubble{VerifiedTicket --into\_unacknowledged(own\_key)--> \\ UnacknowledgedTicket}
 
   \begin{itemize}
   \tightlist
@@ -1218,14 +1219,14 @@ HOPR protocol.
     Compute \codebubble{Response = combine(own\_key, ack\_key)}.
   \item
     The derived challenge \codebubble{Response.to\_challenge()} MUST
-    equal \codebubble{ticket.challenge}.
+    equal \\\codebubble{ticket.challenge}.
   \item
     On mismatch, the transition MUST fail with
     \codebubble{InvalidChallenge} and the ticket MUST remain
     unacknowledged.
   \end{itemize}
 \item
-  \codebubble{AcknowledgedTicket(Untouched) --into\_redeemable(chain\_keypair, domainSeparator)--> RedeemableTicket}
+  \codebubble{AcknowledgedTicket(Untouched) --into\_redeemable(chain\_keypair, \\domainSeparator)--> RedeemableTicket}
 
   \begin{itemize}
   \tightlist
@@ -1234,13 +1235,13 @@ HOPR protocol.
     prevention).
   \item
     Derive VRF parameters over
-    \codebubble{(verified\_hash, redeemer, domainSeparator)}.
+    \codebubble{(verified\_hash, redeemer, domainSeparator)}
   \item
     The resulting RedeemableTicket MAY be submitted on-chain if winning
     (see §3).
   \end{itemize}
 \item
-  \codebubble{AcknowledgedTicket(Untouched) --into\_transferable(chain\_keypair, domainSeparator)--> TransferableWinningTicket}
+  \codebubble{AcknowledgedTicket(Untouched) --into\_transferable(chain\_keypair, \\domainSeparator)--> TransferableWinningTicket}
 
   \begin{itemize}
   \tightlist
@@ -1249,13 +1250,13 @@ HOPR protocol.
     to transferable form; retains VRF and response.
   \end{itemize}
 \item
-  \codebubble{TransferableWinningTicket --into\_redeemable(expected\_issuer, domainSeparator)--> RedeemableTicket}
+  \codebubble{TransferableWinningTicket --into\_redeemable(expected\_issuer, \\ domainSeparator)--> RedeemableTicket}
 
   \begin{itemize}
   \tightlist
   \item
     MUST verify: \codebubble{signer == expected\_issuer} and the
-    embedded signature over \codebubble{get\_hash(domainSeparator)}.
+    embedded signature over \\ \codebubble{get\_hash(domainSeparator)}.
   \item
     MUST recompute ``win'' locally (see §3). On failure, MUST reject.
   \end{itemize}
@@ -1290,9 +1291,9 @@ domainSeparator = keccak256(
 \subsection{10. References}\label{references}
 
 {[}01{]} Bradner, S. (1997).
-\href{https://datatracker.ietf.org/doc/html/rfc2119}{Key words for use
-in RFCs to Indicate Requirement Levels}. \emph{IETF RFC 2119}.
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
 
 {[}02{]} Faz-Hernandez, A., et al.~(2023).
-\href{https://www.rfc-editor.org/rfc/rfc9380.html}{Hashing to Elliptic
-Curves}. \emph{IETF RFC 9380}.
+{Hashing to Elliptic Curves}. \emph{IETF RFC 9380}.
+\href{https://www.rfc-editor.org/rfc/rfc9380.html}{\underline{https://www.rfc-editor.org/rfc/rfc9380.html}}

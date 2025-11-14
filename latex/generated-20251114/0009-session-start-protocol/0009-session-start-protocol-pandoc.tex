@@ -98,8 +98,10 @@ All terminology used in this document, including general mix network
 concepts and HOPR-specific definitions, is provided in
 \href{../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md}{RFC-0002}.
 That document serves as the authoritative reference for the terminology
-and conventions adopted across the HOPR RFC series. Additionally, this
-document defines the following session start protocol-specific terms:
+and conventions adopted across the HOPR RFC series. 
+
+Additionally, this document defines the following session start protocol-specific 
+terms:
 
 \begin{itemize}
 \item
@@ -234,6 +236,8 @@ failure \\
 \codebubble{0x03} & KeepAlive & Maintains session liveness \\
 \end{longtable}
 
+\clearpage
+
 \paragraph{4.2.2 Byte Order}\label{byte-order}
 
 All multi-byte integer fields and values in the session start protocol
@@ -248,7 +252,7 @@ applies to the following fields:
   \textbf{Length} field (2 bytes) in the common message format
 \item
   \textbf{Challenge} field (8 bytes) in \codebubble{StartSession},
-  \codebubble{SessionEstablished}, and \codebubble{SessionError}
+  \codebubble{SessionEstablished}, and \\ \codebubble{SessionError}
   messages
 \item
   \textbf{Additional Data} field (4 bytes) in \codebubble{StartSession}
@@ -264,8 +268,10 @@ applies to the following fields:
 \end{itemize}
 
 This requirement ensures consistent interpretation across different
-architectures (e.g., x86, ARM, RISC-V) and prevents interoperability
+architectures \\(e.g., x86, ARM, RISC-V) and prevents interoperability
 issues between implementations.
+
+\clearpage
 
 \subsubsection{4.3 StartSession Message}\label{startsession-message}
 
@@ -307,9 +313,10 @@ Capability Flags table; unrecognised bits SHOULD be ignored \\
 to \codebubble{0x00000000} if unused; interpretation depends on
 capabilities \\
 \textbf{Target} & Variable & CBOR-encoded session target & Examples:
-\codebubble{"127.0.0.1:1234"},
-\codebubble{"wss://relay.example.com:443"} \\
+\codebubble{"127.0.0.1:1234"}, \codebubble{"wss://relay.example.com:443"} 
 \end{longtable}
+
+\clearpage
 
 \paragraph{4.3.1 Capability Flags}\label{capability-flags}
 
@@ -339,8 +346,7 @@ Description
 7 & Reserved & Reserved for future use \\
 \end{longtable}
 
-\subsubsection{4.4 SessionEstablished
-Message}\label{sessionestablished-message}
+\subsubsection{4.4 SessionEstablished Message}\label{sessionestablished-message}
 
 The \codebubble{SessionEstablished} message confirms successful session
 establishment. The exit node sends this message in response to a valid
@@ -379,6 +385,8 @@ from the initiating \codebubble{StartSession} request \\
 Assigned by exit node; MUST be unique within exit node's session
 namespace \\
 \end{longtable}
+
+\clearpage
 
 \subsubsection{4.5 SessionError Message}\label{sessionerror-message}
 
@@ -419,6 +427,8 @@ message & MUST exactly match the challenge from the initiating
 \textbf{Reason} & 1 byte & Error reason code & See Error Codes table
 below \\
 \end{longtable}
+
+\clearpage
 
 \paragraph{4.5.1 Error Codes}\label{error-codes}
 
@@ -498,6 +508,8 @@ match an established session ID \\
 \caption{Mermaid Diagram 6}
 \end{figure}
 
+\clearpage
+
 \subsubsection{4.8 Protocol Constants}\label{protocol-constants}
 
 \begin{longtable}[]{@{}
@@ -562,6 +574,8 @@ error conditions gracefully \\
 SHOULD be configurable (default: 30s) \\
 \end{longtable}
 
+\clearpage
+
 \subsubsection{4.10 Example Message
 Exchanges}\label{example-message-exchanges}
 
@@ -586,6 +600,8 @@ Session establishment failing due to resource exhaustion:
 \pandocbounded{\includegraphics[width=\maxwidth,keepaspectratio,alt={Mermaid Diagram 8}]{0009-session-start-protocol/mermaid_8.png}}
 \caption{Mermaid Diagram 8}
 \end{figure}
+
+\clearpage
 
 \paragraph{4.10.3 Session Establishment
 Timeout}\label{session-establishment-timeout}
@@ -844,7 +860,7 @@ adequate transport-level security:
   Transport-level security is required.
 \item
   \textbf{Information disclosure}: Session targets may expose service
-  information (e.g., destination addresses) if not encrypted at the
+  information \\(e.g., destination addresses) if not encrypted at the
   transport layer.
 \item
   \textbf{Resource exhaustion}: Attackers can flood exit nodes with
@@ -855,6 +871,8 @@ adequate transport-level security:
   to guess valid session identifiers and hijack established sessions.
   Session IDs MUST be generated unpredictably.
 \end{itemize}
+
+\clearpage
 
 \subsubsection{7.3 Mitigation Strategies}\label{mitigation-strategies}
 
@@ -909,6 +927,8 @@ Potential areas for future protocol enhancements include:
   mechanisms that can carry health status information or
   quality-of-service metrics.
 \end{itemize}
+
+\clearpage
 
 \subsection{9. Implementation Notes}\label{implementation-notes}
 
@@ -965,9 +985,9 @@ protocol
 \subsection{11. References}\label{references}
 
 {[}01{]} Bradner, S. (1997).
-\href{https://datatracker.ietf.org/doc/html/rfc2119}{Key words for use
-in RFCs to Indicate Requirement Levels}. \emph{IETF RFC 2119}.
+{Key words for use in RFCs to Indicate Requirement Levels}. \\ \emph{IETF RFC 2119}.
+\href{https://datatracker.ietf.org/doc/html/rfc2119}{\underline{https://datatracker.ietf.org/doc/html/rfc2119}}
 
 {[}02{]} Bormann, C. \& Hoffman, P. (2013).
-\href{https://datatracker.ietf.org/doc/html/rfc7049}{Concise Binary
-Object Representation (CBOR)}. \emph{IETF RFC 7049}.
+{Concise Binary Object Representation (CBOR)}. \emph{IETF RFC 7049}.
+\href{https://datatracker.ietf.org/doc/html/rfc7049}{\underline{https://datatracker.ietf.org/doc/html/rfc7049}}
