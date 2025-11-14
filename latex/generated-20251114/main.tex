@@ -1,0 +1,71 @@
+\documentclass[twoside]{article}
+\usepackage{fontspec}
+\usepackage{graphicx}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{fvextra}
+\usepackage{longtable}    % <- required for longtable environment
+\usepackage{booktabs}     % nicer tables (Pandoc may use)
+\usepackage{array}        % column formatting
+\usepackage{multirow}     % multi-row cells (optional)
+
+% --- Core packages ---
+\usepackage{fontspec}
+\usepackage{xcolor}
+
+% --- Font setup (must come before rfcstyle) ---
+\setmainfont{SFUIText-Regular}[Path=./fonts/,Extension=.ttf]
+\setmonofont{SourceCodePro-Regular}[Path=./fonts/,Extension=.ttf]
+
+% Define sourcecodepro with proper protection
+\makeatletter
+\newfontfamily\sourcecodepro{SourceCodePro-Regular}[Path=./fonts/,Extension=.ttf]
+\newfontfamily\SourceCodeProSemiBold{SourceCodePro-SemiBold}[Path=./fonts/,Extension=.ttf]
+% \protected\def\sourcecodepro{\fontfamily{SourceCodePro-TLF}\selectfont}
+\makeatother
+
+% --- Colors (must come before rfcstyle) ---
+\definecolor{rfcbody}{HTML}{2C4190}
+\definecolor{bubbleback}{HTML}{CECFE6}
+\definecolor{rfcblue}{HTML}{2A4D9B}
+
+% Define pandoc commands
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% Simple Shaded environment
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+
+% Define Highlighting environment for syntax highlighting
+\newenvironment{Highlighting}{\begin{Shaded}}{\end{Shaded}}
+
+% --- Load custom style ---
+\usepackage{rfcstyle}
+
+% Number sections but NOT subsections
+\makeatother
+\setcounter{secnumdepth}{1}
+
+% Disable hyphenation globally
+\usepackage[none]{hyphenat} % disable hyphenation globally
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\pretolerance=10000
+\tolerance=10000
+
+
+\begin{document}
+
+\setcounter{tocdepth}{3} %
+\renewcommand{\contentsname}{Table of Contents}
+\tableofcontents
+\clearpage
+
+% BEGIN GENERATED RFC INCLUDES
+% (auto-filled by generator-pdf.sh)
+\ifodd\value{page}\include{0001-rfc-process/0001-rfc-process-pandoc.tex}\else\hbox{}\newpage\include{0001-rfc-process/0001-rfc-process-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0002-mixnet-keywords/0002-mixnet-keywords-pandoc.tex}\else\hbox{}\newpage\include{0002-mixnet-keywords/0002-mixnet-keywords-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0003-hopr-overview/0003-hopr-overview-pandoc.tex}\else\hbox{}\newpage\include{0003-hopr-overview/0003-hopr-overview-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0004-hopr-packet-protocol/0004-hopr-packet-protocol-pandoc.tex}\else\hbox{}\newpage\include{0004-hopr-packet-protocol/0004-hopr-packet-protocol-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0005-proof-of-relay/0005-proof-of-relay-pandoc.tex}\else\hbox{}\newpage\include{0005-proof-of-relay/0005-proof-of-relay-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0006-hopr-mixer/0006-hopr-mixer-pandoc.tex}\else\hbox{}\newpage\include{0006-hopr-mixer/0006-hopr-mixer-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0007-economic-reward-system/0007-economic-reward-system-pandoc.tex}\else\hbox{}\newpage\include{0007-economic-reward-system/0007-economic-reward-system-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0008-session-protocol/0008-session-protocol-pandoc.tex}\else\hbox{}\newpage\include{0008-session-protocol/0008-session-protocol-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0009-session-start-protocol/0009-session-start-protocol-pandoc.tex}\else\hbox{}\newpage\include{0009-session-start-protocol/0009-session-start-protocol-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0010-automatic-path-discovery/0010-automatic-path-discovery-pandoc.tex}\else\hbox{}\newpage\include{0010-automatic-path-discovery/0010-automatic-path-discovery-pandoc.tex}\fi\clearpage\ifodd\value{page}\include{0011-application-protocol/0011-application-protocol-pandoc.tex}\else\hbox{}\newpage\include{0011-application-protocol/0011-application-protocol-pandoc.tex}\fi\clearpage
+% END GENERATED RFC INCLUDES
+
+\end{document}
