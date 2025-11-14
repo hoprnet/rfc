@@ -43,9 +43,11 @@ Session establishment and lifecycle management are handled by the HOPR session s
 transmission once a session is established.
 
 ## 3. Terminology
+The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
+to be interpreted as described in [04] when, and only when, they appear in all capitals, as shown here.
 
-Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following
-session-protocol-specific terms:
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
+across the HOPR RFC series. Additionally, this document defines the following session-protocol-specific terms:
 
 - **frame**: a logical unit of data transmission in the session protocol. Frames can be of arbitrary length and are identified by a unique frame ID.
   Frames represent complete application messages that may span multiple packets.
@@ -469,3 +471,5 @@ Limiting retransmission requests to the first 8 segments per frame:
 [02] Bormann, C. & Hoffman, P. (2013). [Concise Binary Object Representation (CBOR)](https://datatracker.ietf.org/doc/html/rfc7049). _IETF RFC 7049_.
 
 [03] Postel, J. (1980). [User Datagram Protocol](https://datatracker.ietf.org/doc/html/rfc768). _IETF RFC 768_.
+
+[04] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.

@@ -21,8 +21,11 @@ The reward system operates by collecting data from multiple sources (blockchain,
 The economic reward system is a necessary component of the HOPR mixnet, as it incentivises node runners to keep their nodes running in order to have a network topology that is as stable as possible. It must employ fair logic that never favours or disadvantages a subset of node runners, and that encourages sustainability without compromising decentralisation. It must also incentivise node runners to be connected to other nodes in the network via channels. Isolated nodes are far less useful to the network than well-connected nodes.
 
 ## 3. Terminology
+The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
+to be interpreted as described in [01] when, and only when, they appear in all capitals, as shown here.
 
-Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used. Additionally, this document defines the following economic system-specific terms:
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
+across the HOPR RFC series. Additionally, this document defines the following economic system-specific terms:
 
 - **subgraph**: an off-chain data indexer (such as The Graph protocol) that indexes blockchain events and provides queryable access to on-chain data
   including NFT holders, registered nodes, allocations, and EOA balances.
@@ -36,9 +39,6 @@ Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md)
 - **NFT holder**: an address holding a specific NFT that grants preferential treatment in the reward system (lower staking thresholds).
 - **SessionToSocket**: an implementation object that manages a UDP session and socket for communicating with a specific peer.
 - **MessageFormat**: a class responsible for encoding message metadata and payload as bytes for transmission over the network.
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
-to be interpreted as described in [01].
 
 ## 4. System Overview
 
@@ -274,7 +274,3 @@ all necessary criteria, further enhancing the security and integrity of the rewa
 ## 12. References
 
 [01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
-
-## 13. Changelog
-
-- 2025-06-26: Initial draft.
