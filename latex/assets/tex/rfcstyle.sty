@@ -1,0 +1,383 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{rfcstyle}[2025/01/01 v1.0 HOPR RFC Style Package]
+
+% --- Required packages ---
+\RequirePackage{geometry}
+\RequirePackage{fancyhdr}
+\RequirePackage{xcolor}
+\RequirePackage{titlesec}
+\RequirePackage{graphicx}
+\RequirePackage{hyperref}
+\RequirePackage{enumitem}
+\RequirePackage{ragged2e}
+\RequirePackage[most]{tcolorbox}
+% \tcbuselibrary{breakable,skins}
+
+% --- Page geometry (HOPR custom paper format) ---
+\geometry{
+  paperwidth=148mm,
+  paperheight=222mm,
+  top=2.27cm,
+  bottom=4.27cm,
+  inner=1.8cm,
+  outer=1.1cm
+}
+
+% --- Colors (MUST be defined before using them) ---
+\definecolor{rfcbody}{HTML}{2C4190}
+\definecolor{bubbleback}{HTML}{ECECFF}
+\definecolor{rfcblue}{HTML}{2A4D9B}
+
+% --- Text alignment: Left-aligned, not justified ---
+\RaggedRight
+\setlength{\RaggedRightParindent}{0pt}
+
+% Global helper (simple per‑character break; remove if not needed)
+\newcommand{\makeultrabreakable}[1]{%
+  \begingroup
+  \tolerance=10000 
+  \emergencystretch=10em
+  \def\dochar##1{%
+    \ifx\relax##1\relax
+    \else ##1\penalty0\hspace{0pt}\expandafter\dochar \fi
+  }%
+  \dochar#1\relax
+  \endgroup
+}
+
+\DeclareRobustCommand{\codebubble}[1]{%
+  \begingroup
+  \sourcecodepro\color{rfcbody}%
+  \makeultrabreakable{#1}%
+  \endgroup
+}
+
+% --- Codebubble environment (for multi-line code) ---
+\newtcolorbox{codebubbleblock}{
+  enhanced,
+  colback=bubbleback,
+  colframe=bubbleback,
+  boxrule=0pt,
+  arc=4pt,
+  left=4pt,
+  right=4pt,
+  top=4pt,
+  bottom=-5pt,
+  fontupper=\sourcecodepro\small\color{rfcbody},
+  breakable=false, % prevent page breaks inside codebubbleblock
+  text and listing
+}
+
+
+% Create environment that preserves line breaks
+\newenvironment{codebubbleenv}
+  {\VerbatimEnvironment
+   \begin{codebubbleblock}%
+   \begin{Verbatim}[breaklines=true,breakanywhere=true]}
+  {\end{Verbatim}\end{codebubbleblock}}
+
+% --- Font size adjustments ---
+\renewcommand{\large}{\fontsize{16}{18}\selectfont}
+\newcommand{\mediumlarge}{\fontsize{12}{14}\selectfont}
+\renewcommand{\normalsize}{\fontsize{8}{11}\selectfont}
+\renewcommand{\small}{\fontsize{7}{10}\selectfont}
+\newcommand{\footerAuthorsSize}{\fontsize{7}{7}\selectfont}
+
+% --- SourceCodePro SemiBold for \textbf ---
+\renewcommand{\textbf}[1]{{\SourceCodeProSemiBold #1}}
+
+% --- Section styling with HOPR branding ---
+% \titlespacing*{\subsection}{left indentation}{space before heading}{space after heading}
+\titleformat{\section}
+  {\color{rfcblue}\sourcecodepro\large\bfseries\RaggedRight}
+  {}{0em}{}
+\titleformat{\subsection}
+  {\color{rfcblue}\sourcecodepro\mediumlarge\bfseries\RaggedRight}
+  {\thesubsection}{1em}{}
+\titlespacing*{\subsection}{0pt}{8pt}{-2pt}
+\titleformat{\subsubsection}
+  {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
+  {\thesubsubsection}{1em}{}
+\titlespacing*{\subsubsection}{0pt}{-3pt}{-3pt}
+\titleformat{\paragraph}
+  {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
+  {\theparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{-3pt}{-3pt}
+\titleformat{\subparagraph}
+  {\color{rfcblue}\sourcecodepro\normalsize\bfseries\RaggedRight}
+  {\thesubparagraph}{1em}{}
+\titlespacing*{\subparagraph}{0pt}{-3pt}{-3pt}
+
+
+
+
+
+% --- Custom commands for header/footer ---
+\newcommand{\rfcnumber}[1]{\fancyhead[LE,RO]{\footerAuthorsSize RFC-#1}}
+\newcommand{\rfctitle}[1]{\fancyhead[CE,CO]{\footerAuthorsSize #1}}
+\newcommand{\rfcdate}[1]{\fancyhead[RE,LO]{\footerAuthorsSize #1}}
+\newcommand{\rfcauthor}[1]{\def\rfcauthorname{#1}}
+\newcommand{\rfcauthorname}{} % initialize empty
+% \newcommand{\rfcauthor}[1]{\fancyfoot[RE,LO]{#1}}
+% \newcommand{\rfccategory}[1]{\fancyfoot[CE,CO]{#1}}
+
+% --- Header/Footer setup ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}  % remove line under header
+\renewcommand{\footrulewidth}{0pt}  % (optional) remove footer line if present
+
+% Odd pages: author left, page number right
+\fancyfoot[LO]{\footerAuthorsSize\rfcauthorname}
+\fancyfoot[RO]{\footerAuthorsSize\thepage}
+
+% Even pages: page number left, author right (swapped)
+\fancyfoot[LE]{\footerAuthorsSize\thepage}
+\fancyfoot[RE]{\footerAuthorsSize\rfcauthorname}
+
+% Clear centers
+\fancyfoot[CO]{}
+\fancyfoot[CE]{}
+
+% Also override plain style for page 1
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[LO]{}
+  \fancyfoot[RO]{\footerAuthorsSize\thepage}
+  \fancyfoot[LE]{}
+  \fancyfoot[RE]{}
+  \fancyfoot[CO]{}
+  \fancyfoot[CE]{}
+}
+
+% --- Metadata block environment ---
+\newenvironment{metadata}{
+  \vspace{0.5em}
+  \begin{ttfamily}\small
+  \begin{tabular}{@{}ll}
+}{
+  \end{tabular}
+  \end{ttfamily}
+  \vspace{1em}
+}
+
+
+% Syntax highlighting commands (keeping existing definitions)
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+
+% Fallbacks for Pandoc-generated angle bracket commands
+\providecommand{\textgreater}{>}
+\providecommand{\textless}{<}
+
+% --- Enhanced list settings ---
+\setlist[itemize]{nosep, left=1em, itemsep=2pt}
+\setlist[enumerate]{nosep, left=1em, itemsep=2pt}
+\setlist[description]{nosep, left=1em, itemsep=2pt}
+
+% --- Code block environment with proper styling ---
+\newenvironment{codeblock}
+  {\begin{quote}\sourcecodepro\small\color{rfcbody}\begin{verbatim}}
+  {\end{verbatim}\end{quote}}
+
+% --- Support for block quotes ---
+\newenvironment{mdquote}
+  {\begin{quote}\itshape\color{rfcbody}\RaggedRight}
+  {\end{quote}}
+
+% --- Table styling ---
+\RequirePackage{needspace} 
+\RequirePackage{longtable}
+\RequirePackage{booktabs}
+\RequirePackage{array}
+
+% \AtBeginEnvironment{longtable}{\small} % Force \small font size inside every longtable
+
+% Same page table - doesnt work! TODO: fix to use instad of the solution below
+% \AtBeginEnvironment{longtable}{\begin{samepage}\small}
+% \AtEndEnvironment{longtable}{\end{samepage}}
+
+\newlength{\MinLongtableSpace}
+\setlength{\MinLongtableSpace}{10\baselineskip} % heuristic: ~7 lines
+
+\AtBeginEnvironment{longtable}{%
+  \par
+  \needspace{\MinLongtableSpace}% move to next page if remaining space < MinLongtableSpace
+  \small
+}
+
+% --- Enhanced hyperlink styling ---
+\hypersetup{
+  colorlinks=true,
+  linkcolor=rfcblue,
+  filecolor=rfcblue,
+  urlcolor=rfcblue,
+  citecolor=rfcblue,
+  pdftitle={HOPR RFC Collection},
+  pdfauthor={HOPR Team},
+  pdfsubject={Technical Specifications for HOPR Decentralized Privacy Network},
+  pdfkeywords={HOPR, RFC, Mixnet, Privacy, Decentralization, Blockchain, Ethereum}
+}
+
+% --- Enhanced table of contents styling ---
+\RequirePackage{tocloft}
+\renewcommand{\cftsecfont}{\sourcecodepro\large\bfseries\color{rfcblue}}
+\renewcommand{\cftsubsecfont}{\sourcecodepro\color{rfcblue}}
+\renewcommand{\cftsubsubsecfont}{\sourcecodepro\color{rfcbody}}
+% Remove section numbering in TOC
+\renewcommand{\numberline}[1]{}
+\renewcommand{\cftsecnumwidth}{0pt}
+\renewcommand{\cftsubsecnumwidth}{0pt}
+\renewcommand{\cftsubsubsecnumwidth}{0pt}
+\renewcommand{\cftsecpresnum}{}
+\renewcommand{\cftsubsecpresnum}{}
+\renewcommand{\cftsubsubsecpresnum}{}
+\renewcommand{\cftsecaftersnum}{}
+\renewcommand{\cftsubsecaftersnum}{}
+\renewcommand{\cftsubsubsecaftersnum}{}
+\setlength{\cftsubsecindent}{0pt}
+\setlength{\cftsubsubsecindent}{1.7em}
+
+% --- Caption styling ---
+\RequirePackage{caption}
+\captionsetup{
+  font={small,sf,color=rfcbody},
+  labelfont={bf,color=rfcblue},
+  format=hang,
+  margin=10pt
+}
+
+% --- Enhanced figure and table environments ---
+\RequirePackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+\restylefloat{table}
+
+% --- Math support for technical content ---
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mathtools}
+
+% --- Enhanced verbatim for technical specifications ---
+\RequirePackage{fancyvrb}
+\fvset{
+  fontsize=\small,
+  baselinestretch=1.0,
+  formatcom=\color{rfcbody}
+}
+
+% --- Definition list environment ---
+\newenvironment{definitions}
+  {\begin{description}[style=nextline,leftmargin=2em,font=\sourcecodepro\bfseries\color{rfcblue}]}
+  {\end{description}}
+
+% --- Warning/Note boxes ---
+\RequirePackage{mdframed}
+\newmdenv[
+  backgroundcolor=bubbleback,
+  linecolor=rfcblue,
+  linewidth=2pt,
+  leftmargin=0pt,
+  rightmargin=0pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  innertopmargin=10pt,
+  innerbottommargin=10pt,
+  roundcorner=5pt
+]{rfcnote}
+
+\newmdenv[
+  backgroundcolor=red!10,
+  linecolor=red,
+  linewidth=2pt,
+  leftmargin=0pt,
+  rightmargin=0pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  innertopmargin=10pt,
+  innerbottommargin=10pt,
+  roundcorner=5pt
+]{rfcwarning}
+
+% --- Acronym support ---
+\RequirePackage{acronym}
+\renewcommand*{\acsfont}[1]{\sourcecodepro\small{#1}}
+\renewcommand*{\acfsfont}[1]{\sourcecodepro\small{#1}}
+
+% --- Enhanced spacing for left-aligned text ---
+\setlength{\parskip}{8pt plus 2pt minus 1pt}
+\setlength{\parindent}{0pt}
+\renewcommand{\baselinestretch}{1.15}
+
+
+
+% Pandoc image handling
+\makeatletter
+\def\pandocbounded#1{#1}
+% Limit natural size to text block (never exceed \textwidth or \textheight)
+\def\maxwidth{%
+  \ifdim\Gin@nat@width>\textwidth
+    \textwidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\def\maxheight{%
+  \ifdim\Gin@nat@height>\textheight
+    \textheight
+  \else
+    \Gin@nat@height
+  \fi
+}
+% Apply both limits while preserving aspect ratio
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio,draft=false}
+
+\setlength{\fboxrule}{0pt}       % ensure no frame if \fbox/\frame used
+\makeatother
+
+\RequirePackage{placeins}
+\makeatletter
+\def\fps@figure{!htbp} % strong preference: here/top/bottom/page
+\makeatother
+\usepackage{etoolbox}
+\AtBeginEnvironment{figure}{%
+  \renewcommand{\caption}[2][]{\refstepcounter{figure}} % disable caption display
+}
+\AfterEndEnvironment{figure}{
+  \FloatBarrier
+}
+
+
+% Remove the border around figures and tables
+\floatstyle{plain}% was boxed
+\restylefloat{figure}
+\restylefloat{table}

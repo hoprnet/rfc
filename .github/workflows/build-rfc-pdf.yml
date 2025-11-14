@@ -1,0 +1,89 @@
+name: Build RFC PDF
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-rfc-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          # Base TeX + pandoc
+          sudo apt-get install -y \
+            pandoc \
+            texlive-xetex texlive-latex-extra texlive-fonts-recommended \
+            texlive-fonts-extra texlive-luatex texlive-plain-generic \
+            fonts-dejavu fonts-liberation fonts-noto-color-emoji \
+            imagemagick inkscape ghostscript
+            
+          # Chromium headless runtime libs (minimal)
+          sudo apt-get install -y \
+            libnss3 libxss1 libatk1.0-0 libatk-bridge2.0-0 \
+            libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libdrm2 libgbm1 libcups2 libxshmfence1 \
+            libgtk-3-0 libpangocairo-1.0-0 libpango-1.0-0 ca-certificates
+
+          # Handle Ubuntu 24.04 time64 rename (libasound2 -> libasound2t64)
+          sudo apt-get install -y --no-install-recommends libasound2 || \
+          sudo apt-get install -y --no-install-recommends libasound2t64 || true
+
+          fc-cache -fv
+
+      - name: Install Mermaid CLI
+        run: |
+          npm install -g @mermaid-js/mermaid-cli
+          cat > puppeteer-config.json <<'JSON'
+          {
+            "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+          }
+          JSON
+      
+      - name: Test mermaid
+        run: |
+          echo 'graph TD; A-->B;' > test.mmd
+          mmdc -i test.mmd -o test.png --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4 --puppeteerConfigFile puppeteer-config.json
+          ls -l test.png
+
+      - name: Make scripts executable
+        run: chmod +x latex/generator-tex.sh latex/generator-pdf.sh || true
+
+      - name: Generate TeX, PNGs and convert to PDF
+        working-directory: latex
+        env:
+          PUPPETEER_CONFIG_FILE: ../puppeteer-config.json
+        run: |
+          export MMD_PUPPETEER_CONFIG_FILE="$PUPPETEER_CONFIG_FILE"
+          ./generator-pdf.sh
+
+      - name: Collect PDF
+        run: |
+          mkdir -p artifacts
+          if [ -f latex/HOPR_RFCs.pdf ]; then
+            cp latex/HOPR_RFCs.pdf artifacts/HOPR_RFCs.pdf
+          else
+            echo "HOPR_RFCs.pdf not found"
+            exit 1
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rfc-pdfs
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Verify main PDF
+        run: test -f artifacts/HOPR_RFCs.pdf
