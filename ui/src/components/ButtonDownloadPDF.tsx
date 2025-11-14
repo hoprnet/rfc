@@ -15,12 +15,22 @@ const StyledButton = styled(MuiButton)<ButtonProps>`
   height: unset;
   font-family: "Inconsolata", monospace;
   border: 1px solid white;
-  margin-top: 20px;
+  margin-top: 8px;
+  // margin-bottom: 8px;
+  margin-left: 16px;
+  &:hover {
+    border-color: var(--ifm-link-color);
+  }
 `;
 
 const Button = forwardRef((props: ButtonProps, ref: Ref<HTMLButtonElement>) => {
   return (
-    <StyledButton variant="contained" {...props} ref={ref}>
+    <StyledButton 
+      variant="contained" 
+      {...props} 
+      ref={ref}
+      href={'/pdf/HOPR_RFC_v1.0.0.pdf'}
+    >
       Download as PDF
     </StyledButton>
   );
