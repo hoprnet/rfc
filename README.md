@@ -35,9 +35,9 @@ associated assets such as images, diagrams, and relevant files within each RFC r
 │   │
 │   └── RFC-0004-return-path/             # Repository for return path component
 │       ├── assets/
-│       ├── 0004-return-path.md
-│       ├── templates/                    # Common RFC templates and guidelines
-│       └── rfc-template.md
+│       └── 0004-return-path.md
+├── scripts                               # Scripts making sure RFCs are well formatted
+├── latex                                 # Scripts used to generate LaTeX and PDF version of the RFCs
 ├── ui                                    # UI for displaying the awesome RFCs
 └── templates                             # MD templates for the RFCs starter document
 ```
