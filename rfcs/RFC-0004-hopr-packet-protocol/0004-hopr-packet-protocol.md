@@ -60,8 +60,8 @@ These two parts are concatenated to form the complete HOPR packet, which has a f
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [02] when, and only when, they appear in all capitals, as shown here.
 
-Terms defined in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md) are used throughout this document. Additionally, the following
-packet-protocol-specific terms are defined:
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
+across the HOPR RFC series. Additionally, the following packet-protocol-specific terms are defined:
 
 **Peer public/private key** (also **pubkey** or **privkey**): part of a cryptographic key pair owned by a peer. The public key is used to establish
 shared secrets for onion encryption, whilst the private key is kept secret and used to decrypt packets destined for that peer.
