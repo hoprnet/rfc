@@ -4,59 +4,28 @@ on:
     branches: ["**"]
   pull_request:
     branches: ["**"]
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e # v6.pre.beta
 
-    - name: Validate Markdown Files
-      uses: DavidAnson/markdownlint-cli2-action@v20
-      with:
-        files: "**/*.md"
-        config: ".markdownlint.json"
+    - name: Remove unused files for further actions
+      run: rm -fr .vscode && rm -fr latex
 
-    - name: Validate RFC Repository Structure
-      run: |
-        echo "🔍 Validating repository structure..."
-        for repo in $(find . -maxdepth 1 -type d -name 'RFC-*'); do
-          echo "🔍 Validating $repo"
-          base=$(basename "$repo")
-          expected_file=$(echo "$base" | sed -E 's/^RFC-([0-9]{4})-(.*)/\1-\2.md/')
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
 
-          if [ ! -f "$repo/$expected_file" ]; then
-          echo "❌ Missing main RFC file: $expected_file in $repo"
-          echo "   ➔ Expected file path: $repo/$expected_file"
-          echo "   ➔ Please ensure the file matches the pattern 'XXXX-rfc-name.md'"
-          exit 1
-          fi
+    - name: Enable Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@565684385bcd71bad329742eefe8d12f2e765b39 # v13
 
-          echo "✅ Main RFC file found: $expected_file"
+    - name: Check RFCs .md structure
+      run: bash scripts/structure-check.sh
 
-          for folder in $(find "$repo" -mindepth 1 -maxdepth 1 -type d); do
-          foldername=$(basename "$folder")
-          if [[ "$foldername" != "assets" && "$foldername" != "errata" ]]; then
-              echo "❌ Invalid folder '$foldername' in $repo. Only 'assets/' and 'errata/' allowed."
-              exit 1
-          fi
-          done
+#    - name: Check Formatting
+#      run: nix develop --command just format-check
 
-          if [ -d "$repo/errata" ]; then
-          echo "🔍 Validating errata folder in $repo..."
-          for erratum in "$repo"/errata/*.md; do
-              erratum_file=$(basename "$erratum")
-              if [[ ! "$erratum_file" =~ ^[0-9]{4}-v[0-9]+\.[0-9]+\.[0-9]+-erratum\.md$ ]]; then
-              echo "❌ Invalid erratum file naming: $erratum_file"
-              echo "   ➔ Expected pattern: 'XXXX-vX.X.X-erratum.md'"
-              exit 1
-              fi
-          done
-          echo "✅ Errata folder validated successfully."
-          fi
-        done
-
-    - name: Validate Mermaid Diagrams
-      run: |
-        echo "Validating Mermaid diagrams..."
-        grep -r "^\`\`\`mermaid" . || echo "✅ No Mermaid diagrams found or all valid."
+#    - name: Check Spelling
+#      run: nix develop --command just spell-check-ci

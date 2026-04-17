@@ -41,16 +41,29 @@
           pre-commit-check = pre-commit.lib.${system}.run {
             src = ./.;
             hooks = {
-              # https://github.com/cachix/git-hooks.nix
-              treefmt.enable = false;
+              # Formatting with treefmt
+              treefmt.enable = true;
               treefmt.package = config.treefmt.build.wrapper;
+
+              # Git repository checks
               check-executables-have-shebangs.enable = true;
               check-shebang-scripts-are-executable.enable = true;
               check-case-conflicts.enable = true;
               check-symlinks.enable = true;
               check-merge-conflicts.enable = true;
               check-added-large-files.enable = true;
+
+              # Commit message formatting
               commitizen.enable = true;
+
+              # Spell checking
+              cspell = {
+                enable = true;
+                name = "cspell";
+                entry = "${pkgs.nodePackages.cspell}/bin/cspell --no-progress";
+                files = "\\.md$";
+                types = [ "text" ];
+              };
             };
             tools = pkgs;
             excludes = [
@@ -58,29 +71,37 @@
           };
 
           devShell = pkgs.mkShell {
-            buildInputs = [
-              config.treefmt.build.wrapper
-            ]
-            ++ (pkgs.lib.attrValues config.treefmt.build.programs);
+            inherit (pre-commit-check) shellHook;
+            buildInputs =
+              with pkgs;
+              [
+                # Task runner and formatting
+                just
+                config.treefmt.build.wrapper
+
+                # Spell checking
+                nodePackages.cspell
+              ]
+              ++ (pkgs.lib.attrValues config.treefmt.build.programs);
           };
         in
         {
           treefmt = {
             inherit (config.flake-root) projectRootFile;
 
-            programs.prettier.enable = true;
+            programs.deno = {
+              enable = true;
+              includes = [
+                "*.md"
+                "*.json"
+              ];
+            };
 
             settings.global.excludes = [
               "**/.gitignore"
               ".editorconfig"
               ".gitattributes"
               "LICENSE"
-            ];
-            settings.formatter.prettier.includes = [
-              "*.md"
-              "*.json"
-            ];
-            settings.formatter.prettier.excludes = [
               "*.yml"
               "*.yaml"
             ];

@@ -4,17 +4,16 @@ Request for Comments (RFC) for HOPR protocol
 
 ## Overview
 
-Welcome to the HOPR RFC Repository (hopr-rfc), the central hub for managing, discussing, and finalizing
-Request for Comments (RFCs) related to the HOPR project.
-Each RFC resides in its own repository within this organization, promoting modularity and clear documentation.
+Welcome to the HOPR RFC Repository (hopr-rfc), the central hub for managing, discussing, and finalising Request for Comments (RFCs) related to the
+HOPR project. Each RFC resides in its own repository within this organisation, promoting modularity and clear documentation.
 
-RFCs define the core HOPR protocol, its interfaces, and related smart contract specifications.
-This repository serves as an index and guide for navigating all individual RFC repositories.
+RFCs define the core HOPR protocol, its interfaces, and related smart contract specifications. This repository serves as an index and guide for
+navigating all individual RFC repositories.
 
 ## Repository Structure
 
-Each RFC will have its own dedicated repository to ensure modularity, easy management, and independent versioning.
-This structure allows for storing associated assets such as images, diagrams, and relevant files within each RFC repository.
+Each RFC will have its own dedicated repository to ensure modularity, easy management, and independent versioning. This structure allows for storing
+associated assets such as images, diagrams, and relevant files within each RFC repository.
 
 ```plaintext
 /hopr-rfc
@@ -36,12 +35,13 @@ This structure allows for storing associated assets such as images, diagrams, an
 │   │
 │   └── RFC-0004-return-path/             # Repository for return path component
 │       ├── assets/
-│       ├── 0004-return-path.md
-│       ├── templates/                    # Common RFC templates and guidelines
-│       └── rfc-template.md
-└── ui                                    # UI for displaying the awesome RFCs
+│       └── 0004-return-path.md
+├── scripts                               # Scripts making sure RFCs are well formatted
+├── latex                                 # Scripts used to generate LaTeX and PDF version of the RFCs
+├── ui                                    # UI for displaying the awesome RFCs
+└── templates                             # MD templates for the RFCs starter document
 ```
 
 ## Contributing to RFCs
 
-The process of contributing RFC is detailed in the `./rfcs/RFC-0001-rfc-process/`. A summary will be posted below.
+The process of contributing RFC is detailed in the `./rfcs/RFC-0001-rfc-process/` and the template to start a new one is in the  `./templates/rfc-template.md`

@@ -1,0 +1,70 @@
+\documentclass[twoside]{article}
+\usepackage{fontspec}
+\usepackage{graphicx}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{fvextra}
+\usepackage{longtable}    % <- required for longtable environment
+\usepackage{booktabs}     % nicer tables (Pandoc may use)
+\usepackage{array}        % column formatting
+\usepackage{multirow}     % multi-row cells (optional)
+
+% --- Core packages ---
+\usepackage{fontspec}
+\usepackage{xcolor}
+
+% --- Font setup (must come before rfcstyle) ---
+\setmainfont{SFUIText-Regular}[Path=./fonts/,Extension=.ttf]
+\setmonofont{SourceCodePro-Regular}[Path=./fonts/,Extension=.ttf]
+
+% Define sourcecodepro with proper protection
+\makeatletter
+\newfontfamily\sourcecodepro{SourceCodePro-Regular}[Path=./fonts/,Extension=.ttf]
+\newfontfamily\SourceCodeProSemiBold{SourceCodePro-SemiBold}[Path=./fonts/,Extension=.ttf]
+% \protected\def\sourcecodepro{\fontfamily{SourceCodePro-TLF}\selectfont}
+\makeatother
+
+% --- Colors (must come before rfcstyle) ---
+\definecolor{rfcbody}{HTML}{2C4190}
+\definecolor{bubbleback}{HTML}{CECFE6}
+\definecolor{rfcblue}{HTML}{2A4D9B}
+
+% Define pandoc commands
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% Simple Shaded environment
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+
+% Define Highlighting environment for syntax highlighting
+\newenvironment{Highlighting}{\begin{Shaded}}{\end{Shaded}}
+
+% --- Load custom style ---
+\usepackage{rfcstyle}
+
+% Number sections but NOT subsections
+\makeatother
+\setcounter{secnumdepth}{1}
+
+% Disable hyphenation globally
+\usepackage[none]{hyphenat} % disable hyphenation globally
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\pretolerance=10000
+\tolerance=10000
+
+
+\begin{document}
+
+\setcounter{tocdepth}{3} %
+\renewcommand{\contentsname}{Table of Contents}
+\tableofcontents
+\clearpage
+
+% BEGIN GENERATED RFC INCLUDES
+% (auto-filled by generator-pdf.sh)
+% END GENERATED RFC INCLUDES
+
+\end{document}
