@@ -5,8 +5,8 @@
 - **Status:** Finalised
 - **Author(s):** @Teebor-Choka
 - **Created:** 2025-02-25
-- **Updated:** 2025-10-27
-- **Version:** v1.0.0 (Finalised)
+- **Updated:** 2026-05-18
+- **Version:** v1.1.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
@@ -14,7 +14,7 @@
 
 ## 1. Abstract
 
-This RFC specifies an automatic path discovery mechanism for the HOPR protocol, enabling it to function effectively within dynamic ad hoc peer-to-peer networks. The mechanism allows message senders to remain anonymous while ensuring optimal message delivery by actively probing network nodes to assess compliance with HOPR protocol functionality and detect non-adversarial behaviour. The specification defines complementary breadth-first and depth-first graph traversal algorithms for topology discovery, along with telemetry collection methods to support path selection and quality-of-service (QoS) assessment.
+This RFC specifies an automatic path discovery mechanism for the HOPR protocol, enabling it to function effectively within dynamic ad hoc peer-to-peer networks. The mechanism allows message senders to remain anonymous while ensuring optimal message delivery by actively probing network nodes to assess compliance with HOPR protocol functionality and detect non-adversarial behaviour. The specification defines two complementary probing modes — immediate-neighbour probing for direct peers, and loopback path probing for multi-hop paths — along with telemetry collection methods to support path selection and quality-of-service (QoS) assessment.
 
 ## 2. Motivation
 
@@ -39,14 +39,22 @@ Relay nodes and destinations also benefit from network discovery to ensure align
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01] when, and only when, they appear in all capitals, as shown here.
 
-All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
-across the HOPR RFC series. 
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted
+across the HOPR RFC series.
+
+The following additional terms are defined for use within this document:
+
+**Probing node**: The node that originates probe traffic and consumes the resulting observations to build its topology view.
+
+**Immediate-neighbour probe**: A probe that targets a directly-connected peer, using a request–response exchange to confirm reachability and measure round-trip latency.
+
+**Loopback path probe**: A probe that traverses a sequence of intermediate relay nodes and returns to the originating probing node, carrying a path identifier and timestamp to enable end-to-end latency and path-success observations.
 
 ## 4. Specification
 
 ### 4.1 Overview
 
-This specification defines multiple complementary graph search algorithms for topology discovery. Implementations MUST support both breadth-first and depth-first algorithms and employ them in concert, as exhaustive topology discovery becomes computationally prohibitive as network size increases. The combination of these algorithms enables efficient discovery of immediate peers (breadth-first) and deeper paths (depth-first) while managing resource consumption.
+This specification defines two complementary probing modes for topology discovery. Implementations MUST support both immediate-neighbour probing and loopback path probing and employ them in concert, as exhaustive topology discovery becomes computationally prohibitive as network size increases. Immediate-neighbour probing provides rapid discovery of the direct network neighbourhood; loopback path probing extends that view to deeper multi-hop paths. Combining both modes enables efficient topology coverage while managing resource consumption.
 
 ### 4.2 Network probing
 
@@ -58,13 +66,7 @@ The network discovery algorithms operate under the following assumptions about t
 
 3. **Malicious nodes**: Any node in the network can behave maliciously. Any behaviour resembling malicious activity SHOULD be considered malicious and appropriately flagged for exclusion from path selection.
 
-Given these assumptions, the network probing algorithms for topology discovery employ multiple complementary mechanisms: a breadth-first algorithm (BFA) and a depth-first algorithm (DFA).
-
-Initially, implementations SHALL perform general network discovery using primarily the breadth-first approach to identify immediate peers and build an initial topology view.
-
-Once a statistically sufficient topology is identified to support path randomisation (typically when sufficient peer diversity exists for meaningful path construction), the depth-first approach SHOULD be employed to probe specific topology paths of interest, such as paths through particular relay nodes or to specific exit nodes.
-
-The advantage of combining these approaches is that their results can be used together to identify potentially unreliable or malicious peers more efficiently, while allowing focus on specific peers in the path as static anchors (for QoS requirements, exit node functionality, etc.).
+Given these assumptions, the network probing mechanism employs two complementary modes as described in §4.2.1.
 
 The network topology is modelled as a directed graph structure where nodes perform data relay functionality. Each directed edge in the graph represents a viable connection between two nodes and corresponds to a combination of properties defined by both the physical transport and the HOPR protocol. For an edge to be considered valid, the following properties MUST be present:
 
@@ -72,57 +74,43 @@ The network topology is modelled as a directed graph structure where nodes perfo
 
 2. **Physical connectivity**: A physical transport connection MUST exist allowing data transfer between the two nodes. This includes network reachability, NAT traversal (if applicable), and transport protocol compatibility.
 
-While property 1 can be determined from on-chain data in the incentive mechanism (see [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md)), property 2 MUST be discovered through active probing on the physical network. 
+While property 1 can be determined from on-chain data in the incentive mechanism (see [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md)), property 2 MUST be discovered through active probing on the physical network.
 
 The only exception to property 1 in the HOPR protocol is the final hop (i.e., the connection from the last relay node to the destination), where a payment channel is not required for data delivery since no further relaying occurs.
 
 The network probing mechanism abstracts transport interactions and consists of three core components:
 
-1. **Path-generating probing algorithm**: Generates paths to probe based on breadth-first or depth-first strategies.
-2. **Evaluation mechanism**: Assesses probe results to determine path viability and node reliability.
-3. **Retention and slashing mechanism**: Maintains path quality information and removes unreliable paths from consideration.
+1. **Path-generating probing modes**: Produces probes based on immediate-neighbour and loopback path strategies (§4.2.1).
+2. **Evaluation mechanism**: Assesses probe results to determine path viability and node reliability (§4.2.2).
+3. **Retention and exclusion mechanism**: Maintains path quality information and reduces the selection probability of unreliable paths (§4.2.3).
 
-#### 4.2.1 Path-generating probing algorithm
+#### 4.2.1 Path-generating probing modes
 
-The primary responsibility of the path-generating component is to apply different graph traversal algorithms to generate probe paths that offer insights into selected sections of the network, with the goal of collecting path viability information.
+The primary responsibility of the path-generating component is to apply the two complementary probing modes to collect path viability information across selected sections of the network.
 
-The algorithm MUST use a loopback form of communication to conceal the probing nature of the traffic from relay nodes. Loopback communication means that the probing node functions as both sender and receiver, with packets traversing a multi-hop path before returning to the origin. Loopback MAY be realised via the session protocol ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) or via an equivalent ephemeral mechanism; formal sessions are OPTIONAL for probing traffic.
+A combination of immediate-neighbour and loopback path probing SHALL be employed to ensure the probing process neither converges too slowly to a usable network topology nor focuses exclusively on small sub-topologies due to computational constraints.
 
-In this approach, each node in the path is treated as a probed relay node, and each edge between consecutive relays is treated as a probed connection. While a single probing attempt does not guarantee extraction of all relevant information, when combined with results from multiple probing attempts across different paths, it enables construction of a comprehensive view of network topology and dynamics.
+**Operational steps:**
 
-A combination of breadth-first and depth-first algorithms SHALL be employed to ensure the probing process neither converges too slowly to a usable network topology nor focuses exclusively on small sub-topologies due to computational constraints.
+The probing modes operate in the following sequence:
 
-**Loopback probing methods:**
+1. **Discover immediate peers**: Use immediate-neighbour probes to identify directly-connected peers and assess their basic connectivity.
+2. **Generate loopback paths**: Generate paths for multi-hop connections using loopback probing to explore deeper network topology.
+3. **Maintain path cache**: Cache successfully observed paths for a configurable time window to amortise discovery cost and reduce session establishment latency (see §4.4).
+4. **Distribute probing continuously**: Maintain a configurable-cadence probe stream that distributes coverage across all known edges, weighted by observation staleness and current edge score (see §4.2.1.4).
 
-The following loopback probing methods are defined in terms of hop count:
+##### 4.2.1.1 Immediate-neighbour probing
 
-1. **Immediate 0-hop**: Directly observe whether an acknowledgement was received from the peer and measure response latency. Probes use indistinguishable payloads (data indistinguishable from application data via padding and AEAD encryption). Acknowledgements are produced by the destination and authenticated before acceptance. This method is suitable for next-hop telemetry (see Section 4.3.1).
+Immediate-neighbour probing targets each directly-connected peer via a nonce-challenge / response exchange. The probing node sends a request carrying a random nonce; a correctly functioning peer responds with a pong echoing the same nonce. Receipt of the matching response within the configured timeout constitutes a successful observation; absence constitutes a failed one.
 
-2. **1-hop to self**: Perform first-order checks of immediate peer connections by sending a packet through a single peer and back to self. Functionally equivalent to 0-hop but executed in a manner that conceals probing activity from the peer (since the peer cannot distinguish loopback traffic from regular forwarding).
+This mode SHOULD be used as the primary mechanism for initial topology discovery, with the goal of identifying a statistically significant set of peers with desired QoS and connectivity properties. Once the immediate neighbourhood is mapped, a greater share of probing activity SHOULD transition to loopback path probing.
 
-3. **2-hop to self**: Check second-order communication paths by traversing two hops before returning. This method MAY replace some 3-hop paths to reduce total probing overhead.
+The following properties apply to immediate-neighbour probing:
 
-4. **3-hop to self**: Perform full bidirectional path probing for 1-hop connections, traversing three hops (out, relay, and back). This represents a complete anonymising path in the HOPR network.
-
-**Discovery algorithm operations:**
-
-The discovery algorithm SHALL operate in complementary modes: breadth-first and depth-first. The basic operational steps are:
-
-1. **Discover immediate peers**: Use 0-hop or 1-hop probes to identify directly connected peers and assess their basic connectivity.
-
-2. **Generate n-hop paths**: Generate paths for multi-hop connections using referential probing with low frequency to explore deeper network topology.
-
-3. **Prepopulate path cache**: For sessions ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)), prepopulate the path cache from sufficiently recent historical knowledge of successful paths to reduce session establishment latency.
-
-4. **Perform high-frequency probing**: Execute higher frequency probing checks on paths of interest to maintain up-to-date viability information.
-
-##### 4.2.1.1 Breadth-first algorithm (BFA)
-
-Breadth-first search (BFS) is a graph traversal algorithm used to systematically explore nodes and edges in a graph. In the context of network probing, BFS MUST start at the probing node and explore neighbouring nodes at the current depth level before moving on to nodes at the next depth level.
-
-The breadth-first algorithm (BFA) SHOULD primarily be used for initial network topology discovery with the goal of identifying a statistically significant minimum number of peers with desired QoS and connectivity properties. This approach provides rapid discovery of the immediate network neighbourhood before exploring deeper paths.
-
-This algorithm SHOULD be primarily implemented using **1-hop to self** probes to efficiently discover immediate peers while concealing probing activity.
+- The probe is sent as a 0-hop forward path with a 0-hop return path, meaning it is delivered directly to the peer without traversing any intermediate relay.
+- The probe MAY be observable as a probe at the destination (i.e., the peer can identify the traffic as a probe). Anonymity at 0-hop is intentionally not required, because no relay is involved and sender identity is not at risk.
+- The probe MUST carry a single-use reply block (SURB) to enable the pong to be delivered back to the originator without revealing the originator's address to the peer.
+- This mode provides the next-hop telemetry (PPT) defined in §4.3.1.
 
 Given a network topology around node A (Fig. 1):
 
@@ -138,9 +126,9 @@ graph TD;
     D --> E;
 ```
 
-_Fig. 1: Network topology for BFA-inspired network probing_
+_Fig. 1: Network topology for immediate-neighbour probing_
 
-The probing traffic from node A would follow the BFA pattern of establishing telemetry from the immediate vicinity of A using 1-hop probing traffic:
+The probing traffic from node A would follow the immediate-neighbour probing pattern:
 
 ```ascii
 A -> B -> A
@@ -148,15 +136,21 @@ A -> C -> A
 A -> D -> A
 ```
 
-Once the immediate vicinity is probed and a basic topology map is established, a larger share of the probing traffic SHOULD transition to using the depth-first algorithm, phasing the BFA into a smaller proportion of overall probing activity.
+##### 4.2.1.2 Loopback path probing
 
-##### 4.2.1.2 Depth-first algorithm (DFA)
+Loopback path probing traverses a sequence of intermediate relay nodes before returning to the originating probing node. The probing node functions as both sender and receiver; the probe payload traverses a multi-hop path before returning to the origin.
 
-Depth-first search (DFS) is a graph traversal algorithm that explores as far as possible along each branch before backtracking. In the context of network probing, DFS MUST start at the probing node and explore each branch of the graph deeply before moving to another branch.
+In this approach, each intermediate node in the path is treated as a probed relay node, and each edge between consecutive nodes is treated as a probed connection. While a single probe attempt does not guarantee extraction of all relevant information, when combined with results from multiple probing attempts across different paths, it enables construction of a comprehensive view of network topology and dynamics.
 
-DFS is particularly useful for pathfinding and exploring specific routes through the network to assess end-to-end path viability.
+The following properties apply to loopback path probing:
 
-This algorithm SHOULD be primarily implemented using **n-hop to self** probes, where `n > 1` and `n ≤ MAX_HOPR_SUPPORTED_PATH_LENGTH` (a network parameter defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)). Each edge SHOULD be probed as soon as feasible, but not at the expense of other edges in the topology (i.e., probing should be distributed across the topology). The value of `n` SHOULD be chosen randomly to prevent predictable probing patterns, but MUST conform with the minimum requirement for edge traversal (typically n ≥ 2 for meaningful path diversity assessment).
+- The number of intermediate relay nodes `n` SHOULD be selected randomly within the range `1 ≤ n ≤ MAX_HOPR_SUPPORTED_PATH_LENGTH` (a network parameter defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)). The value of `n` SHOULD vary across probes to prevent predictable probing patterns.
+- Each probe MUST carry a path identifier and a timestamp so that observations can be attributed to specific edges upon loopback completion (see §4.3.3).
+- The originator MUST verify that the loopback probe returns to itself before recording any observations from it.
+- The probe payload MUST be indistinguishable in shape from cover traffic at each relay node (same transport tag, same payload size class). Loopback probes carry no SURB, since the path already terminates at the originating node.
+- Loopback probing MAY be realised via the session protocol ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) or via an equivalent ephemeral mechanism. Formal session establishment is OPTIONAL for probing traffic.
+
+Each edge SHOULD be probed as soon as feasible, but not at the expense of other edges in the topology (i.e., probing SHOULD be distributed across the topology).
 
 Given a network topology around node A (Fig. 2):
 
@@ -173,9 +167,9 @@ graph TD;
     F --> E;
 ```
 
-_Fig. 2: Network topology for DFA-inspired network probing_
+_Fig. 2: Network topology for loopback path probing_
 
-The probing traffic from node A would follow the DFA pattern of establishing telemetry to the furthest interesting point in the network using n-hop probing traffic with `n` generated randomly within the allowed range:
+The probing traffic from node A would follow the loopback path probing pattern, with `n` selected randomly:
 
 ```ascii
 A -> B -> F -> A
@@ -185,9 +179,9 @@ A -> B -> D -> A
 
 These deep probes explore specific paths through the network and collect end-to-end path metrics.
 
-##### 4.2.1.3 BFA and DFA interactions
+##### 4.2.1.3 Probing mode interactions
 
-Average values calculated over the differences of various observations can be used to establish individual per-node properties. By combining telemetry from breadth-first and depth-first probes, it is possible to derive statistical information about individual nodes and edges in the topology.
+Average values calculated over the differences of various observations can be used to establish individual per-node properties. By combining telemetry from immediate-neighbour and loopback path probes, it is possible to derive statistical information about individual nodes and edges in the topology.
 
 **Example**: Assume the following average path latencies are observed:
 
@@ -204,29 +198,51 @@ From these measurements, it is possible to estimate the average latency contribu
 
 This difference represents the additional latency introduced by traversing through node F. Accounting for artificial mixer delays that introduce additional anonymity, repeated observations of this value averaged over longer time windows would provide an expected latency contribution for node F. By aggregating such measurements across multiple paths, implementations can build a statistical model of individual node performance characteristics.
 
+When a loopback probe returns, the latency contribution of each intermediate edge that is not yet independently known can be estimated by subtracting the known latencies of the remaining edges from the total observed round-trip time.
+
+##### 4.2.1.4 Probe scheduling and prioritisation
+
+Implementations SHOULD order pending probes by a priority that combines at least two factors:
+
+1. **Staleness**: how long ago the most recent observation was recorded for a candidate edge or path. Edges with older observations SHOULD be probed sooner than recently-observed ones.
+2. **Current edge score**: edges with lower quality scores (as defined in §4.2.2) SHOULD be probed more urgently to confirm whether the poor score reflects persistent degradation or a transient event.
+
+The exact weighting formula is left to implementations. The requirement is only that both staleness and current score participate in prioritisation decisions.
+
+##### 4.2.1.5 Prober deployment profiles (informative)
+
+A node MAY operate one of two deployment profiles:
+
+- **Minimal prober**: emits only immediate-neighbour probes (§4.2.1.1). Suitable for nodes that primarily require next-hop telemetry without full topology discovery.
+- **Full prober**: emits both immediate-neighbour probes and loopback path probes (§4.2.1.2). Suitable for nodes that require a comprehensive topology view for multi-hop path selection.
+
+Whichever probes a node emits MUST conform to §4.2.1.1 and §4.2.1.2 respectively.
+
 #### 4.2.2 Evaluation mechanism
 
-The evaluation mechanism processes probe results to assess path and node viability. The mechanism SHOULD maintain short-term memory of recent probe results and apply balanced scoring that equally rewards probe successes and penalises probe failures. This approach ensures that recent network conditions are given appropriate weight while preventing both overly optimistic and overly pessimistic assessments.
+The evaluation mechanism processes probe results to assess path and node viability. Implementations SHOULD compute per-edge scores by maintaining short-window moving averages over recent probe observations of both latency and probe success rate, combined into a single per-edge score. This approach ensures that recent network conditions are given appropriate weight while preventing both overly optimistic and overly pessimistic assessments.
 
-Implementations MAY use various evaluation strategies, such as exponentially weighted moving averages, sliding time windows, or Bayesian estimation, provided they meet the requirement of balanced success/failure treatment.
+Implementations MAY use alternative statistical estimators (such as Bayesian estimation, Kalman filtering, or sliding time windows) provided that the chosen mechanism treats probe successes and failures in a balanced manner — neither exclusively penalising failures nor exclusively rewarding successes.
 
-#### 4.2.3 Retention and slashing mechanism
+#### 4.2.3 Retention and exclusion mechanism
 
-Nodes MAY implement a slashing mechanism based on failed probes to prevent using unreliable relay nodes in non-probing (production) communication, thereby avoiding dropped messages and improving overall communication reliability.
+The retention and exclusion mechanism limits the use of unreliable relay nodes in non-probing (production) communication, thereby avoiding dropped messages and improving overall communication reliability. Implementations MUST realise at minimum a passive exclusion tier, and MAY additionally implement an active slashing tier.
 
-The slashing mechanism operates by temporarily or permanently removing nodes or paths from the usable path pool based on probe failure patterns. Implementations SHOULD consider:
+**Passive exclusion (MUST)**: Implementations MUST weight path selection by per-edge score so that edges with lower scores receive proportionally less traffic. This ensures that unreliable edges are progressively starved rather than suddenly eliminated, and that their score is continuously updated by the ongoing probe stream.
+
+**Active slashing (MAY)**: Implementations MAY additionally implement an explicit slashing mechanism that temporarily or permanently removes nodes or paths from the usable path pool based on probe failure patterns. When implemented, the following SHOULD be considered:
 
 - **Failure threshold**: The number or percentage of consecutive or recent failed probes that trigger slashing.
-- **Slashing duration**: Whether nodes are removed permanently or temporarily (with exponential backoff for repeated failures).
+- **Slashing duration**: Whether nodes are removed permanently or temporarily, with exponential backoff for repeated failures.
 - **Recovery mechanism**: Conditions under which previously slashed nodes can be re-evaluated and restored to the usable pool.
 
-Slashing decisions SHOULD be made locally by each node based on its own probe observations, without coordination with other nodes.
+Slashing decisions MUST be made locally by each node based on its own probe observations, without coordination with other nodes.
 
 #### 4.2.4 Throughput considerations
 
 Paths SHOULD be selected and used by the discovery mechanism in a manner that supports sustained throughput (i.e., the maximum achievable packet rate). Path selection SHOULD consider:
 
-- **Load balancing over paths**: Distribute traffic across multiple paths based on the minimum stake (channel balance) on each path, ensuring paths with higher capacity receive proportionally more traffic.
+- **Score-weighted load balancing over paths**: Distribute traffic across multiple paths according to per-edge scores derived from probe observations, ensuring that edges with better quality receive proportionally more traffic. Implementations MAY additionally incorporate channel stake as a weighting factor to account for channel capacity.
 - **Measured throughput**: Use actual throughput as observed in real traffic (not just probes) to refine path selection and avoid paths that perform poorly under load.
 
 These considerations ensure that path discovery supports not only path viability assessment but also efficient utilisation of available network capacity.
@@ -239,11 +255,13 @@ Telemetry refers to the data and metadata collected by the probing mechanism abo
 
 Next-hop telemetry, also referred to as per-path telemetry (PPT), MUST be collected for each direct peer connection. This telemetry SHOULD be used to inform channel opening and closing strategies that optimise first-hop connections from the current node.
 
-The PPT SHOULD provide basic evaluation of the transport channel, both in the presence and absence of an open on-chain payment channel. At a minimum, the PPT MUST provide the following observations for each 0-hop connection (as specified in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)):
+The PPT is produced by immediate-neighbour probing (§4.2.1.1) and SHOULD provide basic evaluation of the transport channel, both in the presence and absence of an open on-chain payment channel. At a minimum, the PPT MUST provide the following observations for each 0-hop connection (as specified in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)):
 
-1. **Latency**: Duration between sending a message and receiving the corresponding acknowledgement. This measures round-trip time to the immediate peer.
+1. **Latency**: Duration between sending a request probe and receiving the corresponding response. This measures round-trip time to the immediate peer.
 
-2. **Packet drop rate**: Track the ratio of missing acknowledgements to expected acknowledgements for messages sent on the channel. This indicates the reliability of the transport connection.
+2. **Packet drop rate**: Track the ratio of missing responses to expected responses for probes sent on the channel. This indicates the reliability of the transport connection.
+
+3. **Acknowledgement rate**: Track the ratio of acknowledged messages to sent messages on the channel, including production traffic as well as probes.
 
 The PPT MAY be utilised by other mechanisms as an information source, such as channel management strategies that optimise the outgoing network topology by opening channels to high-performance peers and closing channels to unreliable peers.
 
@@ -255,26 +273,61 @@ Each outgoing message SHOULD be tracked for the same set of telemetry as the PPT
 
 #### 4.3.3 Probing telemetry
 
-Probing telemetry refers to structured data embedded within probe messages to facilitate path identification and performance measurement. All multi-byte integer fields MUST be transmitted in network byte order (big-endian) to ensure consistent interpretation across different architectures.
+Probing telemetry refers to structured data embedded within probe messages to facilitate path identification and performance measurement. The two probing modes defined in §4.2.1 produce two distinct message types, both carried under a common outer envelope.
 
-The probing message payload contains the following fields:
+All multi-byte integer fields MUST be transmitted in the byte order documented below to ensure consistent interpretation across different architectures.
 
-- **Counter** (8 bytes, `uint64`): An iterating counter used to verify the mixing property over a path and detect packet reordering or duplication. The counter increments for each probe sent.
-  
-- **Path ID** (8 bytes, `uint64`): A unique identifier for a single specific path in the graph, enabling attribution of probe results to the correct path.
-  
-- **Timestamp** (8 bytes, 64-bit `UNIX time in nanoseconds`): The timestamp of packet creation, used for end-to-end latency observations. The timestamp is recorded when the probe is generated and compared against the received timestamp upon loopback completion.
+##### Outer message envelope
 
-**Wire format:**
+All probe messages share a two-byte outer envelope:
 
-```ascii
-+-------------+------------+------------+
-|   Counter   |   PathId   |  Timestamp |
-|     8B      |     8B     |     8B     |
-+-------------+------------+------------+
+```mermaid
+packet
+title "Outer Message Envelope"
++8: "Version"
++8: "Discriminant"
 ```
 
-The total probing message payload size is 24 bytes.
+| Field | Size | Description |
+| ----- | ---- | ----------- |
+| **Version** | 1 byte | Protocol version. Current value: `0x01`. |
+| **Discriminant** | 1 byte | Selects the payload type: `0x00` = Loopback path telemetry, `0x01` = Neighbour probe. |
+
+##### Neighbour-probe message
+
+Produced by immediate-neighbour probing (§4.2.1.1). Total message size: 35 bytes (2-byte envelope + 33-byte payload).
+
+```mermaid
+packet
+title "Neighbour Probe Payload (33 B)"
++8: "Variant"
++256: "Nonce (32 B)"
+```
+
+| Field | Size | Byte order | Description |
+| ----- | ---- | ---------- | ----------- |
+| **Variant** | 1 byte | — | `0x00` = Ping (request), `0x01` = Pong (response). |
+| **Nonce** | 32 bytes | N/A (byte string) | Random nonce included in a Ping; copied verbatim into the corresponding Pong. Receipt of a Pong whose nonce matches the sent Ping nonce constitutes a successful observation. |
+
+##### Loopback path-telemetry message
+
+Produced by loopback path probing (§4.2.1.2). Total message size: 66 bytes (2-byte envelope + 64-byte payload).
+
+```mermaid
+packet
+title "Loopback Path-Telemetry Payload (64 B)"
++64: "Probe ID (8 B)"
++320: "Path Identifier (40 B)"
++128: "Timestamp (16 B)"
+```
+
+| Field | Size | Byte order | Description |
+| ----- | ---- | ---------- | ----------- |
+| **Probe ID** | 8 bytes | N/A (byte string) | An opaque identifier assigned by the probing node at emission time. Used to correlate the returned telemetry with the original probe record. |
+| **Path Identifier** | 40 bytes | Per-slot little-endian | Five consecutive 8-byte slots, each encoding one node index along the probed path (including the originating and terminating node). Each slot is serialised in little-endian byte order. |
+| **Timestamp** | 16 bytes | Big-endian | Nanoseconds since the UNIX epoch at the time the probe was emitted, serialised as a 128-bit unsigned integer in big-endian byte order. Compared against the wall clock upon loopback return to derive end-to-end path latency. |
+
+**Note on byte order**: The path identifier uses little-endian per-slot encoding, while the timestamp uses big-endian encoding. This mixed convention is a known limitation; see §10.
 
 ### 4.4 Component placement
 
@@ -282,20 +335,15 @@ The network probing functionality, with the exception of the next-hop telemetry 
 
 **Implementation requirements:**
 
-- **Remove channel graph quality**: The concept of channel graph quality based on network observations SHALL be removed from implementations. Only on-chain channel information (stake, balance, status) SHALL be retained for path viability determination.
+- **Channel graph as topology store**: The channel graph data structure SHALL serve as the canonical topology store. Each directed edge in the graph MUST carry quality observations derived from probe results (latency, success rate). Implementations MAY replace any prior network-quality heuristic with edge weights derived solely from probe observations.
 
-- **Continuous probe generation**: Implementations MUST provide processes to generate a low-rate continuous stream of network path probes to maintain up-to-date topology information.
+- **Continuous probe generation**: Implementations MUST provide a configurable-cadence probing stream for each probing mode to maintain up-to-date topology information.
 
-- **Session-specific paths**: Implementations MUST generate session-specific paths for session path selection to provide cover traffic and obfuscate the real communication patterns (see [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)).
+- **Path generation and caching**: Path generation SHOULD be decoupled from session establishment so that the path cache can serve session creation without per-session probing latency (see [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)). Paths SHALL be cached for a configurable minimum time window to amortise the cost of path discovery and reduce probe frequency.
 
-- **Path graph system**: A new path graph system SHALL be derived from probe results, representing discovered topology and path quality metrics.
+- **Edge-quality observations**: Edge-quality observations MUST be associated with the topology graph and MUST be derived from probe outcomes. Stale observations SHOULD be weighted less than recent ones.
 
-- **Path caching**: Paths SHALL be cached for a configurable minimum time window to amortise the cost of path discovery and reduce probe frequency.
-
-- **Session metrics incorporation**: Session-level telemetry SHALL incorporate:
-  - Session-level performance metrics (throughput, latency, packet loss)
-  - Session-specific path probing data to refine path selection during active sessions
-  - Session-derived cover traffic for exploratory network traversal without dedicated probe overhead
+- **Session-derived cover traffic**: Probe traffic MAY be incorporated as cover traffic for active sessions (see [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) to serve dual purposes and reduce the per-session probing overhead.
 
 ## 5. Design considerations
 
@@ -311,7 +359,7 @@ With these capabilities, the sender can construct a functional representation of
 
 **Key design principles:**
 
-- **Indistinguishability**: Multi-hop probing traffic and measurement packets MUST be indistinguishable from ordinary traffic to ensure accurate recording of network node propagation characteristics. If relay nodes could distinguish probes from production traffic, they might handle them differently (e.g., prioritise or deprioritise probes), leading to inaccurate measurements.
+- **Selective indistinguishability**: Multi-hop loopback probe traffic MUST be indistinguishable from ordinary traffic at relay nodes to ensure accurate recording of network node propagation characteristics. If relay nodes could distinguish probes from production traffic, they might handle them differently (e.g., prioritise or deprioritise probes), leading to inaccurate measurements. Immediate-neighbour probes are intentionally distinguishable, since no relay is involved and sender anonymity is not at risk at 0-hop.
 
 - **Adaptive mechanisms**: Due to the dynamic nature of decentralised peer-to-peer networks, senders SHOULD employ adaptive mechanisms for establishing and maintaining topological awareness. Static path selection would quickly become outdated as nodes join, leave, or change behaviour.
 
@@ -330,14 +378,14 @@ The collected telemetry for measured paths:
 
 **Direct peer probing:**
 
-By designing probing traffic to be indistinguishable from actual message propagation in the mixnet, direct verification of immediate peer properties becomes infeasible. For this purpose, a separate mechanism (next-hop telemetry, Section 4.3.1) exists that operates outside the anonymity requirement.
+By designing multi-hop probing traffic to be indistinguishable from actual message propagation in the mixnet, direct verification of immediate peer properties via loopback becomes infeasible. For this purpose, a separate mechanism (next-hop telemetry, Section 4.3.1) exists that operates at 0-hop outside the multi-hop anonymity requirement.
 
-The 0-hop and 1-hop probing mechanisms MAY NOT fully comply with the anonymity requirement, since they:
+The immediate-neighbour probing mechanism MAY NOT fully comply with the multi-hop anonymity requirement, since it:
 
-1. Mimic the 0-hop session ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)), which does not benefit from multi-hop relaying mechanisms and may reveal the probing node to the immediate peer.
+1. Mimics the 0-hop session ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)), which does not benefit from multi-hop relaying mechanisms and may reveal the probing node to the immediate peer.
 2. Could be used as a first layer for relay nodes to discover viable candidates for future channel openings, which is acceptable as it does not compromise sender anonymity in multi-hop paths.
 
-The network probing mechanism SHALL utilise graph-based algorithms (breadth-first and depth-first) to efficiently discover and maintain network topology information while managing computational and economic costs.
+The network probing mechanism SHALL utilise the two probing modes (immediate-neighbour and loopback path) to efficiently discover and maintain network topology information while managing computational and economic costs.
 
 ## 6. Compatibility
 
@@ -353,9 +401,11 @@ The probing traffic consumes both physical resources (bandwidth, compute) and ec
 
 2. **Denial-of-service via PPT**: The next-hop telemetry (PPT) mechanism, which operates at 0-hop without full anonymity protection, MAY serve as an attack vector for denial-of-service (DoS) attempts. Attackers could flood a node with 0-hop telemetry requests to exhaust resources. Implementations SHOULD apply rate limiting to PPT requests.
 
-3. **Traffic analysis**: Although probes are designed to be indistinguishable from production traffic, statistical analysis of traffic patterns might reveal probing behaviour if probe generation follows predictable patterns. Implementations SHOULD randomise probe timing and path selection to prevent traffic analysis.
+3. **Traffic analysis**: Although loopback probes are designed to be indistinguishable from production traffic at relay nodes, statistical analysis of traffic patterns might reveal probing behaviour if probe generation follows predictable patterns. Implementations SHOULD randomise probe timing and path selection to prevent traffic analysis.
 
-4. **Mitigation strategies**: Nodes MAY implement any reasonable security risk mitigation strategy, including but not limited to:
+4. **SURB asymmetry**: Immediate-neighbour probes require a single-use reply block (SURB) so that the pong can be delivered back without revealing the originator's address. Loopback path probes require no SURB, since the probe path already terminates at the originating node. This asymmetry is intentional and does not affect the security properties of either mode.
+
+5. **Mitigation strategies**: Nodes MAY implement any reasonable security risk mitigation strategy, including but not limited to:
    - Rate limiting probe generation and reception
    - Adaptive probe frequency based on network conditions
    - Slashing mechanisms to exclude misbehaving nodes
@@ -382,7 +432,9 @@ Alternative approaches such as centralised topology databases or distributed top
 
 ## 10. Unresolved questions
 
-None.
+1. **Mixed byte order in probing telemetry**: The loopback path-telemetry payload (§4.3.3) uses little-endian encoding for the path-identifier slots and big-endian encoding for the timestamp. A future revision SHOULD normalise to a single byte order across all multi-byte fields.
+
+2. **Active slashing boundary**: The boundary between passive score-based exclusion (§4.2.3) and an explicit active slashing mechanism with defined thresholds and recovery conditions is left to implementations. A future revision MAY formalise this boundary.
 
 ## 11. Future work
 
@@ -396,6 +448,15 @@ Future development of the automatic path discovery mechanism SHOULD focus on the
 
 4. **Formal slashing logic**: Define a formal slashing mechanism with equation-based logic that specifies precise conditions for node removal, recovery, and reputation scoring.
 
+5. **Stake-aware load balancing**: Incorporate channel stake into path-selection weighting in addition to probe-derived edge scores, to account for channel capacity constraints alongside quality.
+
+6. **Adaptive probing cadence**: Implement a closed-loop adjustment of probe frequency in response to observed network quality and economic budget, replacing the current fixed-cadence approach.
+
+7. **Session-level telemetry incorporation**: Feed session-level performance metrics (throughput, latency, packet loss) back into path-selection scoring so that active sessions contribute to the topology quality model.
+
+8. **Active adversary detection**: Develop heuristics for distinguishing benign packet loss from deliberately adversarial behaviour, building on the passive exclusion mechanism of §4.2.3.
+
 ## 12. References
 
 [01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
+rg/doc/html/rfc2119). _IETF RFC 2119_.
