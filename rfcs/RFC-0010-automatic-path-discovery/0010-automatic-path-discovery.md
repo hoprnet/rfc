@@ -88,7 +88,7 @@ The network probing mechanism abstracts transport interactions and consists of t
 
 The primary responsibility of the path-generating component is to apply the two complementary probing modes to collect path viability information across selected sections of the network.
 
-A combination of immediate-neighbour and loopback path probing SHALL be employed to ensure the probing process neither converges too slowly to a usable network topology nor focuses exclusively on small sub-topologies due to computational constraints.
+When performing full topology discovery, a combination of immediate-neighbour and loopback path probing SHALL be employed to ensure the probing process neither converges too slowly to a usable network topology nor focuses exclusively on small sub-topologies due to computational constraints. Deployments targeting only immediate-neighbour discovery MAY use the minimal prober profile (see §4.2.1.5) and MAY disable loopback path probing.
 
 **Operational steps:**
 
