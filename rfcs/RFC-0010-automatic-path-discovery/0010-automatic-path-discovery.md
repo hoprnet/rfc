@@ -54,7 +54,7 @@ The following additional terms are defined for use within this document:
 
 ### 4.1 Overview
 
-This specification defines two complementary probing modes for topology discovery. Implementations MUST support both immediate-neighbour probing and loopback path probing and employ them in concert, as exhaustive topology discovery becomes computationally prohibitive as network size increases. Immediate-neighbour probing provides rapid discovery of the direct network neighbourhood; loopback path probing extends that view to deeper multi-hop paths. Combining both modes enables efficient topology coverage while managing resource consumption.
+This specification defines two complementary probing modes for topology discovery. Implementations MUST be capable of supporting both immediate-neighbour probing and loopback path probing. Deployments SHOULD employ them in concert, as exhaustive topology discovery becomes computationally prohibitive as network size increases. Immediate-neighbour probing provides rapid discovery of the direct network neighbourhood; loopback path probing extends that view to deeper multi-hop paths. Combining both modes enables efficient topology coverage while managing resource consumption.
 
 ### 4.2 Network probing
 
@@ -213,7 +213,7 @@ The exact weighting formula is left to implementations. The requirement is only 
 
 A node MAY operate one of two deployment profiles:
 
-- **Minimal prober**: emits only immediate-neighbour probes (§4.2.1.1). Suitable for nodes that primarily require next-hop telemetry without full topology discovery.
+- **Minimal prober**: emits only immediate-neighbour probes (§4.2.1.1). Deployments MAY disable loopback path probing via node profile or policy configuration. Suitable for nodes that primarily require next-hop telemetry without full topology discovery.
 - **Full prober**: emits both immediate-neighbour probes and loopback path probes (§4.2.1.2). Suitable for nodes that require a comprehensive topology view for multi-hop path selection.
 
 Whichever probes a node emits MUST conform to §4.2.1.1 and §4.2.1.2 respectively.
@@ -383,7 +383,7 @@ By designing multi-hop probing traffic to be indistinguishable from actual messa
 The immediate-neighbour probing mechanism MAY NOT fully comply with the multi-hop anonymity requirement, since it:
 
 1. Mimics the 0-hop session ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)), which does not benefit from multi-hop relaying mechanisms and may reveal the probing node to the immediate peer.
-2. Could be used as a first layer for relay nodes to discover viable candidates for future channel openings, which is acceptable as it does not compromise sender anonymity in multi-hop paths.
+2. It could be used as a first layer for relay nodes to discover viable candidates for future channel openings, which is acceptable because it does not compromise sender anonymity in multi-hop paths.
 
 The network probing mechanism SHALL utilise the two probing modes (immediate-neighbour and loopback path) to efficiently discover and maintain network topology information while managing computational and economic costs.
 
@@ -459,4 +459,3 @@ Future development of the automatic path discovery mechanism SHOULD focus on the
 ## 12. References
 
 [01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
-rg/doc/html/rfc2119). _IETF RFC 2119_.
