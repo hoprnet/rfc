@@ -383,7 +383,7 @@ By designing multi-hop probing traffic to be indistinguishable from actual messa
 The immediate-neighbour probing mechanism MAY NOT fully comply with the multi-hop anonymity requirement, since it:
 
 1. Mimics the 0-hop session ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)), which does not benefit from multi-hop relaying mechanisms and may reveal the probing node to the immediate peer.
-2. It could be used as a first layer for relay nodes to discover viable candidates for future channel openings, which is acceptable because it does not compromise sender anonymity in multi-hop paths.
+2. Could be used as a first layer for relay nodes to discover viable candidates for future channel openings, which is acceptable because it does not compromise sender anonymity in multi-hop paths.
 
 The network probing mechanism SHALL utilise the two probing modes (immediate-neighbour and loopback path) to efficiently discover and maintain network topology information while managing computational and economic costs.
 
