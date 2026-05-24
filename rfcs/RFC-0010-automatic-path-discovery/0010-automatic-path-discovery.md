@@ -324,10 +324,10 @@ title "Loopback Path-Telemetry Payload (64 B)"
 | Field | Size | Byte order | Description |
 | ----- | ---- | ---------- | ----------- |
 | **Probe ID** | 8 bytes | N/A (byte string) | An opaque identifier assigned by the probing node at emission time. Used to correlate the returned telemetry with the original probe record. |
-| **Path Identifier** | 40 bytes | Per-slot little-endian | Five consecutive 8-byte slots, each encoding one node index along the probed path (including the originating and terminating node). Each slot is serialised in little-endian byte order. |
+| **Path Identifier** | 40 bytes | Per-slot little-endian | Five consecutive 8-byte slots, each encoding one canonical 64-bit node identifier for the probed path in traversal order. Slot 0 SHALL encode the originating node, each subsequent non-zero slot SHALL encode the next relay on the path, and the final non-zero slot SHALL encode the loopback/terminating node. Paths shorter than five nodes SHALL be encoded by setting every unused trailing slot to `0x0000000000000000`. A zero-valued slot is padding, not a node identifier; therefore `0` is reserved and MUST NOT be used as a valid node identifier in this field. Receivers SHALL interpret the path length as the number of consecutive non-zero slots starting at slot 0, and any non-zero slot that appears after a zero-valued slot SHALL be treated as an invalid encoding. |
 | **Timestamp** | 16 bytes | Big-endian | Nanoseconds since the UNIX epoch at the time the probe was emitted, serialised as a 128-bit unsigned integer in big-endian byte order. Compared against the wall clock upon loopback return to derive end-to-end path latency. |
 
-**Note on byte order**: The path identifier uses little-endian per-slot encoding, while the timestamp uses big-endian encoding. This mixed convention is a known limitation; see §10.
+**Note on byte order and fixed-width encoding**: The path identifier uses little-endian per-slot encoding, while the timestamp uses big-endian encoding. This mixed convention is a known limitation; see §10. The 40-byte path identifier is a fixed-width representation of a variable-length path of up to five nodes; shorter paths are right-padded with zero-valued 8-byte slots as specified above.
 
 ### 4.4 Component placement
 
