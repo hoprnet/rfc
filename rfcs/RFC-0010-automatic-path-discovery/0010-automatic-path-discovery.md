@@ -144,7 +144,7 @@ In this approach, each intermediate node in the path is treated as a probed rela
 
 The following properties apply to loopback path probing:
 
-- The number of intermediate relay nodes `n` SHOULD be selected randomly within the range `1 ≤ n ≤ MAX_HOPR_SUPPORTED_PATH_LENGTH` (a network parameter defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)). The value of `n` SHOULD vary across probes to prevent predictable probing patterns.
+- The number of intermediate relay nodes `n` SHOULD be selected randomly within the range `1 ≤ n ≤` the maximum number of intermediate relay nodes supported by the HOPR packet format defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md). The value of `n` SHOULD vary across probes to prevent predictable probing patterns.
 - Each probe MUST carry a path identifier and a timestamp so that observations can be attributed to specific edges upon loopback completion (see §4.3.3).
 - The originator MUST verify that the loopback probe returns to itself before recording any observations from it.
 - The probe payload MUST be indistinguishable in shape from cover traffic at each relay node (same transport tag, same payload size class). Loopback probes carry no SURB, since the path already terminates at the originating node.
