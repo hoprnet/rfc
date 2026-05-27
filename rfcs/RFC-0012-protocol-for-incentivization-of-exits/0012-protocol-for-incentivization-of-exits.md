@@ -29,7 +29,27 @@ The HOPR protocol as defined in RFC-0004 and the Proof of Relay as defined in RF
 This is the primary motivation of this RFC, to build an additional sub-protocol that allows incentivization of the Exit node, and is, to some degree conditional.
 
 
-## 1.2 Goals
+## 1.2 Notation
+
+The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [02] when, and only when, they appear in all capitals, as shown here.
+
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
+across the HOPR RFC series. Additionally, the following packet-protocol-specific terms are defined:
+
+- **`||`** denotes byte-string concatenation.
+
+- **`i=0..k`** denotes an index `i` taking all values from `0` to `k-1` (inclusive).
+
+- **`|x|`** denotes the size of the `x` object in bytes.
+
+- Multi-byte numeric values (such as `u16`, `u32` and `u64`) are always encoded as bytes with most-significant byte first (Big Endian).
+
+- If character strings (delimited via double-quotes, such as `"xyz-abc-123"`) are used in place of byte strings, their ASCII single-byte encoding is assumed. 
+Non-ASCII character strings are not used throughout this document.
+
+- *CSPRNG* stands for Cryptographically Secure Pseudorandom Number Generator.
+
+## 1.3 Goals
 
 The PIX is a protocol between Entry (sender of mixnet traffic) and Exit (the recipient of mixnet traffic) that takes place within a certain time period when these two entities have some logical communication bound between each other.
 
@@ -41,40 +61,30 @@ The PIX protocol aims to fullfil the following goals:
 4. The Entry node MUST NOT be able to retract the incentives once it has committed them for the given Exit and agreed traffic amount.
 5. The amount of delivered traffic MAY NOT be the only condition to allow the incentive claim by the Exit, but the Entry MUST NOT have any influence on setting the outcome of that additional condition.
 
-
-## 1.3 Notation
-
-The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [02] when, and only when, they appear in all capitals, as shown here.
-
-The RFC generally uses notation introduced in RFC-0001.
-
-The `||` denotes byte-string concatenation.
-
-The `i=0..k` denotes an index `i` taking all values from `0` to `k-1` (inclusive).
-
-`|x|` denotes the size of the `x` object in bytes.
-
-Multi-byte numeric values (such as `u16`, `u32` and `u64`) are always encoded as bytes with most-significant byte first (Big Endian).
-
 # 2 Protocol
 
 ## 2.1 Setup
 
-Let `C` be an algebraic curve over a finite field `F`, with (sub)group of large order, such that the Diffie-Hellman problem in that (sub)group is difficult (and MUST BE equivalent to at least 128-bit security). Most commonly, `C` could be an elliptic or Edwards curve.
+Let `C` be an algebraic curve over a finite field `F`, with (sub)group of large order, such that the Diffie-Hellman problem in that (sub)group is difficult (and MUST BE equivalent to at least 128-bit security). Most commonly, `C` could be an elliptic curve or an Edwards curve or large prime-order (sub)group.
 
 Let `P[x, t]` denote a polynomial of degree `t` over the finite field `F`, with variable `x`.
 
-Let `H` be a cryptographic hash function, with fixed size 256-bit output. 
+Let `H` be a cryptographic hash function, with a fixed size.
 
 The `E(iv, k, m)` and `D(iv, k, m)` operations denote encryption and decryption of a message `m` using a symmetric cipher with secret key `k` and IV `iv`.
 
-The Protocol for Incentivization of eXits (PIX) is strictly defined between 3 entities: Entry node `A` (also called Client), Exit node `B` (also call Server) and certain "privacy pool" `W` and governs their interaction to fullfil the above goals. We assume the Entry and Exit nodes to be HOPR nodes as defined in RFC-0002.
+The Protocol for Incentivization of eXits (PIX) is strictly defined between 3 entities: Entry node `A` (also called Client), Exit node `B` (also call Server) and certain "privacy pool" `W` and governs their interaction to fullfil the goals from Section 1.3. We assume the Entry and Exit nodes to be HOPR nodes as defined in RFC-0002.
+
+The path between `A` and `B` SHOULD BE at least 1-hop (one relayer on both forward and return paths).
+Per RFC-0004, acknowledgements on 0-hop paths MAY BE omitted by the implementation, and therefore PIX cannot be instantiated in such case.
 
 The specific selection of `C`, `F`, `H` , `E`, `D` and a choice of a privacy pool `W` define a concrete instantiation of PIX.
 
 The points on `C` can be represented in a certain encoded form (`EncodedPoint`) that SHOULD BE efficient for over-the-wire transfers (typically in a compressed form). Assume that `BP` is the base point of large order on `C` (large order (sub)group generator).
 
-A Key Derivation Function (`KDF(c, k, s)`) allows generation of secret key material from a high-entropy pre-key `k`, context string `c`, and a salt `s`: `KDF(c, k, s)`. KDF will perform the necessary expansion to match the size required by the output. The Salt `s` argument is optional and MAY be omitted.
+A Key Derivation Function `KDF(c, k, s)` allows generation of secret key material from a high-entropy pre-key `k`, context string `c`, and a salt `s`: `KDF(c, k, s)`. KDF will perform the necessary expansion to match the size required by the output. The Salt `s` argument is optional and MAY be omitted.
+
+Let the Hash to Field (Scalar) operation `HS(s,t)` which computes a field element of `F` from a secret `s` and an additional tag `t`.
 
 ## 2.2 Privacy Pool operations
 
@@ -84,7 +94,7 @@ The Privacy Pool `W` is abstracted out from this RFC as a black-box. It is assum
 2. `Allocate(Amount, Deposit_Handle, Address)`: Performs allocation of specific `Amount` from a previously made deposit (that corresponds to a `Deposit_Handle`) to the given `Address`
 3. `Withdraw(Address, PkPoP_Address, WithdrawalAddress)`: Performs withdrawal of a previous allocation to an `Address`  (via `Allocate` call) while providing a proof-of-possesion of a private key that corresponds to `Address`. If proof verification succeeds, the allocation is transfered to the `WithdrawalAddress`
 
-In order to satisfy the goals of PIX in section 1.2, `W` MUST ensure the anonymity of the depositor and allocator towards the withdrawer.
+In order to satisfy the goals of PIX in Section 1.3, `W` MUST ensure the anonymity of the depositor and allocator towards the withdrawer.
 
 
 ## 2.2 Protocol flow
@@ -92,8 +102,6 @@ In order to satisfy the goals of PIX in section 1.2, `W` MUST ensure the anonymi
 The protocol starts by the Entry node `A` making a deposit via `Deposit` call to `W`, depositing a certain amount of incentives. It keeps its `Deposit_Handle`.
 
 This is typically done ahead of time, before `A` even knows about an Exit `B`.
-The path between `A` and `B` SHOULD BE at least 1-hop (one relayer on both forward and return paths).
-
 
 At a later point, once `A` knows about `B` and it chooses it as its Exit node service provider, `A` MAY instantiate a Session with `B` as described in RFC-0009. We assume this binding between `A` and `B` then uses a fixed return path pseudonym `P` of `A` (see RFC-0004) and it stays the same during the course of PIX execution.
 
@@ -108,11 +116,11 @@ The protocol follows to perform the first `SSA_Agreement_1` between `A` and `B`:
 2. Upon receiving `ExitCommitmentRequest_i`, `A` verifies the whether the parameters in the message are acceptable:
   a) if parameters are acceptable, it MUST respond by generating and sending `EntryCommitment_i` message to `B`. 
   b) if parameters are not acceptable, it terminates communication with `B` (cancelling the binding with common `P`)
-3. `A` creates `SSA_i = CP_1[0] + CP_2[0] + ... CP_m[0] + ExitCommitment` 
+3. `A` creates `SSA_i = C_i_0_0 + C_i_1_0 + ... C_i_m_0 + ExitCommitment` 
 4. `A` performs `Allocate(ChunkPrice, Deposit_Handle, SSA_i)` with `W`
 5. Once `B` receives the full `EntryCommitment_i` message, the Exit node node MUST
   a) verifies the degree and number of received polynomials is acceptable, otherwise it MUST terminate communications with `A`
-  b) creates `SSA_i = CP_1[0] + CP_2[0] + ... CP_m[0] + ExitCommitment`
+  b) creates `SSA_i = SSA_i = C_i_0_0 + C_i_1_0 + ... C_i_m_0 + ExitCommitment`
   c) stores `A`'s pseudonym `P`, polynomial coefficient commitments `CP_1_0, CP_1_1 ... CP_m_(t-1)`
   d) awaits allocation to be deposited to `SSA_i`
 
@@ -163,6 +171,11 @@ struct ExitCommitmentRequest_i {
 }
 ```
 
+The Exit node MAY choose to send multiple `ExitCommitment_i` messages (with strictly increasing `i`), to request the Entry to allocate more incentives to individual `SSA_i`.
+The Entry MAY refuse allocating more, and the Exit MAY refuse service (terminate communication with the Entry) if the Entry allocates too few SSAs.
+
+Implementations MAY choose to use an alternative `ExitCommitmentRequest` message format, where more commitments to (with strictly increasing `i`) are requested, and the Entry then processes them as individual `ExitCommitmentRequest_i` messages.
+
 ### 2.2.3 Generation of `EntryCommitment_i` at the Entry
 
 The Entry node creates this message once it learns `i` and the `params` value from the `ExitCommitmentRequest` message. This value allows it to determine whether the requested `t` and `m` values are acceptable.
@@ -202,7 +215,7 @@ Once the Entry `A` has sent `EntryCommitment_i` to `B` and has allocated incenti
 
 To generate `EncryptedShare_i_r_s` for some `r`,`s`, the Entry `A` first computes `Share_i_r_s` as follows:
 
-1. `A` chooses `x = HashToField(SenderKey, "HASH_SSA_POLY_SHARE_SCALAR")` where `SenderKey` is taken from the SURB the resulting `EncryptedShare_i_r_s` will be associated with - see RFC-0004. The `HashToField` operation is defined in RFC-9380 and `HASH_SSA_POLY_SHARE_SCALAR` is and additional DST input.
+1. `A` chooses `x = HS(SenderKey, "HASH_SSA_POLY_SHARE_SCALAR")` where `SenderKey` is taken from the SURB the resulting `EncryptedShare_i_r_s` will be associated with - see RFC-0004. 
 2. It evaluates polynomial `P_i_r` at `x`, so that `y = P_i_r[x] = P_i_r_0 + P_i_r_1 * x + ... + P_i_r_t * x^t`
 3. It constructs `Share_i_r_s` as:
 ```
@@ -270,6 +283,7 @@ The HOPR PIX is the following instantion of PIX:
 - `H` is Blake3_256
 - `E/D` is Chacha20
 - `KDF` is instantiated using Blake3 in KDF mode [06], where the optional salt `s` is prepended to the key material `k`: `KDF(c,k,s)` = `blake3_kdf(c, s || k)`. If S is omitted: `KDF(c,k) = blake3_kdf(c,k)`.
+- `HS` is instantiated via `hash_to_field` using `secp256k1_XMD:Blake3-256_SSWU_RO_` as defined in [04]. `s` is used a the secret input, and `t` as an additional domain separator.
 
 # Appendix 2
 
