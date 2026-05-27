@@ -73,7 +73,7 @@ Let `H` be a cryptographic hash function, with a fixed size.
 
 The `E(iv, k, m)` and `D(iv, k, m)` operations denote encryption and decryption of a message `m` using a symmetric cipher with secret key `k` and IV `iv`.
 
-The Protocol for Incentivization of eXits (PIX) is strictly defined between 3 entities: Entry node `A` (also called Client), Exit node `B` (also call Server) and certain "privacy pool" `W` and governs their interaction to fullfil the goals from Section 1.3. We assume the Entry and Exit nodes to be HOPR nodes as defined in RFC-0002.
+The Protocol for Incentivization of eXits (PIX) is strictly defined between 3 entities: Entry node `A` (also called Client), Exit node `B` (also called Server) and certain "privacy pool" `W` and governs their interaction to fullfil the goals from Section 1.3. We assume the Entry and Exit nodes to be HOPR nodes as defined in RFC-0002.
 
 The path between `A` and `B` SHOULD BE at least 1-hop (one relayer on both forward and return paths).
 Per RFC-0004, acknowledgements on 0-hop paths MAY BE omitted by the implementation, and therefore PIX cannot be instantiated in such case.
@@ -97,7 +97,7 @@ The Privacy Pool `W` is abstracted out from this RFC as a black-box. It is assum
 In order to satisfy the goals of PIX in Section 1.3, `W` MUST ensure the anonymity of the depositor and allocator towards the withdrawer.
 
 
-## 2.2 Protocol flow
+## 2.3 Protocol flow
 
 The protocol starts by the Entry node `A` making a deposit via `Deposit` call to `W`, depositing a certain amount of incentives. It keeps its `Deposit_Handle`.
 
@@ -110,7 +110,7 @@ The Session initiation MAY be used to communicate certain PIX parameters from `A
 The protocol follows to perform the first `SSA_Agreement_1` between `A` and `B`:
 
 
-### 2.2.1 The `SSA_Agreement_i`:
+### 2.3.1 The `SSA_Agreement_i`:
 
 1. The `B` sends the `ExitCommitmentRequest_i`
 2. Upon receiving `ExitCommitmentRequest_i`, `A` verifies the whether the parameters in the message are acceptable:
@@ -149,7 +149,7 @@ Once the `SSA_Agreement_i` is finished by incentives being allocated to `SSA_i`,
 
 The following sections give details how are the individual steps from the `SSA_Agreement_i` achieved.
 
-### 2.2.2 Generation of `ExitCommitmentRequest_i` at the Exit
+### 2.3.2 Generation of `ExitCommitmentRequest_i` at the Exit
 
 The Exit node generates the `ExitCommitmentRequest` as follows:
 
@@ -164,7 +164,7 @@ The message SHOULD BE constructed as follows:
 ```
 struct ExitCommitmentRequest_i {
 	P: Pseudonym,
-	params: u64,
+	params: u32,
 	i: u32,
 	ExitCommitment: EncodedPoint 
     
@@ -176,7 +176,7 @@ The Entry MAY refuse allocating more, and the Exit MAY refuse service (terminate
 
 Implementations MAY choose to use an alternative `ExitCommitmentRequest` message format, where more commitments to (with strictly increasing `i`) are requested, and the Entry then processes them as individual `ExitCommitmentRequest_i` messages.
 
-### 2.2.3 Generation of `EntryCommitment_i` at the Entry
+### 2.3.3 Generation of `EntryCommitment_i` at the Entry
 
 The Entry node creates this message once it learns `i` and the `params` value from the `ExitCommitmentRequest` message. This value allows it to determine whether the requested `t` and `m` values are acceptable.
 
@@ -209,7 +209,7 @@ struct EntryCommitment_i_r {
 In other words, the piecewise messages contain individual rows of the `C_r_s` matrix. If the HOPR packet cannot even fit the entire rows, then the rows SHOULD be also sent piecewise, with columns in the ascending order.
 
 
-### 2.2.4 Generation of `EncryptedShare_i_r` at the Entry
+### 2.3.4 Generation of `EncryptedShare_i_r` at the Entry
 
 Once the Entry `A` has sent `EntryCommitment_i` to `B` and has allocated incentives to `SSA_i`, it MUST start generating `EncryptedShare_i_r_s` for `r = 0..m, s=0..t+1`, each of which MUST BE from then on attached to SURBs sent to `B`.
 
@@ -246,7 +246,7 @@ EncryptedShare_i_r_s {
 The `EncryptedShare_i_r_s` is attached as additional recipient data (after `PoRValues` in section 3.4.3 of RFC-0004) to the corresponding SURB, with individual members encoded in the given order.
 
 
-### 2.2.5 `EncryptedShare_i` decryption and verification
+### 2.3.5 `EncryptedShare_i` decryption and verification
 
 A SURB that contains additional data of size `|EncryptedShare_i_r_s|`, the data are interpreted as `EncryptedShare_i_r_s`.
 If the `i` member is 0, the SURB MUST be used as if it did not contain any `EncryptedShare`. If `i` >= 1, the Exit node assumes it could be valid `EncryptedShare_i_r_s`.
@@ -267,13 +267,17 @@ The verification succeeds if `RHS - LHS = 0` (where 0 denotes the neutral elemen
 On successful verification, `B` knows that `(x, y)` constitutes a valid share, that can be used to recover `SSA_Priv_i_r`.
 
 
-### 2.2.6 Recovery of `SSA_Priv_i_r` and `SSA_Priv_i` at the Exit
+### 2.3.6 Recovery of `SSA_Priv_i_r` and `SSA_Priv_i` at the Exit
 
 Once the Exit `B` determines at least `t+1` `(x_i, y_i)`-pairs (`i=0..t`), as per previous section, it can recover `SSA_Priv_i_r` by executing Lagrange interpolation of the `P_i_r` polynomial using `(x_0, x_0)` , `(x_1, y_2)` ... `(x_t, y_t)` as inputs.
 
 The interpolation will yield the constant term `P_i_r_0` which is equal to `SSA_Priv_i_r`.
 
-Once all polynomials `P_i_0`, `P_i_1`, ... `P_i_m` are interpolated, the `SSA_Priv_i_0`...`SSA_Prive_m` are determined. The `SSA_Priv_i` is the sum `SSA_Priv_i_0 + SSA_Priv_i_1 + ... SSA_Priv_i_m`. 
+Once all polynomials `P_i_0`, `P_i_1`, ... `P_i_m` are interpolated, the `SSA_Priv_i_0`...`SSA_Prive_m` are determined. The `SSA_Priv_i` is the sum `SSA_Priv_i_0 + SSA_Priv_i_1 + ... SSA_Priv_i_m`.
+
+# References
+
+TBA
 
 # Appendix 1
 
