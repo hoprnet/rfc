@@ -8,12 +8,7 @@
 - **Updated:** 2026-05-26
 - **Version:** v0.3.0 (Draft)
 - **Supersedes:** none
-- **Related Links:** [RFC0003](../RFC-0003-hopr-overview/0003-hopr-overview.md)
-[RFC0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
-[RFC0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)
-[RFC0008](../RFC-0008-session-protocol/0008-session-protocol.md)
-[RFC0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
-
+- **Related Links:** [RFC0003](../RFC-0003-hopr-overview/0003-hopr-overview.md), [RFC0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md), [RFC0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
 
 # 1 Abstract
 
