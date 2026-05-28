@@ -53,7 +53,7 @@ Non-ASCII character strings are not used throughout this document.
 
 The PIX is a protocol between Entry (sender of mixnet traffic) and Exit (the recipient of mixnet traffic) that takes place within a certain time period when these two entities have some logical communication bound between each other.
 
-The PIX protocol aims to fullfil the following goals:
+The PIX protocol aims to fulfill the following goals:
 
 1. Establishes means to deliver incentives from Entry to Exit
 2. During the execution of the Protocol and claiming of incentives the Exit node MUST NOT learn anything new about the Entry node (the Protocol itself discloses no additional information about the Entry)
@@ -73,7 +73,7 @@ Let `H` be a cryptographic hash function, with a fixed size.
 
 The `E(iv, k, m)` and `D(iv, k, m)` operations denote encryption and decryption of a message `m` using a symmetric cipher with secret key `k` and IV `iv`.
 
-The Protocol for Incentivization of eXits (PIX) is strictly defined between 3 entities: Entry node `A` (also called Client), Exit node `B` (also called Server) and certain "privacy pool" `W` and governs their interaction to fullfil the goals from Section 1.3. We assume the Entry and Exit nodes to be HOPR nodes as defined in RFC-0002.
+The Protocol for Incentivization of eXits (PIX) is strictly defined between 3 entities: Entry node `A` (also called Client), Exit node `B` (also called Server) and certain "privacy pool" `W` and governs their interaction to fulfill the goals from Section 1.3. We assume the Entry and Exit nodes to be HOPR nodes as defined in RFC-0002.
 
 The path between `A` and `B` SHOULD BE at least 1-hop (one relayer on both forward and return paths).
 Per RFC-0004, acknowledgements on 0-hop paths MAY BE omitted by the implementation, and therefore PIX cannot be instantiated in such case.
@@ -92,7 +92,7 @@ The Privacy Pool `W` is abstracted out from this RFC as a black-box. It is assum
 
 1. `Deposit(Amount) -> Deposit_Handle`  :  An operation that deposits certain `Amount` of funds (later used as PIX incentives) and this deposit is somewhat identifiable by the depositor. Note that the `Deposit_Handle` here is an abstraction and can in practice be realized, e.g. via zero-knowledge proving.
 2. `Allocate(Amount, Deposit_Handle, Address)`: Performs allocation of specific `Amount` from a previously made deposit (that corresponds to a `Deposit_Handle`) to the given `Address`
-3. `Withdraw(Address, PkPoP_Address, WithdrawalAddress)`: Performs withdrawal of a previous allocation to an `Address`  (via `Allocate` call) while providing a proof-of-possesion of a private key that corresponds to `Address`. If proof verification succeeds, the allocation is transfered to the `WithdrawalAddress`
+3. `Withdraw(Address, PkPoP_Address, WithdrawalAddress)`: Performs withdrawal of a previous allocation to an `Address`  (via `Allocate` call) while providing a proof-of-possession of a private key that corresponds to `Address`. If proof verification succeeds, the allocation is transfered to the `WithdrawalAddress`
 
 In order to satisfy the goals of PIX in Section 1.3, `W` MUST ensure the anonymity of the depositor and allocator towards the withdrawer.
 
@@ -269,7 +269,7 @@ On successful verification, `B` knows that `(x, y)` constitutes a valid share, t
 
 ### 2.3.6 Recovery of `SSA_Priv_i_r` and `SSA_Priv_i` at the Exit
 
-Once the Exit `B` determines at least `t+1` `(x_i, y_i)`-pairs (`i=0..t`), as per previous section, it can recover `SSA_Priv_i_r` by executing Lagrange interpolation of the `P_i_r` polynomial using `(x_0, x_0)` , `(x_1, y_2)` ... `(x_t, y_t)` as inputs.
+Once the Exit `B` determines at least `t+1` `(x_i, y_i)`-pairs (`i=0..t`), as per previous section, it can recover `SSA_Priv_i_r` by executing Lagrange interpolation of the `P_i_r` polynomial using `(x_0, x_0)` , `(x_1, y_1)` ... `(x_t, y_t)` as inputs.
 
 The interpolation will yield the constant term `P_i_r_0` which is equal to `SSA_Priv_i_r`.
 
