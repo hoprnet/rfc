@@ -106,9 +106,14 @@
     "PRNG",
     "ChaCha",
     "deanonymising",
+    "deanonymisation",
     "deprioritise",
+    "Efraimidis",
+    "offchain",
+    "Spirakis",
     "trustlessness",
-    "fulfil"
+    "fulfil",
+    "unprobed"
   ],
   "flagWords": [
     "finalize",
