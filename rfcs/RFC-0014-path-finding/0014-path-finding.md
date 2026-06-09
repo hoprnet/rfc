@@ -147,7 +147,7 @@ When the source of a path query is the local node (a forward path), candidate ge
 ```mermaid
 flowchart TD
     A[Query: source=me, dest, hops] --> B["Phase 1: simple_paths(me, dest, hops+1)\nEdgeValueFn::forward"]
-    B --> C{|candidates| >= max_paths?}
+    B --> C{"|candidates| >= max_paths?"}
     C -- yes --> G[Return candidate pool]
     C -- no --> D["Phase 2: simple_paths_from(me, hops)\nEdgeValueFn::forward_without_self_loopback\nAppend dest to each result\nSkip if dest already in path\nSkip if already found in Phase 1"]
     D --> E[Merge Phase 1 + Phase 2 results]
