@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-06-05
 - **Updated:** 2026-06-09
-- **Version:** v1.0.0
+- **Version:** v1.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md),
@@ -41,11 +41,11 @@ All terminology used in this document, including general mix network concepts an
 
 The following additional terms are defined for use within this document:
 
-**Channel graph**: The directed graph maintained by each node whose vertices are HOPR nodes (identified by their offchain public key) and whose directed edges represent physical or logical connections, each carrying quality observations as defined in [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md) §4.2.
+**Channel graph**: The directed graph maintained by each node whose vertices are HOPR nodes (identified by their off-chain public key) and whose directed edges represent physical or logical connections, each carrying quality observations as defined in [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md) §4.2.
 
 **Edge score**: A real number in `[0, 1]` derived from the probe observations on a directed edge. An edge with a score of `0` is unusable for path selection; a score of `1` represents optimal quality. The formula is defined in §4.2.
 
-**Path value**: The multiplicative product of edge scores along a candidate path, in `(0, 1]`. A zero path value means the path is unusable.
+**Path value**: The multiplicative product of edge scores along a candidate path, in `[0, 1]`. A zero path value means the path is unusable.
 
 **Candidate pool**: The set of simple paths of a requested length enumerated from the channel graph, each paired with its path value. Candidates with a zero or negative path value are discarded before further processing.
 
@@ -120,10 +120,9 @@ The admission and cost rules applied by all variants are:
 
 2. **Intermediate-edge capacity**: every edge that is not the last MUST have a positive on-chain channel capacity. An edge with zero or absent capacity is pruned.
 
-3. **Minimum acknowledgement rate**: an edge whose immediate-probe acknowledgement rate is below `min_ack_rate` (default `0.1`) receives a non-positive cost and is pruned.
+3. **Minimum acknowledgement rate**: an edge whose immediate-probe acknowledgement rate is below `min_ack_rate` (default `0.1`) receives a non-positive cost and is pruned. The `min_ack_rate` parameter MUST be in `[0, 1]`.
 
-4. **Unprobed-edge penalty**: an edge that lacks probe observations is assigned a cost of `edge_penalty` (default `0.5`) rather than `0`. This allows unprobed edges to be selected but makes them less likely than well-observed edges.
-
+4. **Unprobed-edge penalty**: an edge that lacks probe observations is assigned a cost of `edge_penalty` (default `0.5`) rather than `0`. This allows unprobed edges to be selected but makes them less likely than well-observed edges. The `edge_penalty` parameter MUST be in `(0, 1]`.
 5. **Path value accumulation**: the path value is the product of all per-edge costs along the path:
 
 ```text
