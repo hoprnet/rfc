@@ -8,7 +8,7 @@
 - **Updated:** 2026-05-26
 - **Version:** v0.3.0 (Draft)
 - **Supersedes:** none
-- **Related Links:** [RFC0003](../RFC-0003-hopr-overview/0003-hopr-overview.md), [RFC0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md), [RFC0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
+- **Related Links:** [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
 
 # 1 Abstract
 
@@ -19,7 +19,7 @@ This documents uses notation and terms established in RFC-0001 and RFC-0002. It 
 
 ## 1.1 Motivation
 
-The HOPR protocol as defined in RFC-0004 and the Proof of Relay as defined in RFC-0005 allow incentivization of individual mixnet nodes. The recipient of the mixnet traffic (sometimes called the Exit node), however, does not receive any incentives at all. This might be a limiting factor in situations, when the sender of the mixnet traffic (sometimes called the Entry node) asks for certain actions to be performed by the Exit node on the Entry's behalf. In that case, the Exit node does not receive any in-protocol incentives for this particular action.
+The HOPR protocol as defined in RFC-0004 and the Proof of Relay as defined in RFC-0005 allow incentivization of individual mixnet nodes. The recipient of the mixnet traffic (sometimes called the Exit node), however, does not receive any incentives at all. This might be a limiting factor in situations when the sender of the mixnet traffic (sometimes called the Entry node) asks for certain actions to be performed by the Exit node on the Entry's behalf. In that case, the Exit node does not receive any in-protocol incentives for this particular action.
 
 This is the primary motivation of this RFC, to build an additional sub-protocol that allows incentivization of the Exit node, and is, to some degree conditional.
 
@@ -43,6 +43,8 @@ across the HOPR RFC series. Additionally, the following packet-protocol-specific
 Non-ASCII character strings are not used throughout this document.
 
 - *CSPRNG* stands for Cryptographically Secure Pseudorandom Number Generator.
+
+- **SSA** stands for *Session Stealth Address* - a commitment value derived from polynomial coefficient commitments and an Exit commitment, used as the address for allocating PIX incentives.
 
 ## 1.3 Goals
 
@@ -87,7 +89,7 @@ The Privacy Pool `W` is abstracted out from this RFC as a black-box. It is assum
 
 1. `Deposit(Amount) -> Deposit_Handle`  :  An operation that deposits certain `Amount` of funds (later used as PIX incentives) and this deposit is somewhat identifiable by the depositor. Note that the `Deposit_Handle` here is an abstraction and can in practice be realized, e.g. via zero-knowledge proving.
 2. `Allocate(Amount, Deposit_Handle, Address)`: Performs allocation of specific `Amount` from a previously made deposit (that corresponds to a `Deposit_Handle`) to the given `Address`
-3. `Withdraw(Address, PkPoP_Address, WithdrawalAddress)`: Performs withdrawal of a previous allocation to an `Address`  (via `Allocate` call) while providing a proof-of-possession of a private key that corresponds to `Address`. If proof verification succeeds, the allocation is transfered to the `WithdrawalAddress`
+3. `Withdraw(Address, PkPoP_Address, WithdrawalAddress)`: Performs withdrawal of a previous allocation to an `Address` (via `Allocate` call) while providing a proof-of-possession of a private key that corresponds to `Address`. If proof verification succeeds, the allocation is transferred to the `WithdrawalAddress`
 
 In order to satisfy the goals of PIX in Section 1.3, `W` MUST ensure the anonymity of the depositor and allocator towards the withdrawer.
 
@@ -108,30 +110,30 @@ The protocol follows to perform the first `SSA_Agreement_1` between `A` and `B`:
 ### 2.3.1 The `SSA_Agreement_i`:
 
 1. The `B` sends the `ExitCommitmentRequest_i`
-2. Upon receiving `ExitCommitmentRequest_i`, `A` verifies the whether the parameters in the message are acceptable:
+2. Upon receiving `ExitCommitmentRequest_i`, `A` verifies whether the parameters in the message are acceptable:
   a) if parameters are acceptable, it MUST respond by generating and sending `EntryCommitment_i` message to `B`. 
   b) if parameters are not acceptable, it terminates communication with `B` (cancelling the binding with common `P`)
-3. `A` creates `SSA_i = C_i_0_0 + C_i_1_0 + ... C_i_m_0 + ExitCommitment` 
+3. `A` creates `SSA_i = C_i_0_0 + C_i_1_0 + ... + C_i_m_0 + ExitCommitment` 
 4. `A` performs `Allocate(ChunkPrice, Deposit_Handle, SSA_i)` with `W`
-5. Once `B` receives the full `EntryCommitment_i` message, the Exit node node MUST
+5. Once `B` receives the full `EntryCommitment_i` message, the Exit node MUST
   a) verifies the degree and number of received polynomials is acceptable, otherwise it MUST terminate communications with `A`
-  b) creates `SSA_i = SSA_i = C_i_0_0 + C_i_1_0 + ... C_i_m_0 + ExitCommitment`
-  c) stores `A`'s pseudonym `P`, polynomial coefficient commitments `CP_1_0, CP_1_1 ... CP_m_(t-1)`
+  b) creates `SSA_i = C_i_0_0 + C_i_1_0 + ... + C_i_m_0 + ExitCommitment`
+  c) stores `A`'s pseudonym `P`, polynomial coefficient commitments `CP_0_0, CP_0_1, ..., CP_0_m, CP_1_0, ..., CP_t_m`
   d) awaits allocation to be deposited to `SSA_i`
 
 The `B` MAY choose not to continue communicating with `A` unless the deposit in `5d` is finished or only for a limited time unless the deposit is detected.
 
 Once the `SSA_Agreement_i` is finished by incentives being allocated to `SSA_i`, the bidirectional communication between `A` (with pseudonym `P`) and `B` then continues as specified in the HOPR protocol (RFC-0004), with additional changes that MUST be implemented:
 
-- `A` now MUST generate SURBs with additional recipient data (see RFC-0004) containing `EncryptedShare_i_r_s` and MUST produce at least `m*(t+1)` of them (i.e. `r = 0..m`, `s=0..t+1`). Each SHOULD BE attached to a single SURB (along with `r` and `s`) sent to `B`.
+- `A` now MUST generate SURBs with additional recipient data (see RFC-0004) containing `EncryptedShare_i_r_s` and MUST produce at least `(m+1)*(t+2)` of them (i.e. `r = 0..m`, `s = 0..t+1`). Each SHOULD BE attached to a single SURB (along with `r` and `s`) sent to `B`.
 
-- `B` receives the SURBs for pseudonym `P` from `A`. Once it is about to send a reply packet to `A`, it MUST a pick random SURB with pseudonym `P`, that contains `EncryptedShare_i_r_s`.
+- `B` receives the SURBs for pseudonym `P` from `A`. Once it is about to send a reply packet to `A`, it MUST pick a random SURB with pseudonym `P`, that contains `EncryptedShare_i_r_s`.
 
-- Once a reply packet is delivered to the first downstream relayer on the return path, the Exit `B` is able to decrypt `EncryptedShare_i_r_s` as described in Section 2.2.5, resulting in `Share_i_r_s`.
+- Once a reply packet is delivered to the first downstream relayer on the return path, the Exit `B` is able to decrypt `EncryptedShare_i_r_s` as described in Section 2.3.5, resulting in `Share_i_r_s`.
 
 - The Exit MUST verify `Share_i_r_s`. If the verification fails, the Exit MUST terminate communication with `A` (it SHOULD also dump all the SURBs indexed by `P`). 
 
-- Once `B` uses at least `t+1` SURBs for some fixed `r` , it MUST obtain at least `Share_i_r_0,...Share_i_r_(t+1)` successfully verified shares. These then MAY be turned into `SSA_Priv_i_r` as described in Section 2.2.6.
+- Once `B` uses at least `t+1` SURBs for some fixed `r`, it MUST obtain at least `Share_i_r_0, ..., Share_i_r_t` successfully verified shares. These then MAY be turned into `SSA_Priv_i_r` as described in Section 2.3.6.
 
 - Once `SSA_Priv_i_r` is recovered for each `r=0..m`, the Exit computes `SSA_Priv_i = SSA_Priv_i_0 + SSA_Priv_i_1 + ... SSA_Priv_i_(m-1)`.
 
@@ -248,7 +250,7 @@ If the `i` member is 0, the SURB MUST be used as if it did not contain any `Encr
 
 As soon as the `B` uses the associated SURB to send reply data to `A`, the first down stream relayer on the return path sends an `Acknowledgement` (as per RFC-0005) to `B`, disclosing `ack_secret`.
 
-`B` then uses KDF to generate `iv,k` and computes the `x` value (both as per Section 2.2.4).
+`B` then uses KDF to generate `iv,k` and computes the `x` value (both as per Section 2.3.4).
 
 Subsequently, it can obtain `Share_i_r_s = D(iv, k, E_y)`. 
 
@@ -264,11 +266,11 @@ On successful verification, `B` knows that `(x, y)` constitutes a valid share, t
 
 ### 2.3.6 Recovery of `SSA_Priv_i_r` and `SSA_Priv_i` at the Exit
 
-Once the Exit `B` determines at least `t+1` `(x_i, y_i)`-pairs (`i=0..t`), as per previous section, it can recover `SSA_Priv_i_r` by executing Lagrange interpolation of the `P_i_r` polynomial using `(x_0, x_0)` , `(x_1, y_1)` ... `(x_t, y_t)` as inputs.
+Once the Exit `B` determines at least `t+1` `(x_i, y_i)`-pairs (`i = 0..t`), as per previous section, it can recover `SSA_Priv_i_r` by executing Lagrange interpolation of the `P_i_r` polynomial using `(x_0, y_0)`, `(x_1, y_1)`, ..., `(x_t, y_t)` as inputs.
 
 The interpolation will yield the constant term `P_i_r_0` which is equal to `SSA_Priv_i_r`.
 
-Once all polynomials `P_i_0`, `P_i_1`, ... `P_i_m` are interpolated, the `SSA_Priv_i_0`...`SSA_Prive_m` are determined. The `SSA_Priv_i` is the sum `SSA_Priv_i_0 + SSA_Priv_i_1 + ... SSA_Priv_i_m`.
+Once all polynomials `P_i_0`, `P_i_1`, ..., `P_i_m` are interpolated, the `SSA_Priv_i_0`, ..., `SSA_Priv_i_m` are determined. The `SSA_Priv_i` is the sum `SSA_Priv_i_0 + SSA_Priv_i_1 + ... + SSA_Priv_i_m`.
 
 # References
 
@@ -276,13 +278,13 @@ TBA
 
 # Appendix 1
 
-The HOPR PIX is the following instantion of PIX:
+The HOPR PIX is the following instantiation of PIX:
 
 - `C` is sep256k1
 - `H` is Blake3_256
 - `E/D` is Chacha20
 - `KDF` is instantiated using Blake3 in KDF mode [06], where the optional salt `s` is prepended to the key material `k`: `KDF(c,k,s)` = `blake3_kdf(c, s || k)`. If S is omitted: `KDF(c,k) = blake3_kdf(c,k)`.
-- `HS` is instantiated via `hash_to_field` using `secp256k1_XMD:Blake3-256_SSWU_RO_` as defined in [04]. `s` is used a the secret input, and `t` as an additional domain separator.
+- `HS` is instantiated via `hash_to_field` using `secp256k1_XMD:Blake3-256_SSWU_RO_` as defined in [04]. `s` is used as the secret input, and `t` as an additional domain separator.
 
 # Appendix 2
 
