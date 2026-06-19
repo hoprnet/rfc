@@ -3,7 +3,7 @@
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixpkgs.url = "github:NixOS/nixpkgs/release-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-26.05";
     pre-commit.url = "github:cachix/git-hooks.nix";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     flake-root.url = "github:srid/flake-root";
@@ -60,7 +60,7 @@
               cspell = {
                 enable = true;
                 name = "cspell";
-                entry = "${pkgs.nodePackages.cspell}/bin/cspell --no-progress";
+                entry = "${pkgs.cspell}/bin/cspell --no-progress";
                 files = "\\.md$";
                 types = [ "text" ];
               };
@@ -91,7 +91,7 @@
                 config.treefmt.build.wrapper
 
                 # Spell checking
-                nodePackages.cspell
+                cspell
               ]
               ++ (pkgs.lib.attrValues config.treefmt.build.programs);
           };
@@ -118,7 +118,10 @@
             ];
             # using the official Nixpkgs formatting
             # see https://github.com/NixOS/rfcs/blob/master/rfcs/0166-nix-formatting.md
-            programs.nixfmt.enable = true;
+            programs.nixfmt = {
+              enable = true;
+              package = pkgs.nixfmt;
+            };
           };
 
           packages = {
