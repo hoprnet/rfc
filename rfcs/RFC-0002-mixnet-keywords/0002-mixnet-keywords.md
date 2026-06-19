@@ -26,8 +26,7 @@ truth for the terminology used in the HOPR ecosystem.
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01].
 
-The terminology defined in this document serves as the authoritative reference for the terminology
-and conventions adopted across the HOPR RFC series.
+The terminology defined in this document serves as the authoritative reference for the terminology and conventions adopted across the HOPR RFC series.
 
 - **Mixnet** (also known as a **Mix network**): a routing protocol that creates hard-to-trace communications by using a chain of proxy servers known
   as mixes, which take in messages from multiple senders, shuffle them, and send them back out in random order to the next destination.
@@ -58,18 +57,18 @@ and conventions adopted across the HOPR RFC series.
   messages through multiple nodes [02, 03].
 
 - **Hop**: a relay node in the message path that is neither the sender nor the destination. For example, a 0-hop message is sent directly from the
-  sender to the destination, while a 1-hop message goes through one relay node before reaching the destination. The terms "hop" and "relay" are
-  often used interchangeably [02, 03]. More hops in the path generally increase the anonymity of the message, but also increase latency and cost.
+  sender to the destination, while a 1-hop message goes through one relay node before reaching the destination. The terms "hop" and "relay" are often
+  used interchangeably [02, 03]. More hops in the path generally increase the anonymity of the message, but also increase latency and cost.
 
-- **Mix nodes**: the proxy servers that make up the mixnet. They receive messages from multiple senders, shuffle them, and then send them
-  back out in random order [02].
+- **Mix nodes**: the proxy servers that make up the mixnet. They receive messages from multiple senders, shuffle them, and then send them back out in
+  random order [02].
 
 - **Layered encryption**: a technique where a message is wrapped in successive layers of encryption. Each intermediary node (or hop) can only decrypt
   its corresponding layer, revealing the next destination in the path [02, 05].
 
 - **Metadata**: data that provides information about other data. In the context of mixnets, this includes things such as the sender's and
-  destination's IP addresses, the size of the message, and the time it was sent or received. Mixnets work to shuffle this metadata to protect
-  user privacy [02, 07].
+  destination's IP addresses, the size of the message, and the time it was sent or received. Mixnets work to shuffle this metadata to protect user
+  privacy [02, 07].
 
 - **Onion routing**: a technique for anonymous communication over a network. It involves encrypting messages in layers, analogous to the layers of an
   onion, which are then routed through a series of network nodes [05].

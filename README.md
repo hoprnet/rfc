@@ -44,4 +44,5 @@ associated assets such as images, diagrams, and relevant files within each RFC r
 
 ## Contributing to RFCs
 
-The process of contributing RFC is detailed in the `./rfcs/RFC-0001-rfc-process/` and the template to start a new one is in the  `./templates/rfc-template.md`
+The process of contributing RFC is detailed in the `./rfcs/RFC-0001-rfc-process/` and the template to start a new one is in the
+`./templates/rfc-template.md`
