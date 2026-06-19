@@ -6,11 +6,12 @@
 - **Author(s):** Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-03-19
 - **Updated:** 2026-06-19
-- **Version:** v1.0.1 (Finalised)
+- **Version:** v1.1.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
   [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md), [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md),
-  [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
+  [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md),
+  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)
 
 ## 1. Abstract
 
@@ -54,7 +55,7 @@ The HOPR packet consists of two primary parts:
 These two parts are concatenated to form the complete HOPR packet, which has a fixed size regardless of the actual payload length to prevent traffic
 analysis based on packet size. This fixed size is achieved by padding payloads which fall below the maximum size in bytes.
 
-**This document describes version 1.0.1 of the HOPR packet format and protocol.**
+**This document describes version 1.1.0 of the HOPR packet format and protocol.**
 
 ### 2.1. Conventions and terminology
 
@@ -355,6 +356,7 @@ Let the extended return path be a list of `Phop_i` and `Psrc` (for i = 1 .. N). 
 - public key identifier of the first return path hop
 - `PoRValues`
 - `Alpha` value (for the return path)
+- optional recipient data for extension protocols
 
 ```
 SURB {
@@ -363,8 +365,14 @@ SURB {
   sender_key: [u8; <variable length>]
   first_hop_ident: [u8; <variable length>]
   por_values: PoRValues
+  recipient_data_len: u16
+  recipient_data: [u8; recipient_data_len]
 }
 ```
+
+The `recipient_data_len` field MUST use big-endian encoding. Ordinary SURBs MUST set `recipient_data_len` to `0` and omit `recipient_data`. Extension
+protocols MAY set `recipient_data_len` to a non-zero value and place opaque recipient data after `PoRValues`. The packet recipient MAY interpret this
+data according to the active upper-layer protocol; relay nodes MUST treat it as part of the SURB payload and MUST NOT inspect or modify it.
 
 The corresponding `ReplyOpener` MUST consist of:
 
@@ -663,7 +671,9 @@ The current version is instantiated using the following cryptographic primitives
 
 ## 7. Update Log
 
-- v1.0.1 (2026-06-19): Corrected spelling to use British English.
+- **v1.1.0 (2026-06-19):** Defines the length-prefixed SURB `recipient_data` extension for upper-layer protocols, including PIX
+  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md), and records RFC-0012 as a related RFC.
+- **v1.0.0:** Initial finalised HOPR packet format and protocol.
 
 ## 8. References
 
@@ -679,5 +689,5 @@ _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 [05] Anderson, R., & Biham, E. (1996). Two practical and provably secure block ciphers: BEAR and LION. _In International Workshop on Fast Software
 Encryption (pp. 113-120). Berlin, Heidelberg: Springer Berlin Heidelberg._
 
-[06] Connor, J., Aumasson, J.-P., Neves, S., & Wilcox-O’Hearn, Z. (2021).
-[BLAKE 3 one function, fast everywhere](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf)
+[06] BLAKE3 Team. (2021). [BLAKE3 one function, fast everywhere](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf). _BLAKE3
+specification_.
