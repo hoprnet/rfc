@@ -5,32 +5,33 @@
 - **Status:** Finalised
 - **Author(s):** Tino Breddin (@tolbrino)
 - **Created:** 2025-08-14
-- **Updated:** 2025-10-27
-- **Version:** v1.0.0 (Finalised)
+- **Updated:** 2026-06-19
+- **Version:** v1.0.1 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
 
 ## 1. Abstract
 
-This RFC describes the HOPR mixer component, a critical element of the HOPR mixnet that introduces temporal mixing to break timing correlations between
-incoming and outgoing packets. By applying random delays to packets, the mixer effectively destroys temporal patterns that could otherwise be exploited
-for traffic analysis attacks. This specification details the mixer's design, implementation requirements, and integration points to enable consistent
-implementations across different HOPR nodes whilst balancing anonymity protection against latency and throughput requirements.
+This RFC describes the HOPR mixer component, a critical element of the HOPR mixnet that introduces temporal mixing to break timing correlations
+between incoming and outgoing packets. By applying random delays to packets, the mixer effectively destroys temporal patterns that could otherwise be
+exploited for traffic analysis attacks. This specification details the mixer's design, implementation requirements, and integration points to enable
+consistent implementations across different HOPR nodes whilst balancing anonymity protection against latency and throughput requirements.
 
 ## 2. Motivation
 
-In mixnets, simply forwarding packets through multiple hops is insufficient to prevent traffic analysis attacks. Even with encrypted packet contents and
-obscured routing paths, adversaries can correlate packets by observing timing patterns. An observer monitoring network traffic at multiple points can
-potentially link incoming and outgoing packets based on their arrival and departure times. This technique is known as timing correlation or an intersection attack.
+In mixnets, simply forwarding packets through multiple hops is insufficient to prevent traffic analysis attacks. Even with encrypted packet contents
+and obscured routing paths, adversaries can correlate packets by observing timing patterns. An observer monitoring network traffic at multiple points
+can potentially link incoming and outgoing packets based on their arrival and departure times. This technique is known as timing correlation or an
+intersection attack.
 
-Without temporal mixing, an adversary who observes a packet arriving at node A at time `t₁` and a packet leaving node A at time `t₂ ≈ t₁` can infer with
-high probability that these packets are the same, thus tracking packets through the network and potentially deanonymising communications.
+Without temporal mixing, an adversary who observes a packet arriving at node A at time `t₁` and a packet leaving node A at time `t₂ ≈ t₁` can infer
+with high probability that these packets are the same, thus tracking packets through the network and potentially deanonymising communications.
 
 The HOPR mixer addresses this attack vector by:
 
-- **breaking temporal correlations**: introducing random delays between packet arrival and departure times, making timing-based correlation significantly
-  more difficult
+- **breaking temporal correlations**: introducing random delays between packet arrival and departure times, making timing-based correlation
+  significantly more difficult
 - **configurable privacy-latency trade-offs**: providing tunable delay parameters to balance anonymity protection against performance requirements
 - **efficient implementation**: using a priority queue that maintains packet ordering by release time, enabling `O(log n)` operations
 - **high-throughput support**: maintaining mixing effectiveness even under high packet rates
@@ -40,8 +41,9 @@ The HOPR mixer addresses this attack vector by:
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01] when, and only when, they appear in all capitals, as shown here.
 
-All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
-across the HOPR RFC series. 
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in
+[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and
+conventions adopted across the HOPR RFC series.
 
 Additional mixer-specific terms include:
 
@@ -91,8 +93,9 @@ To generate a satisfactory random delay, the following conditions MUST be met:
 - SHOULD use uniform distribution as the baseline; other distributions (e.g., exponential, Poisson) MAY be supported via configuration
 - MUST NOT leak information about delay values through timing side channels
 
-Different mixing strategies produce different results. A uniform distribution will provide a simple baseline that is easy to implement and analyse. More advanced strategies like Poisson mixing (as used in Loopix [02]) can provide stronger anonymity properties by making packet timings less distinguishable from cover traffic
-patterns, but require careful parameter tuning and integration with cover traffic generation.
+Different mixing strategies produce different results. A uniform distribution will provide a simple baseline that is easy to implement and analyse.
+More advanced strategies like Poisson mixing (as used in Loopix [02]) can provide stronger anonymity properties by making packet timings less
+distinguishable from cover traffic patterns, but require careful parameter tuning and integration with cover traffic generation.
 
 #### 4.3.2. Mixing buffer
 
@@ -225,10 +228,15 @@ implement and analyse.
 
 ## 10. Future Work
 
-- **poisson mixing implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as described in Loopix [02] to provide stronger anonymity properties when combined with cover traffic
-- Performance optimizations for hardware acceleration
+- **poisson mixing implementation**: Implement Poisson mixing (exponentially distributed per-packet delays derived from a Poisson process) as
+  described in Loopix [02] to provide stronger anonymity properties when combined with cover traffic
+- Performance optimisations for hardware acceleration
 
-## 11. References
+## 11. Update Log
+
+- v1.0.1 (2026-06-19): Corrected spelling to use British English.
+
+## 12. References
 
 [01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
 
