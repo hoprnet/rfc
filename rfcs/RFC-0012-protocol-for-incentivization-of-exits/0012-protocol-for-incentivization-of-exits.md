@@ -667,3 +667,31 @@ The following behaviours are implementation choices of the HOPR instantiation, i
 - **Early recovery threshold.** The Exit initiates `SSA_Agreement_(i+1)` once 85% of the `m` polynomials of `SSA_i` have been recovered.
 - **Commitment lifetimes.** An incomplete `EntryCommitment_i` is discarded after 2 minutes, and an SSA's reconstruction state - its constant-term
   commitments and collected shares - after 30 minutes without an acknowledged share for any of its polynomials.
+
+# Appendix 3
+
+The privacy pool `W` (Section 2.2) MAY be realised by the Curvy protocol, with the curve `C` (Section 2.1) selected as the BabyJubJub curve, as in
+Appendix 1.
+
+The Curvy protocol maintains a shielded notes aggregator into which funds are deposited. Each deposit is transformed into a shielded note carrying the
+deposited `Amount`, a token identifier, and owner information, and is represented on-chain solely as an opaque commitment, so that no information
+about the note is disclosed. This realises the `Deposit(Amount) -> Deposit_Handle` operation of Section 2.2, with the resulting shielded note (and its
+proof of inclusion in the aggregator) acting as the `Deposit_Handle`. Curvy employs zero-knowledge proofs to verifiably include notes in the
+aggregator, to aggregate or split funds across notes, and to withdraw funds to a destination address. The destination of a withdrawal is unlinkable to
+the sender of the original deposit transaction; `W` therefore satisfies the requirement of Section 2.2 that the anonymity of the depositor and the
+allocator MUST be ensured towards the withdrawer.
+
+The Exit reconstructs the private key of the `SSA` from the recovered shares (Section 2.3.6) and uses it to authorise the corresponding `Withdraw`.
+Under the secp256k1 alternative of Appendix 1 this is highly inefficient inside zero-knowledge proofs and can render timely withdrawals infeasible.
+Selecting `C` as the BabyJubJub curve avoids this, as BabyJubJub is efficient to operate on within zero-knowledge proofs and is compatible with the
+Curvy protocol.
+
+The `SSA` public keys are derived on BabyJubJub in the same manner as on secp256k1 (Section 2.3). Incentives are assigned, via the
+`Allocate(Amount, Deposit_Handle, Address)` operation of Section 2.2, to shielded notes owned by the derived stealth public keys, where each `Address`
+is an `SSA` on BabyJubJub. The BabyJubJub public key of the Exit that is conveyed to the Entry in the deposit data of `SsaRequest` (Appendix 2) is
+ephemeral and need not be stored anywhere. Likewise, every derived `SSA` public key is ephemeral and MUST be considered valid for a single note only.
+
+Having recovered the corresponding `SSA_Priv_i` (Section 2.3.6), the Exit can produce the proof-of-possession `PkPoP_SSA_i` for the stealth private
+key and MAY then collect the allocation of an individual note or aggregate the allocations of several shielded notes within a single transaction. The
+resulting funds MAY remain within the shielded aggregator or be withdrawn to an externally owned account (EOA) by means of the
+`Withdraw(Address, PkPoP_Address, WithdrawalAddress)` operation of Section 2.2, with the chosen EOA supplied as the `WithdrawalAddress`.
