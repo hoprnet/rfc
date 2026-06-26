@@ -37,7 +37,7 @@
       "tools": ["xelatex"]
     },
     {
-      "name": "lualatex", 
+      "name": "lualatex",
       "tools": ["lualatex"]
     },
     {

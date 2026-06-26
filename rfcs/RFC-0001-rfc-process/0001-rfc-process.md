@@ -12,20 +12,20 @@
 
 ## 1. Abstract
 
-This RFC defines the lifecycle, contribution process, versioning system, governance model, and document structure for RFCs within the HOPR
-project. It specifies the stages RFCs progress through, along with the naming conventions, validation rules, and formatting standards that
-MUST be followed to ensure consistency and clarity across all RFC submissions. The process ensures iterative development with feedback loops,
-transparent updates via pull requests (PRs), and clear criteria for advancing through each stage.
+This RFC defines the lifecycle, contribution process, versioning system, governance model, and document structure for RFCs within the HOPR project. It
+specifies the stages RFCs progress through, along with the naming conventions, validation rules, and formatting standards that MUST be followed to
+ensure consistency and clarity across all RFC submissions. The process ensures iterative development with feedback loops, transparent updates via pull
+requests (PRs), and clear criteria for advancing through each stage.
 
 ## 2. Motivation
 
-The HOPR project requires a clear and consistent process for managing technical proposals and documenting protocol architecture. A
-well-defined lifecycle MUST be established and upheld to maintain coherence, ensure quality, streamline development, and provide clear
-expectations for contributors. This process serves multiple purposes:
+The HOPR project requires a clear and consistent process for managing technical proposals and documenting protocol architecture. A well-defined
+lifecycle MUST be established and upheld to maintain coherence, ensure quality, streamline development, and provide clear expectations for
+contributors. This process serves multiple purposes:
 
 - **Quality assurance**: ensuring that RFCs undergo appropriate review and refinement before implementation
 - **Transparency**: making the development process visible and accessible to all stakeholders
-- **Version control**: tracking changes and maintaining compatibility across protocol versions  
+- **Version control**: tracking changes and maintaining compatibility across protocol versions
 - **Coordination**: allowing multiple contributors to work on related RFCs without conflicts or inconsistencies
 
 ## 3. Terminology
@@ -33,8 +33,9 @@ expectations for contributors. This process serves multiple purposes:
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [01].
 
-All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
-across the HOPR RFC series.
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in
+[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and
+conventions adopted across the HOPR RFC series.
 
 In addition, the following term is defined for use within this document:
 
@@ -82,8 +83,7 @@ graph TD
 
 #### 4.1.2. Stage Descriptions
 
-- **Raw:** The RFC MUST begin as a raw draft reflecting initial ideas. The draft MAY contain incomplete details but MUST provide a clear
-  objective.
+- **Raw:** The RFC MUST begin as a raw draft reflecting initial ideas. The draft MAY contain incomplete details but MUST provide a clear objective.
 - **Discussion:** Upon submission of the initial PR, the RFC number and `v0.1.0` version are assigned. Feedback SHALL be gathered via PRs, with
   iterative updates reflected in version increments `(v0.x.x)`.
 - **Review:** The RFC MUST undergo at least one review cycle. The draft SHOULD incorporate significant feedback and each iteration MUST be
@@ -94,8 +94,8 @@ graph TD
 - **Errata:** Minor technical corrections post-finalisation MUST be documented and result in a patch version increment (`v1.0.x`). Errata are
   technical corrections or factual updates made after an RFC has been finalised. They MUST NOT alter the intended functionality or introduce new
   features.
-- **Superseded:** Significant updates requiring functionality changes MUST be documented in a new RFC, starting at `v2.0.0` or higher. The
-  original RFC must include information that it has been superseded, accompanied by a link to the new RFC that supersedes it.
+- **Superseded:** Significant updates requiring functionality changes MUST be documented in a new RFC, starting at `v2.0.0` or higher. The original
+  RFC must include information that it has been superseded, accompanied by a link to the new RFC that supersedes it.
 - **Rejected:** If an RFC does not progress past the discussion stage, the reasons MUST be documented.
 
 ### 4.2. File Structure
@@ -187,11 +187,13 @@ All RFCs MUST follow consistent terminology formatting to ensure clarity and pro
 - **Consistency**: Apply the same formatting throughout each RFC and across all RFCs
 
 Examples:
+
 - **Node**: a process that implements the HOPR protocol and participates in the mixnet
 - **Relay node**: a node that forwards messages from one node to another in the mixnet
 - **Session protocol**: the protocol layer that provides reliable message delivery over HOPR packets
 
 Incorrect examples:
+
 - _Node_: (should use bold instead of italics)
 - **Node**: (should capitalise first word)
 - **Node** (should include colon)
