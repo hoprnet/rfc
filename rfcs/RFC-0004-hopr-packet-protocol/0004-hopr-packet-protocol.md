@@ -5,8 +5,8 @@
 - **Status:** Finalised
 - **Author(s):** Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-03-19
-- **Updated:** 2025-10-27
-- **Version:** v1.0.0 (Finalised)
+- **Updated:** 2026-06-19
+- **Version:** v1.0.1 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
   [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md), [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md),
@@ -15,8 +15,8 @@
 ## 1. Abstract
 
 This RFC describes the wire format of a HOPR packet and its encoding and decoding protocols. The HOPR packet format is heavily based on the Sphinx
-packet format [01], as it aims to fulfill a similar set of goals: providing anonymous, indistinguishable packets that hide path length and ensure
-unlinkability of messages. The HOPR packet format extends Sphinx by adding information to support incentivisation of individual relay nodes through 
+packet format [01], as it aims to fulfil a similar set of goals: providing anonymous, indistinguishable packets that hide path length and ensure
+unlinkability of messages. The HOPR packet format extends Sphinx by adding information to support incentivisation of individual relay nodes through
 the Proof of Relay mechanism.
 
 The Proof of Relay (PoR) mechanism is described in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md). This RFC focuses on the packet
@@ -24,8 +24,8 @@ structure and cryptographic operations required for packet creation, forwarding,
 
 ## 2. Introduction
 
-The HOPR packet format is the fundamental building block of the HOPR protocol, enabling the construction of the HOPR mix network. The format is designed to
-create indistinguishable packets sent between source and destination through a set of relay nodes, as defined in
+The HOPR packet format is the fundamental building block of the HOPR protocol, enabling the construction of the HOPR mix network. The format is
+designed to create indistinguishable packets sent between source and destination through a set of relay nodes, as defined in
 [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), thereby achieving unlinkability of messages between sender and destination.
 
 In the HOPR protocol, relay nodes SHOULD perform packet mixing as described in [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md) to provide
@@ -40,46 +40,50 @@ optimised to minimise overhead and maximise payload capacity within the fixed pa
 
 The HOPR packet consists of two primary parts:
 
-1. **Meta packet** (also called the **Sphinx packet**): carries the routing information for the selected path and the encrypted payload. The meta packet
-   includes:
+1. **Meta packet** (also called the **Sphinx packet**): carries the routing information for the selected path and the encrypted payload. The meta
+   packet includes:
    - An `Alpha` value (ephemeral public key) for establishing shared secrets
    - A `Header` containing routing information and per-hop instructions
    - An encrypted payload (`EncPayload`) containing the actual message data
-   
+
    The meta packet structure and processing are described in detail in sections 3 and 5 of this RFC.
 
-2. **Ticket**: contains payment and proof-of-relay information for the next hop on the path. The ticket structure enables probabilistic micropayments to
-   incentivise relay nodes. Tickets are described in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md).
+2. **Ticket**: contains payment and proof-of-relay information for the next hop on the path. The ticket structure enables probabilistic micropayments
+   to incentivise relay nodes. Tickets are described in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md).
 
-These two parts are concatenated to form the complete HOPR packet, which has a fixed size regardless of the actual payload length to prevent traffic analysis based on packet size. This fixed size is achieved by padding payloads which fall below the maximum size in bytes.
+These two parts are concatenated to form the complete HOPR packet, which has a fixed size regardless of the actual payload length to prevent traffic
+analysis based on packet size. This fixed size is achieved by padding payloads which fall below the maximum size in bytes.
 
-**This document describes version 1.0.0 of the HOPR packet format and protocol.**
+**This document describes version 1.0.1 of the HOPR packet format and protocol.**
 
 ### 2.1. Conventions and terminology
 
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
 to be interpreted as described in [02] when, and only when, they appear in all capitals, as shown here.
 
-All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and conventions adopted 
-across the HOPR RFC series. Additionally, the following packet-protocol-specific terms are defined:
+All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in
+[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and
+conventions adopted across the HOPR RFC series. Additionally, the following packet-protocol-specific terms are defined:
 
 **Peer public/private key** (also **pubkey** or **privkey**): part of a cryptographic key pair owned by a peer. The public key is used to establish
 shared secrets for onion encryption, whilst the private key is kept secret and used to decrypt packets destined for that peer.
 
 **Extended path**: a forward or return path that includes the final destination or original sender respectively. For a forward path of `N` hops, the
-extended path contains `N` relay nodes plus the destination node (`N+1` nodes total). For a return path, it contains `N` relay nodes plus the original sender.
+extended path contains `N` relay nodes plus the destination node (`N+1` nodes total). For a return path, it contains `N` relay nodes plus the original
+sender.
 
-**Pseudonym**: a randomly generated identifier of the sender used to enable reply messages. The pseudonym MAY be prefixed with a static prefix to allow
-the sender to be identified across multiple messages whilst maintaining anonymity. The length of any static prefix MUST NOT exceed half of the entire
-pseudonym's size. The pseudonym used in the forward message MUST be identical to the pseudonym used in any reply message to enable proper routing.
+**Pseudonym**: a randomly generated identifier of the sender used to enable reply messages. The pseudonym MAY be prefixed with a static prefix to
+allow the sender to be identified across multiple messages whilst maintaining anonymity. The length of any static prefix MUST NOT exceed half of the
+entire pseudonym's size. The pseudonym used in the forward message MUST be identical to the pseudonym used in any reply message to enable proper
+routing.
 
 **Public key identifier**: a compact identifier of each peer's public key. The size of such an identifier SHOULD be strictly smaller than the size of
 the corresponding public key to reduce header overhead. Implementations MAY use truncated hashes of public keys as identifiers.
 
 **|x|**: denotes the binary representation length of `x` in bytes. This notation is used throughout the specification to indicate field sizes.
 
-If character strings (delimited via double-quotes, such as `"xyz-abc-123"`) are used in place of byte strings, their ASCII single-byte encoding is assumed. 
-Non-ASCII character strings are not used throughout this document.
+If character strings (delimited via double-quotes, such as `"xyz-abc-123"`) are used in place of byte strings, their ASCII single-byte encoding is
+assumed. Non-ASCII character strings are not used throughout this document.
 
 ### 2.2. Global packet format parameters
 
@@ -285,7 +289,8 @@ Header {
 The packet payload consists of the User payload given at the beginning of section 2. However, if any non-zero number of return paths has been given as
 well, the packet payload MUST consist of that many Single Use Reply Blocks (SURBs) that are prepended to the User payload.
 
-The total size of the packet payload MUST not exceed `PacketMax` bytes, and therefore the size of the User payload and the number of SURBs are bounded.
+The total size of the packet payload MUST not exceed `PacketMax` bytes, and therefore the size of the User payload and the number of SURBs are
+bounded.
 
 A packet MAY only contain SURBs and no User payload. There MUST NOT be more than 15 SURBs in a single packet. The packet MAY contain additional packet
 signals for the recipient, typically the upper 4 bits of the SURB count field MAY serve this purpose.
@@ -318,8 +323,8 @@ return path from the recipient back to the sender.
 
 The process of generating a single SURB is very similar to the process of creating the forward packet header.
 
-As the `SURB` is sent to the packet recipient, it also has its counterpart, called `ReplyOpener`. The `ReplyOpener` is generated alongside the SURB and is
-stored at the sender (indexed by its pseudonym) and used later to decrypt the reply packet delivered to the sender using the associated SURB.
+As the `SURB` is sent to the packet recipient, it also has its counterpart, called `ReplyOpener`. The `ReplyOpener` is generated alongside the SURB
+and is stored at the sender (indexed by its pseudonym) and used later to decrypt the reply packet delivered to the sender using the associated SURB.
 
 Both the `SURB` and the `ReplyOpener` are always bound to the chosen sender pseudonym.
 
@@ -424,13 +429,13 @@ HOPR_Packet {
 
 The packet is then sent to the peer represented by the first public key of the forward path.
 
-Note that the size of the packet is exactly `|HOPR_Packet| = |Alpha| + |Header| + |PacketMax| + |PaddingTag| + |ticket|`. It can also be referred to as
-the size of the logical meta packet plus `|ticket|`.
+Note that the size of the packet is exactly `|HOPR_Packet| = |Alpha| + |Header| + |PacketMax| + |PaddingTag| + |ticket|`. It can also be referred to
+as the size of the logical meta packet plus `|ticket|`.
 
 ## 4. Reply packet creation
 
-Upon receiving a forward packet, the forward packet recipient SHOULD create a reply packet using one of the SURBs. This is possible only if the recipient
-received a SURB (with this or any previous forward packets) from an equal pseudonym.
+Upon receiving a forward packet, the forward packet recipient SHOULD create a reply packet using one of the SURBs. This is possible only if the
+recipient received a SURB (with this or any previous forward packets) from an equal pseudonym.
 
 The recipient MAY use any SURB with the same pseudonym; however, in such a case the SURBs MUST be used in the reverse order in which they were
 received.
@@ -489,9 +494,9 @@ The `PaddedPayload` of the reply packet MUST be encrypted as follows:
 EncPayload = PRP(Kprp_reply, PaddedPayload)
 ```
 
-This finalises all the fields of the `HOPR_Packet` for the reply. The `HOPR_Packet` is sent to the peer represented by a public key, corresponding
-to `first_hop_ident` extracted from the `SURB` (that is the first peer on the return path). For this operation, the mapper MAY be used to get the
-actual public key to route the packet.
+This finalises all the fields of the `HOPR_Packet` for the reply. The `HOPR_Packet` is sent to the peer represented by a public key, corresponding to
+`first_hop_ident` extracted from the `SURB` (that is the first peer on the return path). For this operation, the mapper MAY be used to get the actual
+public key to route the packet.
 
 ## 5. Packet processing
 
@@ -517,8 +522,8 @@ To recover the `SharedSecret_i`, the `Alpha` value MUST be transformed using the
 
 Similarly, as in section 3.2, the `B_i` in step 3 MAY be additionally transformed so that it conforms to a valid field scalar usable in step 4.
 
-Should the process fail in any of these steps (due to invalid EC point or field scalar), the process MUST terminate with an error and the entire packet
-MUST be rejected.
+Should the process fail in any of these steps (due to invalid EC point or field scalar), the process MUST terminate with an error and the entire
+packet MUST be rejected.
 
 Also derive the `ReplayTag` = KDF("HASH_KEY_PACKET_TAG", `SharedSecret_i`). Verify that `ReplayTag` has not yet been seen by this node, and if yes,
 the packet MUST be rejected.
@@ -636,8 +641,8 @@ The acknowledgement of the successfully processed packet is created as per [RFC-
 `SharedKey_i+1_ack` = `HS(SharedSecret_i, "HASH_ACK_KEY")`. The `SharedKey_i+1_ack` is the scalar in the field of the elliptic curve chosen in
 [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md). The acknowledgement is sent back to the previous hop.
 
-This is done by creating and sending a standard forward packet directly to the node the original packet was received from. The `NoAckFlag` on this packet
-MUST be set. The `user_payload` of the packet contains the encoded `Acknowledgement` structure as defined in
+This is done by creating and sending a standard forward packet directly to the node the original packet was received from. The `NoAckFlag` on this
+packet MUST be set. The `user_payload` of the packet contains the encoded `Acknowledgement` structure as defined in
 [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md). The `num_surbs` of this packet MUST be set to 0.
 
 If the packet processing was not successful at any point, a random acknowledgement MUST be generated (as defined in
@@ -656,7 +661,11 @@ The current version is instantiated using the following cryptographic primitives
 - HS is instantiated via `hash_to_field` using `secp256k1_XMD:SHA3-256_SSWU_RO_` as defined in [04]. `S` is used a the secret input, and `T` as an
   additional domain separator.
 
-## 7. References
+## 7. Update Log
+
+- v1.0.1 (2026-06-19): Corrected spelling to use British English.
+
+## 8. References
 
 [01] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf).
 _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
@@ -670,4 +679,5 @@ _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 [05] Anderson, R., & Biham, E. (1996). Two practical and provably secure block ciphers: BEAR and LION. _In International Workshop on Fast Software
 Encryption (pp. 113-120). Berlin, Heidelberg: Springer Berlin Heidelberg._
 
-[06] Connor, J., Aumasson, J.-P., Neves, S., & Wilcox-O’Hearn, Z. (2021). [BLAKE 3 one function, fast everywhere](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf)
+[06] Connor, J., Aumasson, J.-P., Neves, S., & Wilcox-O’Hearn, Z. (2021).
+[BLAKE 3 one function, fast everywhere](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf)
