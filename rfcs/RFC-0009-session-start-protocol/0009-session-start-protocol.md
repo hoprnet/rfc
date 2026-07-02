@@ -5,12 +5,13 @@
 - **Status:** Finalised
 - **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-20
-- **Updated:** 2025-10-27
-- **Version:** v1.0.0 (Finalised)
+- **Updated:** 2026-07-02
+- **Version:** v1.1.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
-  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
+  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md),
+  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)
 
 ## 1. Abstract
 
@@ -76,13 +77,16 @@ conventions adopted across the HOPR RFC series. Additionally, this document defi
 
 ### 4.1 Protocol Overview
 
-The session start protocol operates at version 2 and defines four message types that manage the complete lifecycle of session establishment and
+The session start protocol operates at version 2 and defines six message types that manage the complete lifecycle of session establishment and
 maintenance:
 
 1. **StartSession**: Initiates a new session, carrying the challenge, target endpoint, and capability flags.
 2. **SessionEstablished**: Confirms successful session establishment, returning the original challenge and newly assigned session ID.
 3. **SessionError**: Reports session establishment failure with a specific error code and the original challenge for correlation.
 4. **KeepAlive**: Maintains session liveness by periodically signalling that the session is still active.
+5. **PixExitCommitmentRequest**: Sent by the Exit node; carries the Exit's PIX commitment and agreement parameters, requesting the Entry's commitments
+   in return.
+6. **PixEntryCommitment**: Sent by the Entry node; carries the Entry's PIX polynomial coefficient commitments.
 
 The protocol uses HOPR packets as the underlying transport mechanism and supports both successful and failed session establishment scenarios. All
 multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures and
@@ -112,12 +116,14 @@ title "Common Message Format"
 
 #### 4.2.1 Message Types
 
-| Type Code | Name               | Description                           |
-| --------- | ------------------ | ------------------------------------- |
-| `0x00`    | StartSession       | Initiates a new session               |
-| `0x01`    | SessionEstablished | Confirms session establishment        |
-| `0x02`    | SessionError       | Reports session establishment failure |
-| `0x03`    | KeepAlive          | Maintains session liveness            |
+| Type Code | Name                     | Description                                                                                                                                                                                |
+| --------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `0x00`    | StartSession             | Initiates a new session                                                                                                                                                                    |
+| `0x01`    | SessionEstablished       | Confirms session establishment                                                                                                                                                             |
+| `0x02`    | SessionError             | Reports session establishment failure                                                                                                                                                      |
+| `0x03`    | KeepAlive                | Maintains session liveness                                                                                                                                                                 |
+| `0x04`    | PixExitCommitmentRequest | Carries the Exit's PIX commitment and agreement parameters; payload defined in [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md) |
+| `0x05`    | PixEntryCommitment       | Carries the Entry's PIX coefficient commitments; payload defined in [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)            |
 
 #### 4.2.2 Byte Order
 
@@ -504,7 +510,12 @@ The prefix (`0xabcdefabcdefabcdefab`) represents a fixed pseudonym prefix in the
 [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)). The suffix (`123456`) represents an application tag that identifies
 sessions within the reserved range in the application protocol ([RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)).
 
-## 11. References
+## 11. Update Log
+
+- **v1.1.0 (2026-07-02):** Reserves Session Start message codes `0x04` and `0x05` for PIX commitment exchange and records RFC-0012 as a related RFC.
+- **v1.0.0:** Initial finalised Session Start protocol.
+
+## 12. References
 
 [01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
 
