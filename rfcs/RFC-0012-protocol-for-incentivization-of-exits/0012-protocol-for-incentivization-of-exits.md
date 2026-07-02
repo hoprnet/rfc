@@ -5,8 +5,8 @@
 - **Status:** Draft
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
 - **Created:** 2025-03-28
-- **Updated:** 2026-06-19
-- **Version:** v0.4.0 (Draft)
+- **Updated:** 2026-07-02
+- **Version:** v0.4.1 (Draft)
 - **Supersedes:** none
 - **Related Links:** [RFC-0001](../RFC-0001-rfc-process/0001-rfc-process.md), [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md), [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md),
@@ -69,9 +69,9 @@ PIX is defined between three entities:
 2. Exit node `B`, also called the Server.
 3. Privacy pool `W`, which receives deposits, creates allocations, and validates withdrawals.
 
-The forward and return paths between `A` and `B` SHOULD each contain at least one relay. Per
-[RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), acknowledgements on 0-hop paths MAY be omitted, so PIX cannot rely on 0-hop
-reply paths.
+The forward and return paths between `A` and `B` SHOULD each contain at least one relay. PIX cannot rely on 0-hop reply paths: `ack_secret` is
+disclosed by the first return-path relayer, as defined in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md), and on a 0-hop reply path the
+acknowledging party is the Entry itself, so its acknowledgement is not independent proof of handover.
 
 ### 4.2 Privacy Pool Operations
 
@@ -266,7 +266,7 @@ semantics before PIX can be implemented end to end.
 
 The current HOPR PIX instantiation uses:
 
-- `C`: `secp256k1`, with `F` as its scalar field.
+- `C`: `secp256k1` [05], with `F` as its scalar field.
 - `H`: `BLAKE3-256`.
 - `E/D`: `ChaCha20` [03].
 - `KDF`: `BLAKE3` derive-key mode [04], with optional salt prepended to the key material: `KDF(c, k, s) = blake3_kdf(c, s || k)`. If `s` is omitted,

@@ -5,7 +5,7 @@
 - **Status:** Finalised
 - **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-20
-- **Updated:** 2026-06-19
+- **Updated:** 2026-07-02
 - **Version:** v1.1.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
@@ -84,8 +84,9 @@ maintenance:
 2. **SessionEstablished**: Confirms successful session establishment, returning the original challenge and newly assigned session ID.
 3. **SessionError**: Reports session establishment failure with a specific error code and the original challenge for correlation.
 4. **KeepAlive**: Maintains session liveness by periodically signalling that the session is still active.
-5. **PixExitCommitmentRequest**: Requests a PIX exit commitment.
-6. **PixEntryCommitment**: Carries a PIX entry commitment.
+5. **PixExitCommitmentRequest**: Sent by the Exit node; carries the Exit's PIX commitment and agreement parameters, requesting the Entry's commitments
+   in return.
+6. **PixEntryCommitment**: Sent by the Entry node; carries the Entry's PIX polynomial coefficient commitments.
 
 The protocol uses HOPR packets as the underlying transport mechanism and supports both successful and failed session establishment scenarios. All
 multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures and
@@ -115,14 +116,14 @@ title "Common Message Format"
 
 #### 4.2.1 Message Types
 
-| Type Code | Name                     | Description                                                                                                                                                    |
-| --------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `0x00`    | StartSession             | Initiates a new session                                                                                                                                        |
-| `0x01`    | SessionEstablished       | Confirms session establishment                                                                                                                                 |
-| `0x02`    | SessionError             | Reports session establishment failure                                                                                                                          |
-| `0x03`    | KeepAlive                | Maintains session liveness                                                                                                                                     |
-| `0x04`    | PixExitCommitmentRequest | Requests a PIX exit commitment; payload defined in [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md) |
-| `0x05`    | PixEntryCommitment       | Carries a PIX entry commitment; payload defined in [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md) |
+| Type Code | Name                     | Description                                                                                                                                                                                |
+| --------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `0x00`    | StartSession             | Initiates a new session                                                                                                                                                                    |
+| `0x01`    | SessionEstablished       | Confirms session establishment                                                                                                                                                             |
+| `0x02`    | SessionError             | Reports session establishment failure                                                                                                                                                      |
+| `0x03`    | KeepAlive                | Maintains session liveness                                                                                                                                                                 |
+| `0x04`    | PixExitCommitmentRequest | Carries the Exit's PIX commitment and agreement parameters; payload defined in [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md) |
+| `0x05`    | PixEntryCommitment       | Carries the Entry's PIX coefficient commitments; payload defined in [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)            |
 
 #### 4.2.2 Byte Order
 
@@ -511,7 +512,7 @@ sessions within the reserved range in the application protocol ([RFC-0011](../RF
 
 ## 11. Update Log
 
-- **v1.1.0 (2026-06-19):** Reserves Session Start message codes `0x04` and `0x05` for PIX commitment exchange and records RFC-0012 as a related RFC.
+- **v1.1.0 (2026-07-02):** Reserves Session Start message codes `0x04` and `0x05` for PIX commitment exchange and records RFC-0012 as a related RFC.
 - **v1.0.0:** Initial finalised Session Start protocol.
 
 ## 12. References

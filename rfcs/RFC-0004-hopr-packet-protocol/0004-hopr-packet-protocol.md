@@ -5,7 +5,7 @@
 - **Status:** Finalised
 - **Author(s):** Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-03-19
-- **Updated:** 2026-06-19
+- **Updated:** 2026-07-02
 - **Version:** v1.1.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
@@ -671,8 +671,10 @@ The current version is instantiated using the following cryptographic primitives
 
 ## 7. Update Log
 
-- **v1.1.0 (2026-06-19):** Defines the length-prefixed SURB `recipient_data` extension for upper-layer protocols, including PIX
-  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md), and records RFC-0012 as a related RFC.
+- **v1.1.0 (2026-07-02):** Defines the length-prefixed SURB `recipient_data` extension for upper-layer protocols, including PIX
+  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md), records RFC-0012 as a related RFC, and
+  updates the ChaCha20 reference to RFC 8439.
+- **v1.0.1 (2026-06-19):** Corrected spelling to use British English.
 - **v1.0.0:** Initial finalised HOPR packet format and protocol.
 
 ## 8. References
@@ -682,7 +684,7 @@ _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
 
 [02] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
 
-[03] Nir, Y., & Langley, A. (2015). [ChaCha20 and Poly1305 for IETF Protocols](https://www.rfc-editor.org/rfc/rfc7539.html). _IETF RFC 7539_.
+[03] Nir, Y., & Langley, A. (2018). [ChaCha20 and Poly1305 for IETF Protocols](https://www.rfc-editor.org/rfc/rfc8439.html). _IETF RFC 8439_.
 
 [04] Faz-Hernandez, A., et al. (2023). [Hashing to Elliptic Curves](https://www.rfc-editor.org/rfc/rfc9380.html). _IETF RFC 9380_.
 
