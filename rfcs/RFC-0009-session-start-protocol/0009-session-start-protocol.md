@@ -6,11 +6,11 @@
 - **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-20
 - **Updated:** 2025-10-27
-- **Version:** v1.0.0 (Finalised)
+- **Version:** v2.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
-  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
+  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md), [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)
 
 ## 1. Abstract
 
@@ -76,13 +76,15 @@ conventions adopted across the HOPR RFC series. Additionally, this document defi
 
 ### 4.1 Protocol Overview
 
-The session start protocol operates at version 2 and defines four message types that manage the complete lifecycle of session establishment and
+The session start protocol operates at version 3 and defines four message types that manage the complete lifecycle of session establishment and
 maintenance:
 
 1. **StartSession**: Initiates a new session, carrying the challenge, target endpoint, and capability flags.
-2. **SessionEstablished**: Confirms successful session establishment, returning the original challenge and newly assigned session ID.
+2. **SessionEstablished**: Confirms a successful session establishment, returning the original challenge and newly assigned session ID.
 3. **SessionError**: Reports session establishment failure with a specific error code and the original challenge for correlation.
-4. **KeepAlive**: Maintains session liveness by periodically signalling that the session is still active.
+4. **KeepAlive**: Maintains session liveness by periodically signaling that the session is still active.
+5. **SsaCommit**: Client's message to finalize the PIX agreement (`EntryCommitment_i` messages from RFC-0012).
+6. **SsaRequest**: Server's message to request the PIX agreement (`ExitCommitmentRequest_i` messages from RFC-0012).
 
 The protocol uses HOPR packets as the underlying transport mechanism and supports both successful and failed session establishment scenarios. All
 multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures and
@@ -112,12 +114,14 @@ title "Common Message Format"
 
 #### 4.2.1 Message Types
 
-| Type Code | Name               | Description                           |
-| --------- | ------------------ | ------------------------------------- |
-| `0x00`    | StartSession       | Initiates a new session               |
-| `0x01`    | SessionEstablished | Confirms session establishment        |
-| `0x02`    | SessionError       | Reports session establishment failure |
-| `0x03`    | KeepAlive          | Maintains session liveness            |
+| Type Code | Name               | Description                              |
+| --------- | ------------------ |------------------------------------------|
+| `0x00`    | StartSession       | Initiates a new session                  |
+| `0x01`    | SessionEstablished | Confirms session establishment           |
+| `0x02`    | SessionError       | Reports session establishment failure    |
+| `0x03`    | KeepAlive          | Maintains session liveness               |
+| `0x03`    | SsaCommit          | Client side message of the PIX agreement |
+| `0x03`    | SsaRequest         | Server side message of the PIX agreement |
 
 #### 4.2.2 Byte Order
 
@@ -152,10 +156,10 @@ title "StartSession Message"
 ```
 
 | Field               | Size     | Description                                | Notes                                                                 |
-| ------------------- | -------- | ------------------------------------------ | --------------------------------------------------------------------- |
+| ------------------- |----------| ------------------------------------------ | --------------------------------------------------------------------- |
 | **Challenge**       | 8 bytes  | Random challenge for correlating responses | MUST be generated using CSPRNG to prevent prediction                  |
 | **Capabilities**    | 1 byte   | Session capabilities bitmap                | See Capability Flags table; unrecognised bits SHOULD be ignored       |
-| **Additional Data** | 4 bytes  | Capability-dependent options               | Set to `0x00000000` if unused; interpretation depends on capabilities |
+| **Additional Data** | 8 bytes  | Capability-dependent options               | Set to `0x00000000` if unused; interpretation depends on capabilities |
 | **Target**          | Variable | CBOR-encoded session target                | Examples: `"127.0.0.1:1234"`, `"wss://relay.example.com:443"`         |
 
 #### 4.3.1 Capability Flags
