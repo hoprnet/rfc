@@ -10,7 +10,8 @@
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
-  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md), [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)
+  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md),
+  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)
 
 ## 1. Abstract
 
@@ -81,10 +82,11 @@ maintenance:
 
 1. **StartSession**: Initiates a new session, carrying the challenge, target endpoint, and capability flags.
 2. **SessionEstablished**: Confirms a successful session establishment, returning the original challenge and newly assigned session ID.
-3. **SsaCommit**: Client's message delivering coefficient commitments to establish Session Stealth Addresses (SSA) as part of the PIX incentivization exchange.
+3. **SsaCommit**: Client's message delivering coefficient commitments to establish Session Stealth Addresses (SSA) as part of the PIX incentivization
+   exchange.
 4. **SsaRequest**: Server's message delivering SSA commitments and PIX protocol parameters as part of the PIX incentivization exchange.
 5. **SessionError**: Reports session establishment failure with a specific error code and the original challenge for correlation.
-6. **KeepAlive**: Maintains session liveness by periodically signaling that the session is still active.
+6. **KeepAlive**: Maintains session liveness by periodically signalling that the session is still active.
 
 The protocol uses HOPR packets as the underlying transport mechanism and supports both successful and failed session establishment scenarios. All
 multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures and
@@ -114,7 +116,7 @@ title "Common Message Format"
 
 #### 4.2.1 Message Types
 
-| Type Code | Name               | Description                                           |
+| Type Code | Name               | Description                                            |
 | --------- | ------------------ | ------------------------------------------------------ |
 | `0x00`    | StartSession       | Initiates a new session                                |
 | `0x01`    | SessionEstablished | Confirms session establishment                         |
@@ -156,7 +158,7 @@ title "StartSession Message"
 ```
 
 | Field               | Size     | Description                                | Notes                                                                 |
-| ------------------- |----------| ------------------------------------------ | --------------------------------------------------------------------- |
+| ------------------- | -------- | ------------------------------------------ | --------------------------------------------------------------------- |
 | **Challenge**       | 8 bytes  | Random challenge for correlating responses | MUST be generated using CSPRNG to prevent prediction                  |
 | **Capabilities**    | 1 byte   | Session capabilities bitmap                | See Capability Flags table; unrecognised bits SHOULD be ignored       |
 | **Additional Data** | 8 bytes  | Capability-dependent options               | Set to `0x00000000` if unused; interpretation depends on capabilities |
@@ -241,9 +243,14 @@ title "KeepAlive Message"
 
 ### 4.7 SsaCommit Message
 
-The `SsaCommit` message delivers the client's commitments to polynomial coefficients that, when summed for a given [`SsaIndex`](hopr_protocol_pix::SsaIndex), form the client's commitment to a Session Stealth Address (SSA). It is sent by the entry node after session establishment, in response to an `SsaRequest`.
+The `SsaCommit` message delivers the client's commitments to polynomial coefficients that, when summed for a given
+[`SsaIndex`](hopr_protocol_pix::SsaIndex), form the client's commitment to a Session Stealth Address (SSA). It is sent by the entry node after session
+establishment, in response to an `SsaRequest`.
 
-A single SSA commitment may require multiple `SsaCommit` messages because the total set of coefficient commitments (across all polynomials) may exceed the space available in one HOPR packet. Messages are ordered by coefficient index, with coefficient index `0` (the constant term / polynomial offset) always delivered first. Summing all coefficient commitments for the same coefficient index across all polynomials yields one component of the SSA commitment.
+A single SSA commitment may require multiple `SsaCommit` messages because the total set of coefficient commitments (across all polynomials) may exceed
+the space available in one HOPR packet. Messages are ordered by coefficient index, with coefficient index `0` (the constant term / polynomial offset)
+always delivered first. Summing all coefficient commitments for the same coefficient index across all polynomials yields one component of the SSA
+commitment.
 
 ```mermaid
 packet
@@ -256,19 +263,21 @@ title "SsaCommit Message"
 +32: "..."
 ```
 
-| Field                     | Size     | Description                                                                                                  | Notes                                                                                          |
-| ------------------------- | -------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| **SsaIndex**              | 4 bytes  | Non-zero index of the SSA being committed                                                                    | 1-based; MUST NOT be zero                                                                      |
-| **CoefficientIndex**      | 2 bytes  | Index of the polynomial coefficient being delivered in this message                                        | 0-based; all messages sharing the same SsaIndex and CoefficientIndex belong to the same batch  |
-| **NumPolynomials**        | 2 bytes  | Number of polynomial → coefficient commitment entries in this message                                       | MUST be greater than zero                                                                      |
+| Field                      | Size     | Description                                                                                                                       | Notes                                                                                                                                     |
+| -------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **SsaIndex**               | 4 bytes  | Non-zero index of the SSA being committed                                                                                         | 1-based; MUST NOT be zero                                                                                                                 |
+| **CoefficientIndex**       | 2 bytes  | Index of the polynomial coefficient being delivered in this message                                                               | 0-based; all messages sharing the same SsaIndex and CoefficientIndex belong to the same batch                                             |
+| **NumPolynomials**         | 2 bytes  | Number of polynomial → coefficient commitment entries in this message                                                             | MUST be greater than zero                                                                                                                 |
 | **CoefficientCommitments** | Variable | Packed entries, each consisting of `PolynomialIndex` (2 bytes, big-endian) followed by `G` bytes of the commitment representation | Ordered by polynomial index within the message; multiple messages MAY be needed to deliver all polynomials for the same coefficient index |
-| **Session ID**           | Variable | CBOR-encoded session identifier                                                                             | MUST match an established session ID                                                            |
+| **Session ID**             | Variable | CBOR-encoded session identifier                                                                                                   | MUST match an established session ID                                                                                                      |
 
-The `G` type (PIX group representation) is a protocol constant determined by the PIX specification in use; see [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md).
+The `G` type (PIX group representation) is a protocol constant determined by the PIX specification in use; see
+[RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md).
 
 ### 4.8 SsaRequest Message
 
-The `SsaRequest` message delivers the server's commitments to one or more new Session Stealth Addresses (SSAs). It is sent by the exit node after session establishment, either immediately if PIX is negotiated, or subsequently when the server requires a new batch of SSAs.
+The `SsaRequest` message delivers the server's commitments to one or more new Session Stealth Addresses (SSAs). It is sent by the exit node after
+session establishment, either immediately if PIX is negotiated, or subsequently when the server requires a new batch of SSAs.
 
 ```mermaid
 packet
@@ -280,16 +289,18 @@ title "SsaRequest Message"
 +32: "..."
 ```
 
-| Field             | Size     | Description                                                           | Notes                                                                                             |
-| ----------------- |----------| --------------------------------------------------------------------- |---------------------------------------------------------------------------------------------------|
-| **Params**        | 4 bytes  | PIX protocol parameters                                              | Upper 16 bits: number of polynomials per SSA; lower 16 bits: shares per polynomial (= degree + 1) |
-| **NumCommitments**| 2 bytes  | Number of SSA index → commitment entries in this message             | MUST be greater than zero                                                                         |
-| **Commitments**   | Variable | Packed entries, each consisting of `SsaIndex` (4 bytes, big-endian) followed by `G` bytes of the commitment representation | Ordered by SSA index within the message                                                           |
-| **Session ID**    | Variable | CBOR-encoded session identifier                                       | MUST match an established session ID                                                              |
+| Field              | Size     | Description                                                                                                                | Notes                                                                                             |
+| ------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Params**         | 4 bytes  | PIX protocol parameters                                                                                                    | Upper 16 bits: number of polynomials per SSA; lower 16 bits: shares per polynomial (= degree + 1) |
+| **NumCommitments** | 2 bytes  | Number of SSA index → commitment entries in this message                                                                   | MUST be greater than zero                                                                         |
+| **Commitments**    | Variable | Packed entries, each consisting of `SsaIndex` (4 bytes, big-endian) followed by `G` bytes of the commitment representation | Ordered by SSA index within the message                                                           |
+| **Session ID**     | Variable | CBOR-encoded session identifier                                                                                            | MUST match an established session ID                                                              |
 
 The `Params` field encodes PIX configuration:
+
 - **polynomials per SSA** (upper 32 bits): the number of polynomials required to reconstruct one SSA.
-- **shares per polynomial** (lower 32 bits): the number of shares required to reconstruct one polynomial (i.e., polynomial threshold = shares per polynomial − 1).
+- **shares per polynomial** (lower 32 bits): the number of shares required to reconstruct one polynomial (i.e., polynomial threshold = shares per
+  polynomial − 1).
 
 ### 4.9 Protocol Flow
 
@@ -318,27 +329,27 @@ sequenceDiagram
 
 ### 4.10 Protocol Constants
 
-| Constant                    | Value         | Description                                                                    |
-| -------------------------- | ------------- | ------------------------------------------------------------------------------ |
-| **Protocol Version**       | `0x03`        | Current protocol version                                                       |
-| **Default Timeout**        | 30 seconds    | Default session establishment timeout (SHOULD be configurable)                  |
-| **Challenge Size**         | 8 bytes       | Fixed size for challenge field                                                 |
-| **Max Payload Length**     | 65535 bytes   | Maximum message payload size (limited by Length field)                          |
+| Constant                     | Value       | Description                                                                     |
+| ---------------------------- | ----------- | ------------------------------------------------------------------------------- |
+| **Protocol Version**         | `0x03`      | Current protocol version                                                        |
+| **Default Timeout**          | 30 seconds  | Default session establishment timeout (SHOULD be configurable)                  |
+| **Challenge Size**           | 8 bytes     | Fixed size for challenge field                                                  |
+| **Max Payload Length**       | 65535 bytes | Maximum message payload size (limited by Length field)                          |
 | **PIX Commitment Repr Size** | Variable    | Byte size of the PIX group element commitment representation (depends on curve) |
 
 ### 4.11 Protocol Rules
 
-| Rule                          | Requirement Level | Description                                                                                                                         |
-| ----------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Challenge Generation**      | MUST              | Challenge values MUST be randomly generated using a cryptographically secure PRNG                                                   |
-| **Session ID Uniqueness**     | MUST              | Session IDs MUST be unique within the exit node's session namespace                                                                 |
-| **Byte Order**                | MUST              | All multi-byte integer fields MUST use network byte order (big-endian)                                                              |
-| **CBOR Encoding**             | MUST              | Session targets and session IDs MUST use CBOR encoding [01]                                                                         |
-| **Payload Limits**            | MUST              | Messages MUST fit within HOPR packet payload limits (see [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) |
-| **PIX Coefficient Index Order** | MUST            | `SsaCommit` messages with coefficient index `0` (constant terms) MUST be sent before any message with a higher coefficient index   |
-| **Keep-Alive Frequency**      | SHOULD            | `KeepAlive` messages SHOULD be sent periodically to maintain long-lived sessions                                                    |
-| **Error Handling**            | MUST              | Implementations MUST handle all defined error conditions gracefully                                                                 |
-| **Timeout Configuration**     | SHOULD            | Session establishment timeouts SHOULD be configurable (default: 30s)                                                                |
+| Rule                            | Requirement Level | Description                                                                                                                         |
+| ------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Challenge Generation**        | MUST              | Challenge values MUST be randomly generated using a cryptographically secure PRNG                                                   |
+| **Session ID Uniqueness**       | MUST              | Session IDs MUST be unique within the exit node's session namespace                                                                 |
+| **Byte Order**                  | MUST              | All multi-byte integer fields MUST use network byte order (big-endian)                                                              |
+| **CBOR Encoding**               | MUST              | Session targets and session IDs MUST use CBOR encoding [01]                                                                         |
+| **Payload Limits**              | MUST              | Messages MUST fit within HOPR packet payload limits (see [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) |
+| **PIX Coefficient Index Order** | MUST              | `SsaCommit` messages with coefficient index `0` (constant terms) MUST be sent before any message with a higher coefficient index    |
+| **Keep-Alive Frequency**        | SHOULD            | `KeepAlive` messages SHOULD be sent periodically to maintain long-lived sessions                                                    |
+| **Error Handling**              | MUST              | Implementations MUST handle all defined error conditions gracefully                                                                 |
+| **Timeout Configuration**       | SHOULD            | Session establishment timeouts SHOULD be configurable (default: 30s)                                                                |
 
 ### 4.12 Example Message Exchanges
 
@@ -404,7 +415,8 @@ sequenceDiagram
 
 #### 4.12.5 Session Establishment with PIX incentivization
 
-Full session establishment including the PIX exchange where the exit node delivers SSA commitments via `SsaRequest` and the entry node responds with coefficient commitments via `SsaCommit` messages:
+Full session establishment including the PIX exchange where the exit node delivers SSA commitments via `SsaRequest` and the entry node responds with
+coefficient commitments via `SsaCommit` messages:
 
 ```mermaid
 sequenceDiagram
