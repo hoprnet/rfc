@@ -83,8 +83,38 @@ batching, flow control). Reliable session mode is the default end-to-end.
   clients (service pre-funds the bridge for toll-free access), and
   client-pays-all.
 
-## Open questions for the next grilling round
-- D2/D9 handshake and identity-key curve choice.
-- Whether the service must run as a full HOPR node.
-- Fee negotiation concreteness (per-session vs per-byte, when settled).
-- SURB replenishment strategy specifics for high-inbound services.
+### D10 — Service identity & e2e crypto
+- **Identity key**: Ed25519 (`id_S`). It signs descriptors and *is* the
+  self-certifying name (D3). Multi-host serving (D3, point 5) via an
+  `id_S`-signed **delegation certificate** authorising a per-host key for a
+  validity window.
+- **E2e session key**: Noise-IK-style handshake over **X25519**. The service
+  publishes a static X25519 key `S_s` in its (Ed25519-signed) descriptor. The
+  client sends ephemeral `E_c` in the introduction; the service replies with
+  ephemeral `E_s`. Key `k = KDF(DH(E_c, S_s) || DH(E_c, E_s))` — forward
+  secrecy from the ephemeral-ephemeral term, service authentication from
+  `E_c·S_s`. Reuses HOPR's Curve25519 primitives.
+- **Settlement** stays on **secp256k1** (unchanged PoR/PIX).
+
+### D11 — Service host model
+Node-based model is **normative**: the service runs on/behind a HOPR node with
+funded channels (keeps standing intro sessions, pays its own leg via PoR
+tickets). A **paid-gateway** model (non-node service renting a HOPR node) is
+documented as an optional deployment pattern / future work.
+
+### D12 — Bridge fee model
+**Per-session flat fee, prepaid at rendezvous**, allocated PIX-style before the
+bridge begins splicing. Long/bulk sessions top up via keep-alive-triggered
+allocations. Fee terms taken from the bridge's on-chain announced schedule
+(D8). Default: client pays the rendezvous-bridge fee; the service pays its
+intro bridges (ongoing, PIX per period) for the standing control sessions.
+
+### D13 — Bridge is a stateful two-session splice (SURB management)
+The rendezvous bridge is **not** a dumb ciphertext relay. It terminates two
+HOPR sessions — one to the client, one to the service — bound by the rendezvous
+cookie, and relays the (end-to-end-encrypted, opaque) payload between them.
+Crucially, it **independently manages SURB budgets and starvation on each leg**
+using the existing HOPR flow-control signals (SURB distress `0x01`, out-of-SURBs
+`0x03`). This yields a clean two-layer model: outer per-leg HOPR sessions
+(bridge-terminated, normal SURB flow) carrying an inner end-to-end session
+(client↔service, reliable by default) whose payload the bridge cannot read.
