@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.7.0 (Raw)
+- **Version:** v0.7.1 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -954,7 +954,13 @@ the descriptor rotate (Section 4.3); only *new* connections use the new period's
 descriptor. An endpoint MUST NOT tear down an established join merely because the
 descriptor it was opened under has since expired.
 
-#### 4.6.1 Multipath rendezvous (optional)
+#### 4.6.1 Multipath and multi-session rendezvous (optional)
+
+Two orthogonal, composable mechanisms let a client spread its exposure. This
+subsection defines both; a client MAY use either, both, or neither (the default
+is one single-path session).
+
+##### Multipath — one session across many bridges
 
 A client MAY establish the connection over **several rendezvous bridges in
 parallel** rather than one, striping a single logical session across them so that
@@ -989,6 +995,25 @@ Mechanically:
 The multipath degree `M` is chosen by the client per its threat model and the
 number of trustworthy bridges available; ordering, reassembly, and per-path
 accounting are elaborated in future work (Section 11).
+
+##### Multi-session — many independent sessions
+
+Above the transport masking of a single (possibly multipath) session, a client
+MAY run **several independent end-to-end sessions** to the same service, each
+with its **own handshake, own e2e key, own pseudonym and cookie(s), and its own
+single- or multi-path routing**. This serves application multiplexing (for
+example separating control from bulk, or distinct requests) and adds
+unlinkability: because independent sessions share no e2e key and no pseudonym and
+traverse different bridges, they are unlinkable at the HOPR and bridge layers,
+and linkable **at the service only if the application chooses to correlate them**
+(for example by presenting the same application-layer identity). Each session and
+each of its paths is established as in Section 4.5 and paid independently
+(Section 4.7).
+
+The two knobs are complementary: **multipath** ensures no single bridge sees a
+whole session; **multi-session** ensures no single session — and no observer of
+one — sees the whole client-service relationship. A cautious client can stack
+them: N independent sessions, each striped across M bridges.
 
 ### 4.7 Incentivisation
 
@@ -1192,7 +1217,10 @@ mechanisms bound this: mandatory constant-rate per-leg **shaping** (Section 4.9)
 and optional **multipath rendezvous** (Section 4.6.1), in which the client stripes
 one session across several bridges so that no single bridge sees more than a
 fraction of the flow and reconstruction requires *all* of the client's chosen
-bridges to collude. Both are load-bearing requirements/options, not niceties.
+bridges to collude. A client may additionally spread activity across
+**independent sessions** (also Section 4.6.1) so no single session exposes the
+whole relationship. Shaping is a requirement; multipath and multi-session are
+composable options, not niceties.
 
 **Parameter defaults.** `PERIOD_LENGTH` 86400 s, at least 3 live intro points, and
 `MAX_DELEGATION` 7 days mirror proven Tor v3 choices; fee units, `INTRO_SLOTS`,
@@ -1249,7 +1277,10 @@ multi-hop HOPR path so the RB sees two pseudonymous endpoints, not identities.
 The load-bearing defences against timing/volume correlation across the join are
 the **mandatory per-leg constant-rate shaping** of Section 4.9 and **optional
 multipath rendezvous** (Section 4.6.1), which reduces any single bridge's view to
-a fraction of the flow; end-to-end encryption hides only content. Residual risk is
+a fraction of the flow; a client may further split its activity across
+**independent sessions** (Section 4.6.1) so that no single session — hence no
+bridge serving one — reveals the whole client-service relationship. End-to-end
+encryption hides only content. Residual risk is
 bounded by the mixnet's own limits (low-volume windows, global passive
 adversaries; [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and by diverse,
 fresh, reputation-gated selection (Section 4.4).
