@@ -6,13 +6,14 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.1.0 (Raw)
+- **Version:** v0.2.0 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md),
   [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
   [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md),
+  [RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md),
   [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
   [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md),
   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md),
@@ -23,10 +24,11 @@
 ## 1. Abstract
 
 This RFC specifies **HOPR Onion Services**: a scheme for offering a network
-service whose provider and consumers remain mutually anonymous. Neither party
-learns the other's network location or node identity, and no relaying node can
-link the two. It is the HOPR-native counterpart of Tor onion services [06],
-built on the HOPR mixnet rather than on circuit-switched onion routing.
+service whose provider and consumers remain mutually anonymous. No relaying node
+learns both endpoints' network identities, and neither endpoint learns the
+other's location or node identity. It is the HOPR-native counterpart of Tor
+onion services [06], built on the HOPR mixnet rather than on circuit-switched
+onion routing.
 
 The design adopts a two-phase **introduction and rendezvous** architecture. A
 service maintains inexpensive standing control sessions to a set of announced
@@ -34,30 +36,36 @@ service maintains inexpensive standing control sessions to a set of announced
 distributed directory. To connect, a client selects a fresh **rendezvous
 bridge**, asks the service to meet it there through an introduction bridge, and
 the two parties then exchange data end-to-end encrypted across the rendezvous
-bridge, which splices two independent HOPR sessions and observes only
-ciphertext. Services are named by self-certifying `.hopr` addresses derived
-from an Ed25519 identity key, with an optional ENS-based human-readable alias
-layer, and MAY be served by multiple hosts through signed delegation.
-Incentivisation reuses HOPR Proof of Relay [05] for the two transport legs and
-the PIX privacy-pool settlement pattern
-[RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)
-for the bridge role, so every participant is paid without any party learning
-who paid it.
+bridge, which joins two independent HOPR sessions and observes only ciphertext.
+The rendezvous bridge does learn that the two sessions it joins belong to one
+connection — this is its function — but it learns neither endpoint's identity,
+and mandatory traffic shaping bounds what its vantage yields; the residual risk
+is analysed in Section 7. Services are named by self-certifying `.hopr`
+addresses derived from an Ed25519 identity key, with an optional ENS-based
+human-readable alias layer, and MAY be served by multiple hosts through signed
+delegation.
 
-This document normatively defines service identity and naming, the descriptor
-format and directory interface, the bridge announcement and selection rules,
-the introduction and rendezvous protocol, the end-to-end handshake, the
-incentive and denial-of-service model, and the associated security properties.
-The mechanics of the distributed directory itself are delegated to a companion
-RFC.
+Incentivisation reuses HOPR Proof of Relay
+([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)) for the two
+transport legs and the PIX privacy-pool settlement construction
+([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md),
+a draft dependency) for the bridge role, so every participant is paid **only
+against verifiable service** and without any party learning who paid it. This
+document normatively defines service identity and naming, the descriptor format
+and directory interface, the bridge announcement and selection rules, the
+introduction and rendezvous protocol, the end-to-end handshake, the incentive
+and denial-of-service model, and the associated security properties. The
+mechanics of the distributed directory are delegated to a companion RFC.
 
 ## 2. Motivation
 
-HOPR [03] provides sender anonymity toward relays and the destination, a
-recipient-initiated reply channel through pseudonyms and single-use reply
-blocks (SURBs), per-hop incentivisation via Proof of Relay [05], and session
-semantics [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
-[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
+HOPR ([RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md)) provides
+sender anonymity toward relays and the destination, a recipient-initiated reply
+channel through pseudonyms and single-use reply blocks (SURBs), per-hop
+incentivisation via Proof of Relay
+([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)), and session
+semantics ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
+[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md))
 over the mixnet. What it does not provide is a way for **two mutually anonymous
 parties** to communicate: in every existing HOPR session one endpoint (the exit
 node) is addressable and its node identity is known to the initiator. A service
@@ -66,9 +74,10 @@ mechanism today.
 
 Tor solves the analogous problem for circuit onion routing with introduction
 points, rendezvous points, and a hidden-service directory [06]. HOPR needs an
-equivalent that is faithful to its own primitives — fixed-size Sphinx packets
-[04], SURB-based replies, probabilistic ticket payments, and on-chain node
-announcement — rather than a port of a circuit-switched design.
+equivalent faithful to its own primitives — fixed-size Sphinx packets [03],
+SURB-based replies, probabilistic ticket payments, and on-chain node
+announcement — rather than a port of a circuit-switched design. The broader
+lineage is the mix-network line of work beginning with Chaum [02].
 
 This RFC defines that mechanism. It closes five concrete gaps left open by the
 existing stack:
@@ -81,7 +90,8 @@ existing stack:
 3. **Multi-host serving.** Signed delegation lets several hosts serve one
    service identity without sharing the long-term key.
 4. **Bridge incentives.** The splice/availability role is not covered by Proof
-   of Relay or PIX; this RFC adds a negotiated, anonymity-preserving bridge fee.
+   of Relay or PIX as-is; this RFC adds a negotiated, service-conditional,
+   anonymity-preserving bridge fee.
 5. **Abuse resistance.** A mutually anonymous inbound channel invites spam;
    payment-gated introduction and descriptor-level access control price and gate
    it.
@@ -93,18 +103,22 @@ The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 interpreted as described in [01] when, and only when, they appear in all
 capitals, as shown here.
 
-All general mixnet and HOPR-specific terminology is defined in
-[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). This document
-additionally defines:
+General mixnet and HOPR glossary terms (mixnet, node, path, hop, relay node,
+onion routing, cover traffic, unlinkability, Proof of Relay, channel, mixer,
+session) are defined in
+[RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). The packet-layer
+terms **SURB**, **sender pseudonym**, and **ReplyOpener** are defined in
+[RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md). This
+document additionally defines:
 
 - **Onion service** (also **service**): a service reachable over HOPR whose host
   location and node identity are hidden from its clients and from relaying
   nodes.
 - **Service identity key**: the long-term Ed25519 key pair `id_S` that names and
   authenticates a service. Its public part yields the self-certifying address.
-- **Self-certifying address**: the `.hopr` string derived from `id_S` public key
-  (Section 4.2). Authenticity of any signed material is checkable against it
-  without external trust.
+- **Self-certifying address**: the `.hopr` string derived from the `id_S` public
+  key (Section 4.2.1). Authenticity of any signed material is checkable against
+  it without external trust.
 - **Service descriptor**: the signed document that maps a service to its current
   introduction bridges and connection parameters (Section 4.3).
 - **Bridge relayer** (also **bridge**): a HOPR node that has announced the
@@ -112,24 +126,27 @@ additionally defines:
 - **Introduction bridge** (**IB**): a bridge that holds a standing control
   session with a service and forwards introduction requests to it.
 - **Rendezvous bridge** (**RB**): a bridge, chosen freshly by a client per
-  connection, that splices the client's and the service's HOPR sessions and
-  relays the end-to-end-encrypted payload between them.
-- **Rendezvous cookie**: a single-use random token that binds a client's and a
-  service's sessions at a rendezvous bridge.
+  connection, that joins the client's and the service's HOPR sessions and relays
+  the end-to-end-encrypted payload between them.
+- **Session join**: the generic operation by which a bridge binds two HOPR
+  sessions bearing a shared join token and relays opaque payload between them.
+  Onion-service rendezvous is one use of this operation; a bridge performing a
+  join is not told what higher-level purpose it serves.
+- **Rendezvous cookie** (**RC**): a single-use random join token that binds a
+  client's and a service's sessions at a rendezvous bridge.
 - **Introduction request**: the client-produced, service-encrypted message that
   names the rendezvous bridge and carries the client's end-to-end handshake
   half.
 - **End-to-end (e2e) session**: the session established directly between client
   and service, encrypted under a key the bridge does not possess, carried over
-  the two spliced HOPR sessions.
+  the two joined HOPR sessions.
 - **Directory**: the distributed store from which descriptors are published and
   fetched (interface in Section 4.3; mechanics in a companion RFC).
-- **Splice**: the act, performed by a rendezvous bridge, of joining two HOPR
-  sessions and relaying opaque payload between them.
 - `||` denotes byte-string concatenation. `|x|` denotes the size of `x` in
   bytes. Multi-byte integers are big-endian unless stated otherwise. Character
   strings in double quotes use ASCII single-byte encoding. `CSPRNG` is a
-  cryptographically secure pseudorandom number generator.
+  cryptographically secure pseudorandom number generator. `H`, `KDF`, and the
+  symmetric and curve primitives are fixed in Appendix 1.
 
 ## 4. Specification
 
@@ -143,15 +160,15 @@ directory abstraction and the privacy pool:
 - **Client** `C` — the consumer.
 - **Introduction bridge** `IB` — announced in the descriptor; holds a standing
   control session with `S`.
-- **Rendezvous bridge** `RB` — chosen fresh by `C`; performs the splice.
+- **Rendezvous bridge** `RB` — chosen fresh by `C`; performs the session join.
 - **Directory** and **privacy pool** `W` — supporting infrastructure
   (Sections 4.3 and 4.7).
 
 The lifecycle has four stages: (1) the service publishes a descriptor and opens
 standing sessions to its introduction bridges; (2) the client fetches and
-verifies the descriptor; (3) the client establishes a rendezvous and introduces
-itself to the service through an introduction bridge; (4) the service joins the
-rendezvous and the parties run an end-to-end session across the splice.
+verifies the descriptor; (3) the client establishes a rendezvous reservation and
+introduces itself to the service through an introduction bridge; (4) the service
+joins the rendezvous and the parties run an end-to-end session across the join.
 
 ```mermaid
 sequenceDiagram
@@ -170,34 +187,37 @@ sequenceDiagram
     DIR-->>C: signed descriptor
 
     Note over C,RB: Stage 3 — rendezvous + introduction
-    C->>RB: RENDEZVOUS_ESTABLISH (cookie RC, prepay fee)
-    RB-->>C: RENDEZVOUS_ESTABLISHED
-    C->>IB: INTRODUCE1 (enc-to-S: RB addr, RC, E_c)
+    C->>RB: RENDEZVOUS_ESTABLISH (cookie RC, reservation deposit)
+    RB-->>C: RENDEZVOUS_ESTABLISHED (signed reservation token)
+    C->>IB: INTRODUCE1 (enc-to-S: RB addr, RC, token, E_c)
     IB->>S: INTRODUCE2 (forwarded)
     IB-->>C: INTRODUCE_ACK
 
-    Note over S,C: Stage 4 — splice + e2e session
-    S->>RB: RENDEZVOUS1 (present RC, E_s)
-    RB-->>C: RENDEZVOUS2 (E_s)
-    C<<->>RB: HOPR session (leg A)
-    S<<->>RB: HOPR session (leg B)
-    C-->>S: end-to-end encrypted data (spliced through RB)
+    Note over S,C: Stage 4 — join + e2e session
+    S->>RB: RENDEZVOUS1 (present RC, token, E_s, sig)
+    RB-->>C: RENDEZVOUS2 (E_s, sig)
+    C<<->>RB: HOPR session (leg A, shaped)
+    S<<->>RB: HOPR session (leg B, shaped)
+    C-->>S: end-to-end encrypted data (joined through RB)
 ```
 
 Every arrow between two HOPR nodes is itself a multi-hop HOPR path (0–3
 intermediate hops each way, per
 [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)),
 subject to mixing
-[RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md) and paid via Proof of
-Relay [05]. The diagram shows the logical overlay, not the packet path.
+([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and paid via Proof of
+Relay ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)). The
+diagram shows the logical overlay, not the packet path.
 
 The onion-service control messages defined in this RFC are carried in the HOPR
 application protocol
-[RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md) under
+([RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)) under
 the **Onion Service Control Protocol (OSCP)** application tag
-`0x0000000000000002` (the first user-defined tag). The end-to-end data session
-uses the session-data protocol
-[RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) inside the
+`0x0000000000000002`, the first of the user-defined tags `0x2`–`0xd`. That range
+has no global registry, so a deployment MUST treat tag selection as a
+coordination concern (Section 6). The end-to-end data session uses the
+session-data protocol
+([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) inside the
 e2e-encrypted channel.
 
 ### 4.2 Service identity, naming and delegation
@@ -209,70 +229,80 @@ service's canonical **self-certifying address** is:
 
 ```
 address = base32( version || pk_S || checksum ) || ".hopr"
-version  : u8     (current value 0x01)
-pk_S     : [u8; 32]   Ed25519 public key
-checksum : [u8; 2]    truncated H(".hopr-checksum" || pk_S || version)
+version  : u8         (current value 0x01)
+pk_S     : [u8; 32]   Ed25519 public key (canonical encoding)
+checksum : [u8; 2]    truncated H(".hopr-checksum" || version || pk_S)
 ```
 
-`base32` uses the RFC 4648 lowercase alphabet without padding. The address is
-self-certifying: any descriptor or delegation presented for it MUST verify
-under `pk_S` (directly or through a delegation chain rooted at `pk_S`), so a
-malicious host cannot serve a different key under the same name.
-
-`H` is the hash function fixed in Appendix 1.
+`base32` uses the RFC 4648 [12] lowercase alphabet without padding. The trust
+anchor is the full 32-byte `pk_S`; the checksum protects only against
+transcription errors and confers no security (a 16-bit checksum is trivially
+matched by a brute-forced lookalike key, so users MUST compare full addresses,
+not rely on visual similarity). The address is self-certifying: any descriptor
+or delegation presented for it MUST verify under `pk_S` (directly or through a
+delegation chain rooted at `pk_S`), so a malicious host cannot serve a different
+key under the same name. A client MUST reject any `version` below its configured
+minimum, so a future hardened format cannot be silently downgraded.
 
 #### 4.2.2 Human-readable aliases (ENS, optional)
 
-Human-readable names are OPTIONAL and are layered on top of the self-certifying
+Human-readable names are OPTIONAL and layered on top of the self-certifying
 address, which remains authoritative. A service MAY register an ENS [08] name
 (or subdomain) whose `hopr` text record contains its `.hopr` address. A client
 resolving an alias MUST fetch the descriptor for the `.hopr` address the record
 points to and MUST verify it against that address. ENS resolution is a discovery
-convenience only; it confers no additional authority and MUST NOT override the
+convenience only; it confers no authority and MUST NOT override the
 self-certifying check. No bespoke registry contract is introduced by this RFC.
 
 #### 4.2.3 Multi-host serving via delegation
 
 A service MAY be served by more than one host without sharing `sk_S`. The
 identity key signs a **delegation certificate** authorising a per-host
-signing/operating key for a bounded validity window:
+signing/operating key for a bounded window:
 
 ```
 DelegationCert {
   version         : u8,           // 0x01
+  service_pubkey  : [u8; 32],     // pk_S this cert is bound to (MUST match address)
+  serial          : u64,          // unique per (service, delegate); monotonic
   delegate_pubkey : [u8; 32],     // Ed25519 per-host key
   not_before      : u64,          // UNIX seconds
-  not_after       : u64,          // UNIX seconds
-  capabilities    : u16,          // bitmap: publish descriptor, run intro, ...
-  signature       : [u8; 64]      // Ed25519 by sk_S over the above fields
+  not_after       : u64,          // UNIX seconds; MUST NOT exceed not_before + MAX_DELEGATION
+  capabilities    : u16,          // bit 0 = publish descriptor, bit 1 = run intro point,
+                                  // bit 2 = terminate e2e session; other bits reserved
+  signature       : [u8; 64]      // Ed25519 by sk_S over all preceding fields
 }
 ```
 
-A host holding a valid `DelegationCert` MAY sign descriptors (Section 4.3) and
-run introduction sessions on the service's behalf during
-`[not_before, not_after)`. Descriptors served by a delegate MUST embed the
-certificate so clients can verify the chain to `pk_S`. Delegation satisfies the
-requirement that any number of servers may serve a service as long as they can
-present the service originator's cryptographic authorisation. Revocation before
-expiry is by descriptor rotation (the fresh descriptor omits the revoked
-delegate) and by short validity windows; long-lived certificates are NOT
-RECOMMENDED.
+A host holding a valid `DelegationCert` MAY perform exactly the actions whose
+capability bit is set, during `[not_before, not_after)`. Verifiers MUST reject a
+delegated action whose corresponding bit is unset and MUST treat any unknown
+capability bit as unauthorised (deny by default). `service_pubkey` MUST equal
+the `pk_S` of the dialed address, preventing cross-identity cert reuse.
+Descriptors served by a delegate MUST embed the certificate so clients verify
+the chain to `pk_S`. Revocation before `not_after` is by descriptor rotation (a
+fresh, higher-`revision` descriptor omitting the revoked delegate) combined with
+short windows: `not_after − not_before` MUST NOT exceed `MAX_DELEGATION`
+(default 7 days). Because there is no online revocation list, `sk_S` compromise
+recovery relies on short windows; long-lived certificates are NOT RECOMMENDED.
 
 ### 4.3 Service descriptor and directory interface
 
 #### 4.3.1 Descriptor content
 
-A service descriptor is a signed document. Its plaintext (signed) fields are:
+A service descriptor is a signed document. Its signed fields are:
 
 ```
 Descriptor {
   version          : u8,               // 0x01
   address          : self-certifying address (Section 4.2.1)
   revision         : u64,              // monotonic; higher supersedes lower
-  lifetime         : u32,              // validity in seconds from publication
-  handshake_static : [u8; 32],         // service X25519 static key S_s (Section 4.6)
-  intro_points     : [IntroPoint; n],  // 1 <= n <= 20
+  published_at     : u64,              // UNIX seconds, absolute publication time
+  lifetime         : u32,              // validity in seconds from published_at
+  handshake_static : [u8; 32],         // per-period service X25519 static key S_s (below)
+  intro_points     : [IntroPoint; n],  // fixed at INTRO_SLOTS (default 8); unused slots random-padded
   capabilities     : CapabilityFlags,  // session modes, traffic classes
+  min_dos_level    : u8,               // monotonic floor a client MUST enforce
   dos_policy       : DosPolicy,        // Section 4.8
   delegation       : DelegationCert?,  // present iff signed by a delegate
   signature        : [u8; 64]          // Ed25519 over all preceding fields
@@ -280,20 +310,31 @@ Descriptor {
 
 IntroPoint {
   node_id       : [u8; 32],   // IB HOPR off-chain public key (routing target)
-  auth_key      : [u8; 32],   // per-IB X25519 key for INTRODUCE1 encryption
+  intro_enc_key : [u8; 32],   // X25519 public key; PRIVATE HALF HELD ONLY BY THE SERVICE
   expiry        : u64         // UNIX seconds
 }
 ```
 
-The `signature` is by `sk_S`, or by `delegation.delegate_pubkey` when
-`delegation` is present (then the certificate itself MUST verify under `pk_S`).
-`revision` provides replay/rollback resistance: a client MUST prefer the highest
-valid `revision` it has seen and MUST reject a descriptor whose `lifetime` has
-elapsed.
+`signature` is by `sk_S`, or by `delegation.delegate_pubkey` (capability bit 0
+set) when `delegation` is present. `revision` and `published_at` together resist
+rollback: a client MUST prefer the highest valid `revision`, MUST reject a
+descriptor whose `published_at + lifetime` has elapsed, and MUST reject a
+descriptor whose `published_at` is not consistent with the current directory
+period (Section 4.3.2). The `intro_points` array is padded to a fixed
+`INTRO_SLOTS` count with random-looking entries so the descriptor does not leak
+how many introduction bridges a service actually uses.
 
-For a **private** service (Section 4.8), the `intro_points` array MAY be
-encrypted to an authorised-client key set; unauthorised fetchers obtain a
-descriptor they cannot use.
+`intro_enc_key` is the X25519 public key used to encrypt the introduction blob
+(Section 4.5.3). **Its private half is held only by the service (or a delegate
+with capability bit 1); the introduction bridge stores only the public value and
+cannot decrypt the blob.** `ESTABLISH_INTRO` (Section 4.5.1) proves the service
+possesses this private half.
+
+`handshake_static` (`S_s`) is rotated **every period** together with the
+publication key (Section 4.3.2), derived deterministically as
+`S_s = X25519_clamp(H("hopr-onion-hsk" || sk_S || period))`. Rotation prevents a
+party who reads two periods' descriptor bodies from linking them by a static
+handshake key.
 
 #### 4.3.2 Blinded publication keying
 
@@ -303,95 +344,128 @@ derived from `pk_S` and the current time period, following the Tor v3 key
 blinding approach [06]:
 
 ```
-period        = floor(now / PERIOD_LENGTH)              // PERIOD_LENGTH default 86400 s
-blinding_scalar = H("hopr-blind" || pk_S || period)
-pk_blind      = blind(pk_S, blinding_scalar)            // Ed25519 key blinding
-slot          = H(pk_blind || period)                   // directory address
+period          = floor(now / PERIOD_LENGTH)             // PERIOD_LENGTH default 86400 s
+blinding_scalar = H("hopr-blind" || pk_S || period) reduced mod L, then clamped
+pk_blind        = scalar_mult_add(pk_S, blinding_scalar) // Ed25519 blinding, canonicalised sign bit
+slot            = H(pk_blind || period)                  // directory address
 ```
 
-The descriptor stored at `slot` is signed by the correspondingly blinded
-private key, so directory nodes verify authenticity without learning `pk_S`.
-Only a party that already knows the `.hopr` address (hence `pk_S`) can compute
-`slot`, so the directory cannot be crawled for service identities.
+The descriptor stored at `slot` is signed by the correspondingly blinded private
+key. The exact Ed25519 blinding construction (scalar reduction modulo the group
+order `L`, clamping, cofactor and sign-bit handling) is normatively pinned in
+the companion directory RFC; implementations MUST follow it exactly, as an
+unreduced or unclamped scalar yields either linkable slots or unverifiable
+signatures.
+
+Enumeration guarantee, stated precisely: because `blinding_scalar` derives from
+`pk_S`, only a party that already knows the `.hopr` address can compute `slot`.
+This makes the directory **crawl-resistant** — it cannot be swept for service
+identities. It does **not** hide a service from an adversary who already guesses
+or knows the address and can therefore compute the slot and confirm activity;
+that residual confirmation channel is discussed in Section 7.
 
 #### 4.3.3 Directory interface
 
 This RFC defines the interface any directory layer MUST provide; the concrete
-distributed hash table (replication, retention, storage incentives) is
-specified in a companion RFC (proposed **RFC-0016, HOPR Distributed
-Directory**). The interface is:
+distributed hash table (replication, retention, storage incentives, and the
+blinding construction of Section 4.3.2) is specified in a companion RFC (proposed
+**RFC-0016, HOPR Distributed Directory**; not yet allocated). The interface is:
 
-- `PUBLISH(slot, descriptor)` — store a signed descriptor at `slot`. The layer
-  MUST reject descriptors whose signature does not verify under the blinded key
-  implied by `slot`, and SHOULD keep the highest `revision` on collision.
-- `FETCH(slot) -> descriptor?` — return the stored descriptor for `slot`.
+- `STORE(slot, record)` and `LOAD(slot) -> record?` — a single request format
+  serves both. Publication and fetch MUST be **indistinguishable on the wire**:
+  a publisher writes using the same request shape as a reader, authorising the
+  write with a signature inside the blinded-signed record body rather than a
+  distinct opcode, so a directory node cannot tell a service's re-publish from a
+  client's fetch.
+- Both operations MUST be performed over **anonymous HOPR sessions** (a forward
+  path with SURBs for the reply, per
+  [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)), so
+  directory nodes learn neither party's location.
 
-Both operations MUST be performed by the service and the client over **anonymous
-HOPR sessions** (a forward path with SURBs for the reply, per
-[RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)), so
-directory nodes learn neither the publisher's nor the fetcher's location, and
-cannot tell publication from fetching apart from the operation code. The
-directory layer MUST provide `k`-fold replication across the nodes responsible
-for a `slot` so that a single node cannot censor a service; the responsible set
-MUST rotate with `period`.
+The directory layer MUST provide `k`-fold replication across the nodes
+responsible for a `slot`, with the responsible set rotating per `period`, so no
+single node can censor a service. A client MUST fetch from at least two distinct
+replicas and take the highest valid `revision`, so a single lying replica cannot
+force a stale descriptor. To bound the per-slot demand time-series any single
+replica observes, clients SHOULD spread queries across the replica set. The
+directory interface MUST expose an anti-abuse hook (fetch payment or
+proof-of-work) that RFC-0016 MUST specify; without it, an adversary who knows an
+address can flood its slot. Services MUST jitter publication time within the
+period and MUST NOT derive `published_at` from a high-resolution wall clock, so
+re-publication does not become a liveness or clock fingerprint.
 
 ### 4.4 Bridge relayers: announcement, eligibility and selection
 
 #### 4.4.1 Announcement
 
-Bridge capability is advertised by extending the existing on-chain node
-announcement (the mechanism nodes already use to bind their off-chain key, chain
-account and transport address per
-[RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)).
-A bridge-capable node announces:
+No existing RFC normatively specifies an extensible on-chain announcement record;
+[RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+only assumes that an announcement mechanism exists and binds a node's off-chain
+key, chain account and transport address, and uses it as an input to discovery.
+This RFC therefore defines a **new** on-chain bridge-announcement schema (to be
+ratified with the announcement-contract work it depends on):
 
 ```
 BridgeAnnouncement {
-  roles        : u8,     // bit 0 = intro-capable, bit 1 = rendezvous-capable
-  fee_schedule : FeeSchedule,   // or an on-chain pointer to an off-chain record
-  capacity     : u32,    // advertised concurrent-splice capacity
-  min_version  : u8      // lowest OSCP version supported
+  roles          : u8,     // bit 0 = intro-capable, bit 1 = rendezvous-capable
+  schedule_ver   : u32,    // version of the fee schedule below; signed, monotonic
+  fee_schedule   : FeeSchedule,   // or an on-chain pointer to a signed off-chain record
+  capacity       : u32,    // advertised concurrent-join capacity
+  min_version    : u8,     // lowest OSCP version supported
+  bond_ref       : BondRef // reference to the slashing bond (Section 4.4.2)
 }
 
 FeeSchedule {
-  session_fee  : u128,   // flat per-session fee (Section 4.7)
-  currency     : u8,     // settlement asset selector
-  topup_unit   : u128    // per keep-alive interval for long/bulk sessions
+  reservation_fee : u128,  // small, non-refundable anti-DoS admission (Section 4.7)
+  service_rate    : u128,  // per delivered-frame unit, unlocked via PIX (Section 4.7)
+  currency        : u8     // settlement asset selector
 }
 ```
 
-Because this rides on the existing announcement, services and clients discover
-bridges by filtering the channel graph they already maintain
+Because this rides on the same on-chain announcement nodes already use, services
+and clients discover bridges by filtering the channel graph they maintain
 ([RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md),
 [RFC-0014](../RFC-0014-path-finding/0014-path-finding.md)); no new discovery
-infrastructure is required. A bridge MAY publish a fresher fee/capacity/load
-record off-chain and reference it from the announcement to avoid per-update gas
-cost.
+overlay is required. A bridge MAY reference a fresher signed off-chain
+fee/capacity record to avoid per-update gas cost, but the record MUST be signed
+and carry a monotonic `schedule_ver`; the fee a client agrees to is bound to a
+specific `schedule_ver` (Section 4.5.2), so a bridge cannot bait a low fee and
+enforce a higher one.
 
-#### 4.4.2 Eligibility
+#### 4.4.2 Eligibility and bonding
 
-A node announcing any bridge role MUST hold at least `MIN_BRIDGE_STAKE`
-(a network parameter, analogous to the eligibility threshold of
-[RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md)).
-The requirement raises the Sybil cost for the role that sits closest to both
-anonymity legs: an adversary operating many bridges disproportionately improves
-its correlation odds (Section 7), so bridges are precisely where cheap identities
-are most dangerous. Bonding with on-chain slashing for provable misbehaviour is
-deferred to future work (Section 11); in this version, misbehaving bridges lose
-fee income and are down-scored by probing
-([RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)).
+A node announcing any bridge role MUST post a **slashing bond** of at least
+`MIN_BRIDGE_BOND` (a network parameter). Unlike a recoverable stake, the bond is
+subject to a cooldown on withdrawal (`BOND_COOLDOWN`, default 14 days) and to
+slashing on a challengeable misbehaviour proof. The rendezvous role is the
+network's most sensitive correlation vantage (Section 7): an adversary running
+many rendezvous bridges disproportionately improves its correlation odds, and a
+purely recoverable stake would pay for itself through fees and deter nothing.
+Bonding with cooldown raises both the Sybil cost and the whitewashing cost (an
+identity cannot cheaply churn to escape a bad reputation), and slashing gives
+teeth to non-performance and equivocation proofs. The concrete challenge/proof
+formats (fee theft, join non-performance, cookie equivocation) are specified
+with the companion economic work; until they exist, deployments MUST treat
+correlation resistance as resting on bonding, fresh selection, and traffic
+shaping (Section 4.9) rather than on slashing.
 
 #### 4.4.3 Selection
 
 - The **service** selects its introduction bridges from intro-capable nodes and
-  lists them in the descriptor. It SHOULD prefer high-stake, high-quality,
-  churn-resistant nodes and SHOULD maintain redundancy (`n >= 3` intro points
-  RECOMMENDED).
-- The **client** selects a rendezvous bridge per connection from
-  rendezvous-capable nodes, freshly and unpredictably, weighting by advertised
-  capacity, fee and probe-derived quality. The client MUST NOT reuse a
-  rendezvous bridge across connections in a way that would let the bridge link
-  them (a fresh cookie and, where practical, a fresh bridge per connection).
+  lists them (padded to `INTRO_SLOTS`) in the descriptor. It SHOULD prefer
+  high-bond, high-quality, churn-resistant nodes and SHOULD maintain redundancy
+  (at least 3 live intro points RECOMMENDED). Because the set of chosen IBs is a
+  cross-period linkage signal (Section 7), a service SHOULD rotate its IB set
+  across periods.
+- The **client** selects a rendezvous bridge per connection, freshly and
+  unpredictably. Selection MUST be **bond-weighted**, and the influence of
+  advertised `fee` and `capacity` on selection MUST be capped, so an adversary
+  cannot attract a disproportionate share of joins by advertising an
+  artificially low fee or high capacity. The client MUST use a fresh cookie per
+  connection and SHOULD avoid reusing a rendezvous bridge in a way that lets the
+  bridge link two connections. Section 7 discusses the tension between
+  per-connection freshness (which spreads samples to more bridges) and
+  intersection exposure.
 
 ### 4.5 Introduction and rendezvous protocol
 
@@ -406,40 +480,50 @@ OSCPHeader {
 }
 ```
 
-Message types:
+| Code | Type                     | Sender → Receiver     |
+| ---- | ------------------------ | --------------------- |
+| 0x01 | `ESTABLISH_INTRO`        | Service → IB          |
+| 0x02 | `ESTABLISH_INTRO_ACK`    | IB → Service          |
+| 0x03 | `INTRODUCE1`             | Client → IB           |
+| 0x04 | `INTRODUCE2`             | IB → Service          |
+| 0x05 | `INTRODUCE_ACK`          | IB → Client           |
+| 0x06 | `RENDEZVOUS_ESTABLISH`   | Client → RB           |
+| 0x07 | `RENDEZVOUS_ESTABLISHED` | RB → Client           |
+| 0x08 | `RENDEZVOUS1`            | Service → RB          |
+| 0x09 | `RENDEZVOUS2`            | RB → Client           |
+| 0x0a | `JOIN_UNAVAILABLE`       | RB/IB → either        |
 
-| Code | Type                    | Sender → Receiver     |
-| ---- | ----------------------- | --------------------- |
-| 0x01 | `ESTABLISH_INTRO`       | Service → IB          |
-| 0x02 | `ESTABLISH_INTRO_ACK`   | IB → Service          |
-| 0x03 | `INTRODUCE1`            | Client → IB           |
-| 0x04 | `INTRODUCE2`            | IB → Service          |
-| 0x05 | `INTRODUCE_ACK`         | IB → Client           |
-| 0x06 | `RENDEZVOUS_ESTABLISH`  | Client → RB           |
-| 0x07 | `RENDEZVOUS_ESTABLISHED`| RB → Client           |
-| 0x08 | `RENDEZVOUS1`           | Service → RB          |
-| 0x09 | `RENDEZVOUS2`           | RB → Client           |
-| 0x0a | `SPLICE_ERROR`          | RB/IB → either        |
+The rendezvous messages (`RENDEZVOUS_ESTABLISH`, `RENDEZVOUS1`, `RENDEZVOUS2`)
+are framed as the generic **session-join** primitive (Section 3): to the RB, `RC`
+is an opaque join token and the two legs are two ordinary sessions to be joined.
+The RB is not told it is servicing an onion connection.
 
 #### 4.5.1 Establishing an introduction point
 
 The service opens a HOPR session to each `IB` in its descriptor and sends
-`ESTABLISH_INTRO`, proving control of the intro point's `auth_key`:
+`ESTABLISH_INTRO`, proving possession of the intro point's `intro_enc_key`
+private half and binding the proof to a fresh IB-supplied challenge:
 
 ```
 ESTABLISH_INTRO {
-  intro_auth_pubkey : [u8; 32],   // matches IntroPoint.auth_key
-  proof             : [u8; 64],   // signature over session binding + auth_key
-  keepalive_hint    : u32         // seconds between KeepAlive on this session
+  intro_enc_pubkey : [u8; 32],   // matches IntroPoint.intro_enc_key
+  ib_challenge     : [u8; 16],   // supplied by the IB at session start
+  proof            : [u8; 64]    // signature over (ib_challenge || HOPR session id || intro_enc_pubkey)
 }
 ```
 
-The IB verifies `proof`, records the mapping from `intro_auth_pubkey` to this
-standing session, and replies `ESTABLISH_INTRO_ACK`. The session is kept alive
-per [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
-`KeepAlive`. The IB learns only that some pseudonymous peer maintains an intro
-point for `intro_auth_pubkey`; because the service reaches the IB over a
-multi-hop path, the IB does not learn the service's node identity.
+The IB verifies `proof` against `intro_enc_pubkey`, records the mapping from
+`intro_enc_pubkey` to this standing session, and replies
+`ESTABLISH_INTRO_ACK`. The session is kept alive per
+[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md)
+`KeepAlive`. To avoid the standing session becoming a service fingerprint
+(Section 7), the keep-alive cadence MUST use a single network-wide jittered value
+(not a service-chosen cadence), the service MUST rotate the standing session's
+pseudonym on a `PSEUDONYM_ROTATION` schedule (default 1 hour) without disturbing
+the intro-point mapping, and the standing session SHOULD be padded so that
+`INTRODUCE2` forwarding is not distinguishable from keep-alive traffic. Because
+the service reaches the IB over a multi-hop path, the IB does not learn the
+service's node identity.
 
 #### 4.5.2 Rendezvous establishment
 
@@ -447,155 +531,229 @@ The client opens a HOPR session to its chosen `RB` and registers a cookie:
 
 ```
 RENDEZVOUS_ESTABLISH {
-  cookie        : [u8; 20],    // RC, CSPRNG
-  fee_payment   : PixAllocationRef,   // prepaid splice fee (Section 4.7)
-  expiry        : u32          // seconds the RB should hold the reservation
+  cookie          : [u8; 20],    // RC, CSPRNG
+  join_commitment : [u8; 32],    // H("hopr-join" || RC || S_s), binds the join to the expected service
+  schedule_ver    : u32,         // fee schedule the client agrees to
+  reservation_ref : PixDepositRef,  // non-refundable reservation_fee (Section 4.7)
+  expiry          : u32          // seconds the RB holds the reservation
 }
 ```
 
-The RB verifies the fee allocation (Section 4.7), reserves splice state keyed by
-`RC`, and replies `RENDEZVOUS_ESTABLISHED`. `RC` is single-use; the RB MUST
-reject a second registration for a live `RC`.
+The RB verifies the `reservation_ref` covers `reservation_fee` for the referenced
+`schedule_ver`, reserves join state keyed by `RC`, and replies with a **signed
+reservation token**:
+
+```
+RENDEZVOUS_ESTABLISHED {
+  cookie         : [u8; 20],
+  rb_node_id     : [u8; 32],
+  valid_until    : u64,
+  rb_signature   : [u8; 64]      // RB signs (cookie || rb_node_id || valid_until || join_commitment)
+}
+```
+
+`RC` is single-use; the RB MUST reject a second registration for a live `RC`.
+The reservation is bounded: an RB MUST cap concurrent reservations per payer
+epoch to bound slot exhaustion, and the `reservation_fee` is non-refundable so
+reserve-and-abandon costs the client. The bulk of the bridge's compensation is
+**not** paid here; it is unlocked only against delivered service (Section 4.7).
 
 #### 4.5.3 Introduction
 
 The client sends `INTRODUCE1` to an introduction bridge from the descriptor. Its
-core is a blob encrypted to the service so the IB (and any relay) learns
-neither the rendezvous bridge nor the handshake material:
+core is a blob encrypted to the service so the IB (and any relay) learns neither
+the rendezvous bridge nor the handshake material:
 
 ```
 INTRODUCE1 {
-  intro_auth_pubkey : [u8; 32],   // selects the intro point at the IB
-  client_eph_pubkey : [u8; 32],   // E_c, ephemeral X25519 (also seeds enc key)
-  enc_blob          : [u8; m]     // encrypted-to-service payload below
+  intro_enc_pubkey  : [u8; 32],   // selects the intro point at the IB
+  client_eph_pubkey : [u8; 32],   // E_c^intro, ephemeral X25519 for blob encryption
+  enc_blob          : [u8; m]     // AEAD, key from DH(E_c^intro, intro_enc_key),
+                                  // AD = intro_enc_pubkey || target IB node_id
 }
 
-// plaintext of enc_blob (see Section 4.6 for the encryption key):
+// plaintext of enc_blob:
 IntroPayload {
-  rendezvous_node_id : [u8; 32],  // RB routing target
-  rendezvous_cookie  : [u8; 20],  // RC
+  rendezvous_token   : RENDEZVOUS_ESTABLISHED,   // RB-signed reservation (Section 4.5.2)
+  client_eph_e2e     : [u8; 32],  // E_c, a SEPARATE ephemeral for the e2e handshake (Section 4.6)
   auth_data          : [u8; a],   // client-authorisation proof (Section 4.8), 0 if none
+  intro_payment      : PixAllocationRef,  // bound to this IB node_id + replay_nonce
   replay_nonce       : [u8; 16],  // CSPRNG
   timestamp          : u64        // UNIX seconds, freshness bound
 }
 ```
 
-The IB looks up the standing session for `intro_auth_pubkey` and forwards the
-message as `INTRODUCE2` over it, then returns `INTRODUCE_ACK` to the client. The
-IB cannot decrypt `enc_blob`. The service MUST reject an `IntroPayload` whose
-`timestamp` is outside an acceptance window or whose `replay_nonce` it has
-already seen within that window.
+The blob is encrypted with a dedicated ephemeral `E_c^intro` distinct from the
+e2e ephemeral `E_c`, under a key `KDF("hopr-onion-intro", DH(E_c^intro,
+intro_enc_key))`, with the target IB `node_id` and `intro_enc_pubkey` in the AEAD
+associated data so a blob minted for one IB is invalid at another. The IB looks
+up the standing session for `intro_enc_pubkey`, forwards the message as
+`INTRODUCE2` over it, and returns `INTRODUCE_ACK`. The IB cannot decrypt
+`enc_blob`.
 
-#### 4.5.4 Rendezvous join and splice
+The service MUST maintain a **service-global** replay cache (all `INTRODUCE2`
+funnel to one place) keyed by `replay_nonce`, MUST reject an `IntroPayload` whose
+`timestamp` is outside `±INTRO_WINDOW` (default 60 s), and MUST retain each nonce
+for at least `INTRO_WINDOW`. Crucially, before doing any expensive work the
+service MUST verify `rendezvous_token.rb_signature` and that
+`join_commitment == H("hopr-join" || RC || S_s)`: this proves a real,
+client-funded reservation exists at the named RB, so the service will not open a
+costly leg to an unreserved or black-hole rendezvous bridge (Section 7,
+amplification).
 
-The service decrypts `enc_blob`, completes the handshake (Section 4.6) to obtain
-the e2e key `k` and its ephemeral `E_s`, opens a HOPR session to `RB` and sends:
+#### 4.5.4 Rendezvous join
+
+The service decrypts `enc_blob`, validates the reservation token, completes the
+handshake (Section 4.6) to obtain the e2e key `k` and its ephemeral `E_s`, opens
+a HOPR session to `RB`, and sends:
 
 ```
 RENDEZVOUS1 {
-  cookie            : [u8; 20],   // RC, matching the client reservation
-  service_eph_pubkey: [u8; 32],   // E_s
-  auth_tag          : [u8; 32]    // MAC over the handshake transcript under k
+  cookie             : [u8; 20],   // RC
+  service_eph_pubkey : [u8; 32],   // E_s
+  join_proof         : [u8; 32],   // H("hopr-join" || RC || S_s), matches join_commitment
+  confirm_tag        : [u8; 32]    // MAC over transcript_hash (Section 4.6) under the confirmation key
 }
 ```
 
-The RB matches `RC` to the client's reserved session, binds the two sessions
-into a splice, and forwards `service_eph_pubkey` and `auth_tag` to the client as
-`RENDEZVOUS2`. From this point the RB relays payload between the two sessions
-(Section 4.9). The client verifies `auth_tag`, confirming it shares `k` with a
-holder of the service static key, and the e2e session begins. A cookie
-mismatch, an unknown or expired `RC`, or a failed fee check yields
-`SPLICE_ERROR`.
+The RB accepts only the **first** `RENDEZVOUS1` per `RC`, checks `join_proof`
+against the `join_commitment` it stored, binds the two sessions into a join, and
+forwards `service_eph_pubkey` and `confirm_tag` to the client as `RENDEZVOUS2`.
+Because the join is bound to `H(RC || S_s)`, a party who merely learns `RC`
+(e.g. by observing the RB) cannot squat the join without knowing `S_s`. The
+client verifies `confirm_tag` (Section 4.6). An unknown/expired `RC`, a
+`join_proof` mismatch, a saturated capacity, or a failed reservation check yields
+a uniform `JOIN_UNAVAILABLE` (client-visible error granularity is deliberately
+coarse so the RB's live-`RC` set and load are not probeable).
 
 ### 4.6 End-to-end handshake and session
 
 Each HOPR leg is encrypted only to that leg's endpoints, so without an
 additional layer the rendezvous bridge would see plaintext. An end-to-end
 handshake keyed to the service identity is therefore MANDATORY; the bridge only
-ever splices ciphertext.
+ever relays ciphertext.
 
 The handshake is a Noise-IK-style [09] exchange over X25519 [10]. The service's
-static key `S_s = handshake_static` is published (signed) in the descriptor. The
-client generates an ephemeral `E_c` (sent in `INTRODUCE1`); the service
-generates an ephemeral `E_s` (sent in `RENDEZVOUS1`). Both derive:
+per-period static key `S_s = handshake_static` is published (signed) in the
+descriptor (Section 4.3.1). The client generates an e2e ephemeral `E_c` (carried
+inside `enc_blob` as `client_eph_e2e`, distinct from the blob ephemeral); the
+service generates an ephemeral `E_s` (sent in `RENDEZVOUS1`). Define:
 
 ```
-es  = DH(E_c, S_s)       // authenticates the service (only S_s holder computes it)
-ee  = DH(E_c, E_s)       // forward secrecy
-k   = KDF("hopr-onion-e2e", ee || es, transcript_hash)
+transcript_hash = H( "hopr-onion-e2e/v1" || pk_S || S_s || E_c || E_s
+                     || RC || descriptor.revision )
+es = DH(E_c, S_s)      // authenticates the service (only the S_s holder computes it)
+ee = DH(E_c, E_s)      // ephemeral-ephemeral, forward secrecy
+k  = KDF("hopr-onion-e2e", ee || es, transcript_hash)
+k_c2s, k_s2c, k_confirm = HKDF-Expand(k, {"c2s","s2c","confirm"})
 ```
 
-`k` is expanded into directional keys for the e2e session
-(`k_c2s`, `k_s2c`) and a confirmation key used for `RENDEZVOUS1.auth_tag`. The
-`enc_blob` of `INTRODUCE1` (Section 4.5.3) is encrypted under a key derived from
-`DH(E_c, IntroPoint.auth_key)` so that only the intended service, via its intro
-point, can read it, and forward secrecy holds for introduction content.
+`transcript_hash` binds the identity `pk_S`, the published `S_s`, **both
+ephemerals exactly as transmitted**, the cookie, and the descriptor `revision`.
+The service computes `confirm_tag = MAC(k_confirm, transcript_hash)` over its own
+view; the client recomputes `transcript_hash` with the `E_s` it actually received
+and the `E_c` it sent, so any substitution of `E_s` by a malicious RB (a MitM
+attempt) changes `transcript_hash`, fails the MAC, and MUST cause the client to
+abort. Binding `pk_S` means a valid `confirm_tag` proves the responder holds an
+`S_s` cryptographically tied to the exact address dialed, closing the gap
+between the descriptor signature chain and the key-agreement layer.
+
+Forward secrecy: a passive recorder holding `E_c` and `E_s` public values and a
+later-compromised `S_s` can compute `es` but **not** `ee` (which needs a private
+ephemeral, destroyed after use); provided endpoints destroy `E_c`/`E_s` private
+keys promptly, past sessions remain confidential under static-key compromise.
+The service is authenticated to the client (via `es` and `pk_S` binding); the
+client is intentionally unauthenticated at the transport layer (application-level
+authorisation is Section 4.8).
 
 The e2e session runs the session-data protocol
-[RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) with its
-frames encrypted under `k_c2s`/`k_s2c`. **Reliable mode is the default** for
-onion services. The bridge, operating the outer HOPR sessions, cannot read or
-tamper with e2e frames undetected (any tampering fails the e2e authenticator).
+([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) with frames
+AEAD-encrypted under `k_c2s`/`k_s2c`. This RFC mandates **reliable session mode**
+for onion services (RFC-0008 leaves the default to the application). All AEAD
+uses (the intro blob, and each e2e direction) MUST use independent keys and
+independent 96-bit nonce counters beginning at zero and never reused, per
+Appendix 1.
 
 ### 4.7 Incentivisation
 
 Onion-service traffic is paid on three counts, all reusing existing HOPR
-machinery so no new settlement primitive is introduced:
+machinery. The central principle, corrected from a naive prepaid model, is that
+**a bridge is paid only against verifiable service** — mirroring PIX, whose
+essential property is that settlement unlocks only after a proven packet
+handover.
 
-1. **Transport legs (Proof of Relay).** Each side pays the relays on its own
-   leg via standard tickets [05]: the client funds the client→RB path and the
-   SURBs for return traffic on it; the service funds the service→RB path and its
-   return SURBs. This is ordinary HOPR packet economics and needs no extension.
-2. **Bridge splice fee (PIX-style, flat per session).** The
-   splice/availability role is covered by neither Proof of Relay (the bridge is
-   an endpoint of two sessions, not a mid-path relayer earning tickets) nor PIX
-   (which incentivises exits replying to forward traffic). This RFC adds a flat
-   **per-session fee**, taken from the bridge's announced `FeeSchedule`
-   (Section 4.4.1) and **prepaid before the splice begins**. Settlement uses the
-   PIX privacy-pool pattern
-   [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md):
-   the payer `Deposit`s and `Allocate`s to a session stealth address the bridge
-   can later `Withdraw`, so the pool hides the payer from the bridge and the
-   bridge from any observer. The `PixAllocationRef` in
-   `RENDEZVOUS_ESTABLISH` (Section 4.5.2) points to this allocation; the bridge
-   MAY refuse to splice until it observes the allocation. Long-lived or bulk
-   sessions top up by `topup_unit` on a keep-alive schedule; if a required
-   top-up is not observed within a grace window, the bridge MAY tear down the
-   splice.
-3. **Intro-bridge retainer.** The service pays each introduction bridge for the
-   ongoing standing session, again PIX-style, on a per-period retainer taken
-   from the bridge's schedule. Because the retainer is paid by the service, an
-   introduction bridge is compensated even though it never carries bulk data.
+1. **Transport legs (Proof of Relay).** Each side pays the relays on its own leg
+   via standard tickets
+   ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)): the client
+   funds the client→RB path and the SURBs for return traffic on it; the service
+   funds the service→RB path and its return SURBs. This is ordinary HOPR packet
+   economics and needs no extension.
 
-By default the **client** pays the rendezvous fee and the **service** pays the
-intro retainers. Two alternatives are explicitly permitted but not required in
-this version (Section 9): a **service-subsidised** model where the service
-pre-funds rendezvous fees so clients connect at no cost (a toll-free service),
-and a **client-pays-all** model for maximum spam resistance.
+2. **Rendezvous bridge — reservation plus service-conditional stream.** The
+   bridge earns in two parts. A small **non-refundable reservation fee**
+   (Section 4.5.2) prices the reservation slot and deters reserve-and-abandon
+   griefing. The **bulk** is a service-conditional stream settled with the PIX
+   construction
+   ([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)):
+   the rendezvous bridge acts precisely as a PIX *exit* replying to the client
+   *entry*. When the bridge delivers a service→client frame over the client's
+   return SURBs, the first return-path relayer's acknowledgement discloses the
+   `ack_secret` that unlocks a PIX share the client attached to that SURB. After
+   the threshold of valid shares, the bridge recovers the session stealth
+   address and withdraws. Thus the bridge is paid **in proportion to frames it
+   actually delivered to the client**, verified by real return-path handovers,
+   and never paid for a join it did not perform. If the bridge stops delivering,
+   the stream stops. This is a genuine PIX agreement, not a bare transfer.
+   Long/bulk sessions extend the stream continuously; there is no separate
+   top-up handshake to grief.
+
+3. **Introduction bridge — per-introduction micro-payment.** The service pays
+   each IB a micro-payment **per `INTRODUCE2` it receives**, since receipt at the
+   service is itself proof the IB forwarded. An IB that drops introductions
+   simply earns nothing, aligning incentives without needing an undetectable
+   "did it forward?" oracle. A small availability retainer MAY supplement this
+   but MUST NOT dominate it, so the marginal incentive is to forward. All IB
+   payments settle PIX-style, hiding the paying service.
+
+By default the **client** funds the rendezvous stream and the **service** funds
+intro micro-payments. Two alternatives are permitted but not required
+(Section 9): a **service-subsidised** model (the service funds the rendezvous
+stream so clients connect free) and a **client-pays-all** model. Because PIX is
+a draft dependency, a deployment MUST NOT enable onion-service settlement before
+the PIX construction it relies on is finalised.
 
 ### 4.8 Denial-of-service resistance and access control
 
-A mutually anonymous inbound channel is intrinsically abusable: the introduction
-path lets anyone spend the service's resources cheaply. Two complementary,
-independently deployable defences are specified; the service states its choice
-in `dos_policy`.
+A mutually anonymous inbound channel is intrinsically abusable. Spam pricing and
+capacity provisioning are treated as **separate** problems: pricing raises the
+per-request cost, provisioning ensures a funded flood cannot exhaust a finite
+resource. Both, plus access control, are independently deployable; the service
+states its choice in `dos_policy` (floored by `min_dos_level`, Section 4.3.1, so
+an old descriptor cannot advertise a weaker policy).
 
-#### 4.8.1 Payment-gated introduction (public services)
+#### 4.8.1 Payment-gated and rate-limited introduction (public services)
 
-The service MAY require every `INTRODUCE1` to carry a small verifiable payment
-(a PIX-style stealth allocation or a redeemable ticket) checkable by the
-introduction bridge and/or the service before either does work. The `dos_policy`
-advertises the required amount and the verifying party. This turns introduction
-spam into revenue while preserving client anonymity through the privacy pool. A
-service MAY additionally advertise a client-puzzle (proof-of-work) fallback for
-free-tier access under load (Section 9); this RFC does not mandate it.
+The service MAY require every `INTRODUCE1` to carry a verifiable payment
+(`intro_payment`, a PIX-style allocation bound to the target IB `node_id` and
+`replay_nonce` so it cannot be replayed across bridges). The payment SHOULD be
+sized to cover the service's expected cost of opening the rendezvous leg, not
+merely the introduction, so the cheap action does not induce an expensive one.
+The RECOMMENDED verifier is the **service** (`verifier = service`), because a
+bridge-side verifier can correlate payment artifacts with a target service
+(Section 7); when a bridge must verify, the artifact MUST be one-time and
+unlinkable. Independently of payment, each IB MUST rate-limit per client session
+pseudonym, and the service MUST be able to rotate and scale its IB set under
+attack. A proof-of-work fallback for free-tier access MUST be advertised (via
+`pow_difficulty`) and MUST be enforced when the service signals load; its
+concrete puzzle is deferred (Section 11) but its presence is not optional for a
+free-tier service.
 
 ```
 DosPolicy {
   intro_payment_min : u128,   // 0 = no payment required
-  verifier          : u8,     // 0 = bridge, 1 = service, 2 = both
+  verifier          : u8,     // 0 = service (RECOMMENDED), 1 = bridge, 2 = both
   auth_required     : bool,   // Section 4.8.2
-  pow_difficulty    : u8      // 0 = disabled
+  pow_difficulty    : u8      // 0 = disabled; enforced under load
 }
 ```
 
@@ -603,234 +761,275 @@ DosPolicy {
 
 For a private service, authority to connect is gated at discovery: the
 descriptor's `intro_points` are encrypted to a set of authorised client public
-keys, so only those clients can obtain usable introduction data (Tor's "client
+keys, so only those clients obtain usable introduction data (Tor's "client
 authorisation" analogue [06]). When `auth_required` is set, the client MUST
-include an `auth_data` proof in `IntroPayload` (Section 4.5.3) that the service
-verifies before serving. Access control and payment gating are orthogonal and
-MAY be combined.
+include an `auth_data` proof in `IntroPayload` that the service verifies before
+serving. Access control and payment gating are orthogonal and MAY be combined.
 
-### 4.9 Bridge session management (splice and SURB handling)
+### 4.9 Bridge session management (join, shaping and SURB handling)
 
-The rendezvous bridge is a **stateful two-session splice**, not a stateless
+The rendezvous bridge is a **stateful two-session join**, not a stateless
 ciphertext relay. It terminates two HOPR sessions — leg A to the client, leg B
 to the service — bound by the rendezvous cookie, and relays the opaque e2e
 payload between them. Because the payload is end-to-end encrypted (Section 4.6),
-the bridge reads only ciphertext frames; it nonetheless operates the full
-transport of each leg.
+the bridge reads only ciphertext; it nonetheless operates the full transport of
+each leg.
 
-The bridge MUST manage each leg's SURB budget and starvation independently,
-using the flow-control signals already defined by the packet and application
-protocols
-([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)
-SURB signals, surfaced through
+**Traffic shaping is mandatory.** To deny the bridge (and any observer at it) a
+timing/volume correlation oracle across the two legs, each leg MUST be shaped to
+a constant or cover-padded rate independently of the other, so the byte and
+timing profile of leg A does not reveal that of leg B. The two legs MUST run
+independent SURB and padding schedules. Shaping parameters follow the traffic
+class negotiated in `capabilities`; the baseline is constant-rate padding in the
+spirit of Loopix cover traffic [04]. Without shaping, the "mixing on every leg"
+property is insufficient against an adversary positioned at the join, which is
+why shaping is normative here rather than advisory.
+
+The bridge MUST manage each leg's SURB budget and starvation independently, using
+the flow-control signals of the packet and application protocols
+([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) SURB
+signals, surfaced through
 [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md) flags
 `0x01` SURB distress and `0x03` out-of-SURBs):
 
 - The bridge replies to each counterparty over SURBs that counterparty supplied,
-  and maintains a rolling reserve per leg.
-- On a SURB-distress signal from a leg, or on a keep-alive schedule, the bridge
-  MUST prompt that counterparty to replenish its SURB reserve before the reserve
-  is exhausted.
-- If a leg's SURBs are exhausted and cannot be replenished, the bridge MUST
-  apply backpressure to the opposite leg rather than dropping e2e frames
-  silently, and MAY tear the splice down if starvation persists beyond a grace
-  window.
-- The bridge MUST bound its per-splice state and total concurrent splices to its
-  advertised `capacity`, rejecting new rendezvous reservations with
-  `SPLICE_ERROR` when saturated.
-
-This design keeps reliability and SURB accounting local to each HOPR leg (normal
-session semantics) while the inner e2e session provides end-to-end reliability
-and integrity across the two legs.
+  maintaining a rolling reserve per leg.
+- On a SURB-distress signal or on schedule, the bridge MUST prompt that
+  counterparty to replenish before the reserve is exhausted.
+- If a leg's SURBs are exhausted and cannot be replenished, the bridge MUST apply
+  backpressure to the opposite leg rather than dropping e2e frames silently. A
+  counterparty that persistently fails to replenish (a starvation-griefing
+  vector) bears the teardown: after `STARVE_GRACE` (default 30 s) the bridge MAY
+  tear the join down, and the service MAY cheaply abandon a starved join.
+- The bridge MUST bound per-join state and total concurrent joins to its
+  advertised `capacity`, rejecting new reservations with `JOIN_UNAVAILABLE` when
+  saturated.
 
 The normative host model is that the service runs on or behind a HOPR node with
 funded channels. A **paid-gateway** deployment — a non-node service renting a
-HOPR node to inject and receive its traffic, the gateway paid out of band or
-PIX-style — is an OPTIONAL pattern (Section 11); it broadens who can host
-services at the cost of a gateway trust and metadata surface.
+HOPR node to inject and receive its traffic, the gateway paid PIX-style — is an
+OPTIONAL pattern (Section 11); it broadens who can host services at the cost of a
+gateway trust and metadata surface.
 
 ## 5. Design Considerations
 
 **Why two phases rather than a single bridge.** A single announced bridge that
 also carries data would be a bottleneck, a denial-of-service magnet, and a fixed
-correlation point an adversary could target or impersonate. Splitting a
-long-lived, low-traffic introduction role from a fresh, per-connection
-rendezvous role keeps announced infrastructure out of the bulk path and makes
-connections unlinkable across rendezvous points, matching the rationale of Tor
-v3 [06] while running over HOPR sessions instead of circuits.
+correlation point. Splitting a long-lived, low-traffic introduction role from a
+fresh, per-connection rendezvous role keeps announced infrastructure out of the
+bulk path and makes connections unlinkable across rendezvous points, matching
+Tor v3 [06] while running over HOPR sessions.
 
 **Why self-certifying names with an optional alias layer.** Self-certification
-removes naming trust entirely: the address is the key. ENS is reused only as a
-convenience so that human-memorable names need no new registry contract and no
-new consensus; because the self-certifying address stays authoritative, a
-compromised or hostile alias cannot redirect a client to a different service.
+removes naming trust: the address is the key. ENS is reused only so
+human-memorable names need no new registry contract; because the self-certifying
+address stays authoritative, a hostile alias cannot redirect a client.
 
-**Why the bridge terminates two sessions.** Making the rendezvous bridge a
-session endpoint (rather than a packet relay) lets each leg use ordinary HOPR
-session semantics — SURB flow control, retransmission, keep-alive — while an
-end-to-end layer the bridge cannot read carries the actual data. SURB starvation,
-the main flow hazard for an inbound-heavy service, becomes a local per-leg
-concern the bridge manages, instead of an end-to-end coupling.
+**Why payment must be service-conditional.** An earlier design paid the bridge a
+flat fee prepaid at reservation. That is a fee-theft primitive: nothing binds the
+payment to performing the join, and it discards exactly the property that makes
+PIX safe — settlement conditional on a proven handover. Modelling the rendezvous
+bridge as a PIX exit whose stream unlocks per delivered frame restores
+incentive-compatibility (a non-performing bridge earns only the small
+non-refundable reservation) and keeps payments unlinkable. The introduction
+micro-payment applies the same principle: pay per proof-of-forwarding
+(`INTRODUCE2` receipt), not for unverifiable availability.
 
-**Why reuse PIX for the bridge fee.** The bridge role is an availability service,
-not a relay, so Proof of Relay does not reward it and PIX does not cover it. PIX
-already solves the hard part — paying an anonymous counterparty through a privacy
-pool that hides payer from payee — so reusing its settlement pattern avoids a new
-primitive and keeps payments unlinkable.
+**Why bonding, not stake.** A recoverable stake pays for itself through fees and
+deters neither a correlation adversary nor whitewashing. A slashable bond with a
+withdrawal cooldown raises Sybil and churn costs where they matter most — the
+rendezvous vantage.
 
-**Parameter defaults.** `PERIOD_LENGTH` 86400 s and `n >= 3` intro points mirror
-proven Tor v3 choices; `MIN_BRIDGE_STAKE`, `intro_payment_min`, and fee units are
-network-economic parameters left to deployment and governance.
+**Why shaping is normative.** The rendezvous bridge holds both matched flows; it
+does not need to be global to correlate them. End-to-end encryption hides content
+but not shape. Constant-rate/cover shaping per leg is the load-bearing defence,
+so it is a requirement, not a recommendation.
+
+**Parameter defaults.** `PERIOD_LENGTH` 86400 s, at least 3 live intro points,
+and `MAX_DELEGATION` 7 days mirror proven Tor v3 choices; `MIN_BRIDGE_BOND`,
+`BOND_COOLDOWN`, fee units, `INTRO_SLOTS`, and window/grace timers are
+network-economic parameters left to governance.
 
 ## 6. Compatibility
 
-This RFC is additive. It introduces a new application tag
-(`0x0000000000000002`, previously in the user-defined range of
-[RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)) and
-new OSCP message types; nodes that do not implement onion services simply do not
-register the tag and are unaffected as relayers.
+This RFC is additive. It introduces the OSCP application tag
+`0x0000000000000002` (from the user-defined range `0x2`–`0xd` of
+[RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)) and new
+OSCP message types; nodes that do not implement onion services do not register
+the tag and are unaffected as relayers. Because that range has no global
+registry, two independent user protocols could both claim `0x2`; interoperating
+deployments MUST coordinate tag assignment out of band until a registry exists.
 
-The design depends on the SURB recipient-data extension and Session Start
-discriminants introduced with the PIX draft
-([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md),
-requiring
-[RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) v1.1.0)
-for its fee settlement, and on the on-chain announcement extension of
-Section 4.4 for bridge discovery. The directory interface (Section 4.3.3) has a
-normative contract here but requires the companion directory RFC before an
-interoperable implementation is possible. Bridges, services and clients
-negotiate the OSCP version in the announcement and descriptor; a peer that does
-not recognise an OSCP message type MUST respond `SPLICE_ERROR` or drop per its
-normal unknown-message handling.
+Dependencies that are **not yet part of the finalised repository** and gate an
+interoperable implementation:
+
+- The **PIX construction**
+  ([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md),
+  currently a draft on an unmerged branch) and its SURB recipient-data
+  extension. That extension is *proposed alongside PIX* and would bump
+  [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) (today
+  v1.0.1, with no such field) to a new minor version. This RFC depends only on
+  PIX's privacy-pool operations (`Deposit`/`Allocate`/`Withdraw`) and its
+  share-carrying SURBs, **not** on the PIX Session-Start commitment discriminants
+  `0x04`/`0x05`, which OSCP does not use.
+- A normative **on-chain announcement record** that the `BridgeAnnouncement`
+  schema (Section 4.4.1) extends; no current RFC specifies one.
+- The companion **directory RFC** (Section 4.3.3).
+
+Peers negotiate the OSCP version via the announcement and descriptor; a peer that
+does not recognise an OSCP message type MUST respond `JOIN_UNAVAILABLE` or drop
+per its normal unknown-message handling.
 
 ## 7. Security Considerations
 
-**Mutual anonymity and the rendezvous bridge.** No relay, introduction bridge,
-or rendezvous bridge learns both endpoints' identities. Each leg is a multi-hop
-HOPR path, so the rendezvous bridge sees two pseudonymous session endpoints, not
-network identities. However, the rendezvous bridge does know that leg A and leg B
-belong to the **same** connection — that is its function. Unlike a Tor
-rendezvous point, it also knows it is servicing an onion connection. A malicious
-rendezvous bridge is therefore a natural vantage point for timing/volume
-correlation against a global observer. Mitigations: fresh per-connection bridge
-selection, the `MIN_BRIDGE_STAKE` Sybil cost (Section 4.4.2), mixing on every
-leg [06]-independent HOPR delays
-([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)), and the end-to-end
-encryption that denies the bridge payload content. Correlation resistance is
-bounded by the mixnet's own limits (low-volume windows, global passive
-adversaries; see
-[RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)).
+**Rendezvous bridge as a correlation vantage.** The RB terminates both legs of
+one connection and therefore knows they are linked — a stronger position than a
+Tor rendezvous point. Framing rendezvous as a generic session-join (Section 4.5)
+denies the RB knowledge that it serves an onion service, and each leg is a
+multi-hop HOPR path so the RB sees two pseudonymous endpoints, not identities.
+The load-bearing defence against timing/volume correlation across the join is the
+**mandatory per-leg constant-rate shaping** of Section 4.9; end-to-end encryption
+hides only content. Residual risk is bounded by the mixnet's own limits
+(low-volume windows, global passive adversaries;
+[RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and by the bond/fresh-
+selection economics (Section 4.4).
 
-**Guard-like exposure over time.** A service that keeps opening legs with freshly
-random entry relays exposes itself to eventual path compromise. Services SHOULD
-constrain their leg entry points to a stable, small guard set to bound long-run
-deanonymisation risk; a normative guard mechanism is deferred (Section 11).
+**Intersection and clustering across connections.** An adversary running many
+rendezvous bridges (bounded by `MIN_BRIDGE_BOND` and bond-weighted, fee-capped
+selection) collects leg fingerprints across connections; a service's leg B is the
+more stable side. Constant-rate shaping is what denies clustering by making legs
+uniform. The tension is explicit: client per-connection RB freshness spreads
+samples across more bridges (aiding an adversary's sampling) while reducing
+per-bridge linkage; services SHOULD additionally constrain their leg entry
+relays to a stable guard set to bound long-run deanonymisation (a normative guard
+mechanism is deferred, Section 11).
 
-**Introduction and rendezvous integrity.** `INTRODUCE1` content is encrypted to
-the service via the intro point's `auth_key`, so introduction bridges and relays
-learn neither the rendezvous bridge nor the handshake. The rendezvous cookie
-authorises only *joining* a rendezvous; because the e2e handshake still requires
-the service static key, a stolen cookie cannot impersonate the service. Replay of
-`INTRODUCE1` is bounded by `replay_nonce` and `timestamp`. Descriptor rollback is
-resisted by `revision` and `lifetime`; blinded publication keys (Section 4.3.2)
-stop the directory from enumerating or linking services.
+**Standing introduction session fingerprint.** A naive standing session is a
+durable liveness signal to a chosen, paid IB. Section 4.5.1 mitigates this with a
+network-wide jittered keep-alive cadence (so cadence is not a selector),
+`PSEUDONYM_ROTATION` of the standing session, and padding so `INTRODUCE2`
+forwarding is not distinguishable from keep-alive. The IB still learns an intro
+point exists for an `intro_enc_pubkey`; it does not learn the service's node
+identity (multi-hop path) and cannot decrypt introductions.
 
-**Denial of service.** Payment-gated introduction prices spam (Section 4.8.1);
-descriptor-level access control removes it for private services (Section 4.8.2);
-per-leg SURB management with backpressure and bounded splice state (Section 4.9)
-contains resource-exhaustion attacks at the bridge. `MIN_BRIDGE_STAKE` raises the
-cost of flooding the network with malicious bridges.
+**Directory leakage.** Blinding makes the directory crawl-resistant but not
+resistant to an adversary who already knows an address and can compute its slot
+to run a **confirmation attack** on activity; this is stated precisely in
+Section 4.3.2. Indistinguishable STORE/LOAD requests (Section 4.3.3), publication
+jitter, replica query spreading, and per-period `S_s`/blinding rotation remove
+the publish-vs-fetch, clock, and cross-period linkage channels. `revision`
+monotonicity is public per slot; the fixed-size padded `intro_points` array hides
+the true IB count.
 
-**Payment privacy and griefing.** All payments settle through the PIX privacy
-pool, which MUST hide payer from payee for the anonymity goals to hold; a pool
-that leaks this linkage undermines the scheme. As in PIX, a payer can grief by
-allocating and then withholding usable value; bridges mitigate by verifying the
-allocation before splicing and tearing down on non-payment, and deployments
-SHOULD set allocation expiry/recovery policy accordingly.
+**Introduction integrity and amplification.** `INTRODUCE1` content is encrypted to
+the service via `intro_enc_key` (private half service-only), with the target IB
+bound into the AEAD associated data, so IBs and relays learn neither rendezvous
+bridge nor handshake, and a blob is not transferable across IBs. The service
+opens a rendezvous leg only after verifying the RB-signed reservation token and
+`join_commitment` (Section 4.5.3), so a cheap introduction cannot amplify into an
+expensive service-funded leg toward a black-hole RB. Replay is bounded by a
+service-global `replay_nonce` cache and the `±INTRO_WINDOW` timestamp bound.
 
-**Key management.** Compromise of `sk_S` compromises the service identity;
-delegation certificates (Section 4.2.3) limit blast radius to a host and a
-window, and short validity windows plus descriptor rotation provide revocation.
-X25519 ephemerals give per-connection forward secrecy for both introduction and
-data.
+**Rendezvous cookie and MitM.** The join is bound to `H(RC || S_s)`
+(`join_commitment`/`join_proof`), so learning `RC` alone does not let an attacker
+squat or hijack the join. `transcript_hash` binds `pk_S`, both ephemerals as
+transmitted, `RC`, and `revision`; a MitM RB substituting `E_s` breaks
+`confirm_tag` and the client aborts (Section 4.6).
 
-**Endpoint validation.** All received curve points (`E_c`, `E_s`, `S_s`,
-`auth_key`) MUST be validated (correct subgroup, non-identity) before use to
-avoid invalid-curve and small-subgroup attacks, consistent with
-[RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md).
+**Rollback and downgrade.** `published_at` + `lifetime` + multi-replica
+max-`revision` fetch resist stale-descriptor rollback; `min_dos_level` prevents
+an old descriptor advertising a weaker DoS policy; the address `version` floor
+prevents format downgrade; delegation certs carry `service_pubkey` + `serial`,
+deny unknown capability bits, and are short-lived.
+
+**Payment privacy and griefing.** All settlement is through the PIX privacy pool,
+which MUST hide payer from payee; a pool that leaks this undermines the scheme.
+Service-conditional streaming (Section 4.7) removes fee theft and lazy-bridge
+free-riding: a bridge earns only for delivered frames. A bridge-side intro-
+payment verifier can correlate a payment with a target service, so the service is
+the recommended verifier (Section 4.8.1). Channel-graph funding constrains
+anonymity sets — a client's funded-channel neighbourhood can grow into a
+fingerprint — so clients SHOULD maintain a stable guard set of funded channels,
+which is in tension with per-connection RB freshness and must be balanced.
+
+**Cryptographic hygiene.** Ed25519 keys (`pk_S`, `delegate_pubkey`, blinded keys)
+MUST use canonical encodings and verification that rejects small-order points
+(or ristretto255 to remove cofactor concerns). X25519 MUST follow RFC 7748 [11]:
+the DH result MUST be checked against the all-zero output rather than relying on
+subgroup membership. The blob ephemeral is distinct from the e2e ephemeral and
+their KDF contexts are domain-separated; every AEAD context uses an independent
+key and a non-reused 96-bit nonce (Appendix 1).
 
 ## 8. Drawbacks
 
-- **Latency.** Two multi-hop legs plus per-hop mixing make onion-service round
-  trips substantially slower than a direct HOPR session; interactive workloads
-  feel the mixing delay twice over.
-- **New subsystems.** A distributed directory and an on-chain announcement
-  extension are prerequisites; the directory is only interface-specified here and
-  gates interoperable deployment on a companion RFC.
-- **Bridge as correlation vantage.** The rendezvous bridge knowingly links two
-  legs, a stronger position than a Tor rendezvous point; the scheme leans on
-  Sybil cost, fresh selection and mixing rather than removing the vantage.
-- **SURB and fee overhead.** Inbound-heavy services must sustain SURB reserves on
-  both legs, and every connection carries a prepaid bridge fee plus ongoing intro
-  retainers, adding economic and operational overhead beyond plain relaying.
-- **Dependency on draft work.** Fee settlement depends on the still-draft PIX
-  RFC-0012 and its RFC-0004 v1.1.0 extension.
+- **Latency.** Two multi-hop legs plus per-hop mixing plus constant-rate shaping
+  make onion-service round trips substantially slower than a direct HOPR session.
+- **Shaping cost.** Mandatory constant-rate/cover padding on both legs consumes
+  bandwidth and relay-ticket budget even when idle.
+- **Capital and complexity.** Bridge bonding locks capital; service-conditional
+  PIX streaming and the reservation/token flow are more moving parts than a flat
+  fee.
+- **New subsystems.** A distributed directory, an on-chain announcement record,
+  and a bridge-bond/slashing framework are prerequisites; only their interfaces
+  are specified here.
+- **Bridge as correlation vantage.** The RB knowingly links two legs; the scheme
+  bounds — not eliminates — the vantage via shaping, bonding, and fresh
+  selection.
+- **Dependency on draft work.** Settlement depends on the still-draft PIX RFC and
+  its RFC-0004 SURB extension.
 
 ## 9. Alternatives
 
-- **Pure SURB/pseudonym contact (no bridge).** The service could publish batches
-  of SURBs; clients consume one to reach the pseudonym directly. Rejected as the
-  primary design because inbound throughput would be hard-capped by SURB supply
-  and replenishment becomes the dominant problem, though the introduction leg
-  here is essentially this pattern in miniature.
+- **Pure SURB/pseudonym contact (no bridge).** A service could publish SURB
+  batches; clients consume one to reach the pseudonym directly. Rejected as the
+  primary design because inbound throughput would be hard-capped by SURB supply,
+  though the introduction leg is essentially this pattern in miniature.
 - **Single bridge role.** Simpler and one round trip shorter, but announced
-  bridges carry all traffic volume, become DoS targets, and cannot be
-  out-scaled; rejected per Section 5.
+  bridges carry all volume, become DoS targets, and cannot be out-scaled.
 - **On-chain descriptors.** Maximum availability and Sybil resistance, but per
   update gas cost, slow propagation, permanent public bridge lists, and
-  read-time interest leakage; rejected in favour of the mixnet-fetched directory.
-- **Bespoke naming registry.** A dedicated ENS-like contract was considered;
-  reusing ENS for aliases over self-certifying roots avoids new consensus and
-  governance.
-- **Metered (per-byte) bridge fees.** Fairer across workloads but require a
-  streaming micro-settlement mechanism and leak a volume signal at the bridge;
-  a flat prepaid fee with keep-alive top-ups was chosen for simplicity and lower
-  metadata. Metering is possible future work.
-- **Client-pays-all / service-subsidised economics.** Both are permitted
-  extensions (Section 4.7) rather than the default; the per-side-plus-bridge-fee
-  split is the least surprising mapping onto HOPR economics.
+  read-time interest leakage; rejected for the mixnet-fetched directory.
+- **Flat prepaid bridge fee.** Simpler, but a fee-theft primitive with no
+  service conditionality; rejected per Section 5 in favour of PIX streaming.
+- **Recoverable stake instead of a bond.** Cheaper for honest bridges but no
+  deterrent against a correlation adversary or whitewashing; rejected.
+- **Metered (per-byte) bridge fees.** Fairer across workloads but leak a volume
+  signal and need streaming micro-settlement; the delivered-frame PIX stream is a
+  middle ground. Full metering is future work.
+- **Client-pays-all / service-subsidised economics.** Permitted extensions
+  (Section 4.7), not the default.
 
 ## 10. Unresolved Questions
 
-- Concrete values for `MIN_BRIDGE_STAKE`, `intro_payment_min`, session fees and
-  retainers, and their governance.
-- The exact key-blinding construction for Ed25519 publication keys and its proof
-  obligations (to be pinned with the companion directory RFC).
-- Whether the intro-bridge retainer should be per-period or per-introduction, and
-  how it interacts with intro-payment gating.
-- Guard-set selection and rotation policy for service and client legs.
-- Interaction of onion-service traffic with cover traffic and probing
+- Concrete values for `MIN_BRIDGE_BOND`, `BOND_COOLDOWN`, `intro_payment_min`,
+  fee rates, `INTRO_SLOTS`, and their governance.
+- The exact Ed25519 key-blinding construction and its proof obligations (to be
+  pinned with the companion directory RFC).
+- Concrete challenge/proof formats for bridge slashing (fee theft, join
+  non-performance, cookie equivocation).
+- Guard-set selection and rotation policy for service and client legs, and its
+  interaction with per-connection RB freshness.
+- Whether onion-service legs may double as cover traffic
   ([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md),
-  [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)):
-  can onion legs double as cover traffic, and does that help or harm anonymity?
-- Congestion and fairness when many splices share one bridge near its `capacity`.
+  [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)),
+  and whether that helps or harms anonymity.
+- Congestion and fairness when many joins share one bridge near `capacity`.
 
 ## 11. Future Work
 
-- **Companion directory RFC (RFC-0016).** Full DHT mechanics: replication,
-  retention, storage incentives, and responsible-set rotation.
-- **Bridge bonding and slashing.** On-chain challengeable misbehaviour proofs for
-  bridges, strengthening Section 4.4.2 beyond stake-plus-reputation.
+- **Companion directory RFC (proposed RFC-0016).** Full DHT mechanics:
+  replication, retention, storage incentives, responsible-set rotation, the
+  blinding construction, and the fetch anti-abuse hook.
+- **Bridge slashing framework.** Concrete on-chain challengeable misbehaviour
+  proofs backing the bond of Section 4.4.2.
 - **Guard mechanism.** A normative guard-relay scheme for both endpoints' legs.
-- **Paid-gateway hosting.** A full specification of the non-node service model
-  sketched in Section 4.9.
-- **Metered and subsidised economics.** Per-byte bridge settlement and
+- **Paid-gateway hosting.** A full specification of the non-node service model.
+- **Metered and subsidised economics.** Per-byte bridge settlement and the
   service-subsidised / client-pays-all variants.
 - **Proof-of-work introduction fallback.** A concrete client-puzzle scheme for
   free-tier DoS resistance under load.
-- **End-to-end delivery proofs.** Optionally binding the bridge fee or intro
-  payment to evidence of actual e2e data exchange, extending PIX's handover proof
-  toward true delivery proof.
+- **End-to-end delivery proofs.** Optionally strengthening the incentive from
+  proof-of-handover toward proof of accepted application delivery.
 
 ## 12. References
 
@@ -854,20 +1053,30 @@ avoid invalid-curve and small-subgroup attacks, consistent with
 
 [10] Bernstein, D. J. (2006). [Curve25519: New Diffie-Hellman Speed Records](https://cr.yp.to/ecdh/curve25519-20060209.pdf). _Public Key Cryptography - PKC 2006_, 207-228.
 
+[11] Langley, A., Hamburg, M., & Turner, S. (2016). [Elliptic Curves for Security](https://www.rfc-editor.org/rfc/rfc7748.html). _IETF RFC 7748_.
+
+[12] Josefsson, S. (2006). [The Base16, Base32, and Base64 Data Encodings](https://www.rfc-editor.org/rfc/rfc4648.html). _IETF RFC 4648_.
+
 ## 13. Appendix 1: Cryptographic Instantiation
 
 The current HOPR Onion Services instantiation uses:
 
-- Service identity signatures: **Ed25519** [07].
-- End-to-end key agreement: **X25519** [10], in a Noise-IK-style pattern [09].
+- Service identity signatures: **Ed25519** [07], canonical encoding, small-order
+  points rejected.
+- End-to-end key agreement: **X25519** [10] [11], in a Noise-IK-style pattern
+  [09]; DH outputs checked against the all-zero value.
 - Hash `H`: **BLAKE3-256**, consistent with
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) and
   [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md).
-- KDF: **BLAKE3** derive-key mode, `KDF(c, k, s) = blake3_kdf(c, s || k)`.
-- Symmetric encryption for e2e frames and `enc_blob`: **ChaCha20-Poly1305**.
-- Address encoding: **base32** (RFC 4648, lowercase, unpadded).
-- On-chain settlement (tickets, PIX, announcements): **secp256k1** [05], as in
-  [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) and
+- KDF / HKDF: **BLAKE3** derive-key mode, `KDF(c, k, s) = blake3_kdf(c, s || k)`;
+  directional subkeys via BLAKE3 keyed expansion with distinct context labels.
+- Symmetric encryption for e2e frames and the intro blob:
+  **ChaCha20-Poly1305**. Each AEAD context (intro blob, e2e c2s, e2e s2c) uses an
+  independent key and an independent 96-bit nonce counter starting at zero;
+  a (key, nonce) pair MUST NOT recur.
+- Address encoding: **base32** (RFC 4648 [12], lowercase, unpadded).
+- On-chain settlement (tickets, PIX, announcements, bonds): **secp256k1** [05],
+  as in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) and
   [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md).
 
 ## 14. Appendix 2: HOPR Session Binding
@@ -876,11 +1085,11 @@ Onion Service Control Protocol messages are carried in HOPR application-protocol
 frames
 ([RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)) under
 application tag `0x0000000000000002`. Standing introduction sessions, rendezvous
-sessions, and the anonymous directory sessions are ordinary HOPR sessions
+sessions, and anonymous directory sessions are ordinary HOPR sessions
 ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
 [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md))
 whose targets designate the relevant bridge or directory node. The end-to-end
 data session is a session-data-protocol
 ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) instance
-whose frames are encrypted under the e2e keys of Section 4.6 and spliced between
+whose frames are encrypted under the e2e keys of Section 4.6 and joined between
 the two HOPR sessions by the rendezvous bridge (Section 4.9).

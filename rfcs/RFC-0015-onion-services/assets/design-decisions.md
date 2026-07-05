@@ -1,5 +1,16 @@
 # RFC-0015 Onion Services — Design Decisions Log
 
+> **Round 1 audit refinements (v0.2.0):** Four adversarial reviews (see
+> `audit-log.md`) changed three decisions materially: (a) the bridge fee is
+> **service-conditional** (PIX stream unlocked per delivered frame + small
+> non-refundable reservation), not flat-prepaid — D12 superseded; (b) bridge
+> eligibility is a **slashable bond with cooldown**, not a recoverable stake —
+> D8 refined; (c) **constant-rate per-leg traffic shaping is mandatory** and the
+> rendezvous is a **generic session-join** the RB is blind to — new, hardening
+> D1/D13. Crypto/consistency fixes (transcript binding, `intro_enc_key`
+> ownership, delegation fields, per-period `S_s` rotation, citation numbering,
+> PIX/RFC-0004 draft-dependency honesty) are in the RFC and audit-log.
+
 Running record of decisions agreed with the RFC owner, so the draft (and any
 resumed session) can proceed without re-litigating. Updated as alignment
 progresses.
