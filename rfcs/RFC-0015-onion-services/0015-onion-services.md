@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.2.0 (Raw)
+- **Version:** v0.3.0 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -194,8 +194,8 @@ sequenceDiagram
     IB-->>C: INTRODUCE_ACK
 
     Note over S,C: Stage 4 — join + e2e session
-    S->>RB: RENDEZVOUS1 (present RC, token, E_s, sig)
-    RB-->>C: RENDEZVOUS2 (E_s, sig)
+    S->>RB: RENDEZVOUS1 (RC, E_s, join_proof, confirm_tag)
+    RB-->>C: RENDEZVOUS2 (E_s, confirm_tag)
     C<<->>RB: HOPR session (leg A, shaped)
     S<<->>RB: HOPR session (leg B, shaped)
     C-->>S: end-to-end encrypted data (joined through RB)
@@ -279,6 +279,14 @@ capability bit is set, during `[not_before, not_after)`. Verifiers MUST reject a
 delegated action whose corresponding bit is unset and MUST treat any unknown
 capability bit as unauthorised (deny by default). `service_pubkey` MUST equal
 the `pk_S` of the dialed address, preventing cross-identity cert reuse.
+
+Capability bit 2 (terminate e2e session) additionally requires the delegate to
+hold the per-period handshake static private key. Because `S_s` is derived from
+`sk_S` (Section 4.3.1), a delegate cannot recompute it; therefore a service
+authorising bit 2 MUST provision the delegate with the **current period's** `S_s`
+private half over a secure channel, re-provisioning each period. Provisioning
+only the per-period key (never `sk_S`) bounds the exposure of a compromised
+delegate to that period and to the actions its bits permit.
 Descriptors served by a delegate MUST embed the certificate so clients verify
 the chain to `pk_S`. Revocation before `not_after` is by descriptor rotation (a
 fresh, higher-`revision` descriptor omitting the revoked delegate) combined with
@@ -300,8 +308,8 @@ Descriptor {
   published_at     : u64,              // UNIX seconds, absolute publication time
   lifetime         : u32,              // validity in seconds from published_at
   handshake_static : [u8; 32],         // per-period service X25519 static key S_s (below)
-  intro_points     : [IntroPoint; n],  // fixed at INTRO_SLOTS (default 8); unused slots random-padded
-  capabilities     : CapabilityFlags,  // session modes, traffic classes
+  intro_points     : IntroSection,     // see below (public: plain list; private: encrypted+padded)
+  session_caps     : CapabilityFlags,  // session modes, traffic classes
   min_dos_level    : u8,               // monotonic floor a client MUST enforce
   dos_policy       : DosPolicy,        // Section 4.8
   delegation       : DelegationCert?,  // present iff signed by a delegate
@@ -320,9 +328,20 @@ set) when `delegation` is present. `revision` and `published_at` together resist
 rollback: a client MUST prefer the highest valid `revision`, MUST reject a
 descriptor whose `published_at + lifetime` has elapsed, and MUST reject a
 descriptor whose `published_at` is not consistent with the current directory
-period (Section 4.3.2). The `intro_points` array is padded to a fixed
-`INTRO_SLOTS` count with random-looking entries so the descriptor does not leak
-how many introduction bridges a service actually uses.
+period (Section 4.3.2).
+
+The `IntroSection` has two forms selected by a one-byte discriminant:
+
+- **Public service**: a plain `[IntroPoint; c]` where `c` is the real count.
+  Since a public service's introduction bridges are usable by anyone, their
+  identities are not secret and no padding is applied; the client reads the list
+  directly.
+- **Private service**: the real `[IntroPoint; c]` list is AEAD-encrypted to the
+  authorised-client key set (Section 4.8.2) and then padded to a fixed
+  `INTRO_SLOTS` (default 8) ciphertext-sized slots, so an outsider who cannot
+  decrypt learns neither the intro points nor their count. An authorised client
+  decrypts to obtain the real list. Padding is meaningful only here, because only
+  here are the entries hidden.
 
 `intro_enc_key` is the X25519 public key used to encrypt the introduction blob
 (Section 4.5.3). **Its private half is held only by the service (or a delegate
@@ -454,7 +473,8 @@ shaping (Section 4.9) rather than on slashing.
 - The **service** selects its introduction bridges from intro-capable nodes and
   lists them (padded to `INTRO_SLOTS`) in the descriptor. It SHOULD prefer
   high-bond, high-quality, churn-resistant nodes and SHOULD maintain redundancy
-  (at least 3 live intro points RECOMMENDED). Because the set of chosen IBs is a
+  (at least 3 live intro points RECOMMENDED); for a private service the list is
+  padded to `INTRO_SLOTS` (Section 4.3.1). Because the set of chosen IBs is a
   cross-period linkage signal (Section 7), a service SHOULD rotate its IB set
   across periods.
 - The **client** selects a rendezvous bridge per connection, freshly and
@@ -492,11 +512,21 @@ OSCPHeader {
 | 0x08 | `RENDEZVOUS1`            | Service → RB          |
 | 0x09 | `RENDEZVOUS2`            | RB → Client           |
 | 0x0a | `JOIN_UNAVAILABLE`       | RB/IB → either        |
+| 0x0b | `PIX_COMMIT_REQUEST`     | RB → Client           |
+| 0x0c | `PIX_COMMIT`             | Client → RB           |
 
 The rendezvous messages (`RENDEZVOUS_ESTABLISH`, `RENDEZVOUS1`, `RENDEZVOUS2`)
 are framed as the generic **session-join** primitive (Section 3): to the RB, `RC`
 is an opaque join token and the two legs are two ordinary sessions to be joined.
-The RB is not told it is servicing an onion connection.
+The RB is not told it is servicing an onion connection. `PIX_COMMIT_REQUEST` and
+`PIX_COMMIT` (Section 4.5.5) carry the PIX agreement commitment on leg A and are
+likewise purpose-agnostic to the RB — they set up payment for a session join,
+not specifically an onion service.
+
+Message bodies not given an explicit struct are trivial: `ESTABLISH_INTRO_ACK`,
+`INTRODUCE_ACK`, and `RENDEZVOUS2` carry only the fields named in prose where
+they are introduced, and `JOIN_UNAVAILABLE` carries a single reserved reason byte
+(kept coarse per Section 4.5.4).
 
 #### 4.5.1 Establishing an introduction point
 
@@ -539,6 +569,10 @@ RENDEZVOUS_ESTABLISH {
 }
 ```
 
+Here `S_s` is the `handshake_static` value from the descriptor the client fetched
+in Stage 2 (Section 4.3.1), so the client can compute `join_commitment` before
+any contact with the service.
+
 The RB verifies the `reservation_ref` covers `reservation_fee` for the referenced
 `schedule_ver`, reserves join state keyed by `RC`, and replies with a **signed
 reservation token**:
@@ -552,11 +586,14 @@ RENDEZVOUS_ESTABLISHED {
 }
 ```
 
-`RC` is single-use; the RB MUST reject a second registration for a live `RC`.
-The reservation is bounded: an RB MUST cap concurrent reservations per payer
-epoch to bound slot exhaustion, and the `reservation_fee` is non-refundable so
+The RB translates the client's relative `expiry` (seconds to hold the
+reservation) into the absolute `valid_until` it signs into the token. `RC` is
+single-use; the RB MUST reject a second registration for a live `RC`. The
+reservation is bounded: an RB MUST cap concurrent reservations per payer epoch to
+bound slot exhaustion, and the `reservation_fee` is non-refundable so
 reserve-and-abandon costs the client. The bulk of the bridge's compensation is
-**not** paid here; it is unlocked only against delivered service (Section 4.7).
+**not** paid here; it is unlocked only against delivered service (Sections 4.5.5
+and 4.7).
 
 #### 4.5.3 Introduction
 
@@ -587,9 +624,16 @@ The blob is encrypted with a dedicated ephemeral `E_c^intro` distinct from the
 e2e ephemeral `E_c`, under a key `KDF("hopr-onion-intro", DH(E_c^intro,
 intro_enc_key))`, with the target IB `node_id` and `intro_enc_pubkey` in the AEAD
 associated data so a blob minted for one IB is invalid at another. The IB looks
-up the standing session for `intro_enc_pubkey`, forwards the message as
-`INTRODUCE2` over it, and returns `INTRODUCE_ACK`. The IB cannot decrypt
-`enc_blob`.
+up the standing session for `intro_enc_pubkey` and forwards the client's
+`client_eph_pubkey` and `enc_blob` to the service as `INTRODUCE2`. Because
+`INTRODUCE2` arrives over the specific standing session the IB holds, the service
+attributes it to that IB for the per-introduction micro-payment (Section 4.7);
+the service MUST check that the forwarding IB matches the `node_id` bound in the
+blob's AEAD associated data, so a malicious IB cannot claim payment for another
+IB's forward. The IB then returns `INTRODUCE_ACK` to the client, which confirms
+**receipt** of `INTRODUCE1` (best-effort) and is not by itself proof of
+forwarding; the client's assurance of forwarding is the connection ultimately
+succeeding. The IB cannot decrypt `enc_blob`.
 
 The service MUST maintain a **service-global** replay cache (all `INTRODUCE2`
 funnel to one place) keyed by `replay_nonce`, MUST reject an `IntroPayload` whose
@@ -619,12 +663,44 @@ RENDEZVOUS1 {
 The RB accepts only the **first** `RENDEZVOUS1` per `RC`, checks `join_proof`
 against the `join_commitment` it stored, binds the two sessions into a join, and
 forwards `service_eph_pubkey` and `confirm_tag` to the client as `RENDEZVOUS2`.
-Because the join is bound to `H(RC || S_s)`, a party who merely learns `RC`
-(e.g. by observing the RB) cannot squat the join without knowing `S_s`. The
-client verifies `confirm_tag` (Section 4.6). An unknown/expired `RC`, a
-`join_proof` mismatch, a saturated capacity, or a failed reservation check yields
-a uniform `JOIN_UNAVAILABLE` (client-visible error granularity is deliberately
-coarse so the RB's live-`RC` set and load are not probeable).
+Because the join is bound to `H("hopr-join" || RC || S_s)`, a party who merely
+learns `RC` (e.g. by observing the RB) cannot squat the join without knowing
+`S_s`. The client verifies `confirm_tag` (Section 4.6). An unknown/expired `RC`,
+a `join_proof` mismatch, a saturated capacity, or a failed reservation check
+yields a uniform `JOIN_UNAVAILABLE` (client-visible error granularity is
+deliberately coarse so the RB's live-`RC` set and load are not probeable).
+
+#### 4.5.5 Rendezvous payment agreement (leg-A PIX commitment)
+
+Immediately after leg A is established (on receipt of `RENDEZVOUS2`), the client
+and the rendezvous bridge run a PIX agreement on leg A so that the bridge's
+service stream (Section 4.7) is redeemable. The bridge is the PIX Exit (payee)
+and the client is the PIX Entry (payer); this is the full PIX construction
+([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)),
+carried under the OSCP tag rather than the PIX Session-Start discriminants:
+
+1. The bridge sends `PIX_COMMIT_REQUEST` carrying its `ExitCommitment = b·BP`,
+   the packed `params = (m << 16) | (t + 1)`, `chunk_price`, and `chunk_size =
+   m·(t+1)`, for a new agreement index `i` (starting at 1, incrementing per
+   agreement within the join; a fresh agreement is opened before the previous
+   one's shares are exhausted).
+2. The client validates the parameters, builds `m` random degree-`t` polynomials
+   `P_r`, and sends the coefficient commitments `C_{r,j} = a_{r,j}·BP` in
+   `PIX_COMMIT`.
+3. Both compute the session stealth address `SSA_i = ExitCommitment + Σ_r C_{r,0}`
+   and the client allocates `chunk_price` to `SSA_i` in the privacy pool `W`.
+
+Thereafter the client attaches one encrypted PIX share to each leg-A SURB it
+supplies (in the SURB `recipient_data` extension), including SURBs that will
+carry constant-rate padding — see Section 4.7 for why billing is on leg-A
+capacity held, not payload. When the bridge spends a leg-A SURB to deliver a
+frame (data or padding) to the client, the first return-path relayer's
+acknowledgement discloses the `ack_secret` that unlocks that share. After `t+1`
+valid shares per row the bridge recovers `SSA_Priv_i` and withdraws. Because each
+replenished SURB must carry a fresh share, the client mints additional shares by
+sampling the **same** polynomials `P_r` at fresh points `x` (derived from each
+SURB's `SenderKey`, per PIX), so no new commitment round is needed until the
+per-row share budget is renewed by a new agreement `i`.
 
 ### 4.6 End-to-end handshake and session
 
@@ -674,6 +750,13 @@ uses (the intro blob, and each e2e direction) MUST use independent keys and
 independent 96-bit nonce counters beginning at zero and never reused, per
 Appendix 1.
 
+The e2e keys are fixed at handshake time and bound to the descriptor `revision`
+and period-specific `S_s` in force then. A live session therefore **continues
+unaffected across a period boundary**, even though `S_s`, the blinding key, and
+the descriptor rotate (Section 4.3); only *new* connections use the new period's
+descriptor. An endpoint MUST NOT tear down an established join merely because the
+descriptor it was opened under has since expired.
+
 ### 4.7 Incentivisation
 
 Onion-service traffic is paid on three counts, all reusing existing HOPR
@@ -692,20 +775,27 @@ handover.
 2. **Rendezvous bridge — reservation plus service-conditional stream.** The
    bridge earns in two parts. A small **non-refundable reservation fee**
    (Section 4.5.2) prices the reservation slot and deters reserve-and-abandon
-   griefing. The **bulk** is a service-conditional stream settled with the PIX
-   construction
-   ([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)):
-   the rendezvous bridge acts precisely as a PIX *exit* replying to the client
-   *entry*. When the bridge delivers a service→client frame over the client's
-   return SURBs, the first return-path relayer's acknowledgement discloses the
-   `ack_secret` that unlocks a PIX share the client attached to that SURB. After
-   the threshold of valid shares, the bridge recovers the session stealth
-   address and withdraws. Thus the bridge is paid **in proportion to frames it
-   actually delivered to the client**, verified by real return-path handovers,
-   and never paid for a join it did not perform. If the bridge stops delivering,
-   the stream stops. This is a genuine PIX agreement, not a bare transfer.
-   Long/bulk sessions extend the stream continuously; there is no separate
-   top-up handshake to grief.
+   griefing. The **bulk** is a service-conditional stream settled by the leg-A
+   PIX agreement of Section 4.5.5: the rendezvous bridge is the PIX *exit* and
+   the client the PIX *entry*. When the bridge spends a client leg-A SURB to
+   deliver a frame to the client, the first return-path relayer's acknowledgement
+   discloses the `ack_secret` that unlocks the PIX share attached to that SURB;
+   after the per-row threshold the bridge withdraws. Because the bridge can spend
+   a SURB only by actually creating and handing off a reply packet, it is paid
+   only for joins it performs; if it stops delivering, the stream stops. This is a
+   genuine PIX agreement, not a bare transfer.
+
+   **Billing basis is leg-A capacity held, not payload.** Section 4.9 mandates
+   constant-rate shaping, so the bridge delivers frames to the client at the
+   negotiated rate whether or not the service has payload (padding fills the
+   gaps). Every leg-A SURB — data-bearing or padding — carries a share, so the
+   unlocked value tracks **the shaped rate × the time the join is held open**,
+   which is the correct basis for an availability/splice role and, crucially,
+   does not underpay an upload-heavy (asymmetric) session where little
+   service→client payload flows. To prevent a bridge inflating padding to
+   overcharge, `chunk_price` and the delivery rate are bounded by the agreed
+   `schedule_ver`, and the client funds the agreement for the negotiated shaped
+   rate × expected duration up front; renewal opens a new agreement index `i`.
 
 3. **Introduction bridge — per-introduction micro-payment.** The service pays
    each IB a micro-payment **per `INTRODUCE2` it receives**, since receipt at the
@@ -795,7 +885,10 @@ signals, surfaced through
 - The bridge replies to each counterparty over SURBs that counterparty supplied,
   maintaining a rolling reserve per leg.
 - On a SURB-distress signal or on schedule, the bridge MUST prompt that
-  counterparty to replenish before the reserve is exhausted.
+  counterparty to replenish before the reserve is exhausted. Each replenished
+  leg-A SURB MUST carry a fresh PIX share (Section 4.5.5), so the bridge's
+  redeemable share supply keeps pace with the SURBs it will spend; a leg-A SURB
+  without a valid share MUST NOT be counted toward the bridge's stream.
 - If a leg's SURBs are exhausted and cannot be replenished, the bridge MUST apply
   backpressure to the opposite leg rather than dropping e2e frames silently. A
   counterparty that persistently fails to replenish (a starvation-griefing
@@ -831,9 +924,13 @@ payment to performing the join, and it discards exactly the property that makes
 PIX safe — settlement conditional on a proven handover. Modelling the rendezvous
 bridge as a PIX exit whose stream unlocks per delivered frame restores
 incentive-compatibility (a non-performing bridge earns only the small
-non-refundable reservation) and keeps payments unlinkable. The introduction
-micro-payment applies the same principle: pay per proof-of-forwarding
-(`INTRODUCE2` receipt), not for unverifiable availability.
+non-refundable reservation) and keeps payments unlinkable. Because mandatory
+shaping means the bridge delivers at a constant rate, every leg-A SURB — data or
+padding — carries a share, so the bill tracks capacity-held-open rather than
+payload; this both matches the availability nature of the role and avoids
+underpaying upload-heavy sessions. The introduction micro-payment applies the
+same principle: pay per proof-of-forwarding (`INTRODUCE2` receipt), not for
+unverifiable availability.
 
 **Why bonding, not stake.** A recoverable stake pays for itself through fees and
 deters neither a correlation adversary nor whitewashing. A slashable bond with a
@@ -865,13 +962,16 @@ interoperable implementation:
 
 - The **PIX construction**
   ([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md),
-  currently a draft on an unmerged branch) and its SURB recipient-data
-  extension. That extension is *proposed alongside PIX* and would bump
+  currently a draft on an unmerged branch): its full agreement (commitment
+  handshake, coefficient commitments, share generation and verification,
+  stealth-address recovery), its privacy-pool operations
+  (`Deposit`/`Allocate`/`Withdraw`), and its SURB recipient-data extension. That
+  extension is *proposed alongside PIX* and would bump
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) (today
-  v1.0.1, with no such field) to a new minor version. This RFC depends only on
-  PIX's privacy-pool operations (`Deposit`/`Allocate`/`Withdraw`) and its
-  share-carrying SURBs, **not** on the PIX Session-Start commitment discriminants
-  `0x04`/`0x05`, which OSCP does not use.
+  v1.0.1, with no such field) to a new minor version. OSCP carries the PIX
+  commitment payloads under its own message types `0x0b`/`0x0c` (Section 4.5.5)
+  rather than the PIX Session-Start discriminants `0x04`/`0x05`; the cryptographic
+  agreement is PIX's, only the transport framing differs.
 - A normative **on-chain announcement record** that the `BridgeAnnouncement`
   schema (Section 4.4.1) extends; no current RFC specifies one.
 - The companion **directory RFC** (Section 4.3.3).
@@ -930,7 +1030,7 @@ opens a rendezvous leg only after verifying the RB-signed reservation token and
 expensive service-funded leg toward a black-hole RB. Replay is bounded by a
 service-global `replay_nonce` cache and the `±INTRO_WINDOW` timestamp bound.
 
-**Rendezvous cookie and MitM.** The join is bound to `H(RC || S_s)`
+**Rendezvous cookie and MitM.** The join is bound to `H("hopr-join" || RC || S_s)`
 (`join_commitment`/`join_proof`), so learning `RC` alone does not let an attacker
 squat or hijack the join. `transcript_hash` binds `pk_S`, both ephemerals as
 transmitted, `RC`, and `revision`; a MitM RB substituting `E_s` breaks

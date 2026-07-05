@@ -54,6 +54,37 @@ resolution in v0.2.0 below. Severity as assigned by the reviewer.
 | High | Session-Start `0x04/0x05` dependency claim wrong/unused | §6 states OSCP does **not** use PIX Session-Start discriminants; only pool ops + SURB shares are the real dependency. |
 | Med/Low | App-tag registry caveat; reliable-mode is local policy not 0008 default; RFC-0007 missing from Related Links; RFC-0016 "proposed"; SURB/pseudonym terminology belongs to 0004 not 0002 | §6 registry caveat; §4.6 "this RFC mandates"; RFC-0007 added to Related Links; RFC-0016 marked "not yet allocated"; §3 retargets SURB/pseudonym/ReplyOpener to RFC-0004. |
 
+# Round 2 (v0.2.0 → v0.3.0)
+
+Two focused verification agents: (a) rigorous check of the rewritten PIX-stream
+economics, (b) convergence/completeness critic looking for revision-introduced
+contradictions.
+
+## Economics verification — verdict: SOUND-BUT-UNDERSPECIFIED, now resolved
+
+| Finding | Resolution in v0.3.0 |
+| ------- | -------------------- |
+| Mapping confirmed: RB genuinely IS the PIX exit on leg A (terminates leg A, holds the client's SURBs, creates reply packets). Unlock-on-handover is a real property. | Confirmed; §4.5.5/§4.7 now state it precisely. |
+| **Contradiction**: kept PIX's back half (share unlock) but §6 disclaimed its front half (commitment handshake) it mathematically depends on — unbuildable. | Added **§4.5.5 Rendezvous payment agreement**: full PIX commitment handshake on leg A via new OSCP messages `PIX_COMMIT_REQUEST` (0x0b) / `PIX_COMMIT` (0x0c). §6 corrected: OSCP carries the PIX agreement under its own discriminants; the crypto is PIX's. |
+| Padding-vs-share rule unspecified (mandatory shaping means most leg-A packets are padding). | §4.5.5/§4.7/§4.9: every leg-A SURB (data or padding) carries a share; billing basis is **capacity held**, bounded by `schedule_ver`. |
+| Asymmetric (upload-heavy) traffic underpays the RB. | Fixed by capacity/time billing above — payment tracks shaped-rate × duration, independent of service→client payload volume. |
+| Share-supply vs SURB-supply coupling. | §4.5.5/§4.9: replenished SURBs carry fresh shares minted by sampling the same polynomials at new `x`; SURB without valid share not counted. |
+
+## Completeness / convergence critic
+
+| ID | Sev | Finding | Resolution |
+| -- | --- | ------- | ---------- |
+| 5.2 | Blocking | Delegation capability bit 2 ("terminate e2e session") unusable — delegate can't compute `S_s` (derived from `sk_S`) | §4.2.3: service MUST provision the delegate the per-period `S_s` private half (never `sk_S`), re-provisioned each period. |
+| 2.2 | Should-fix | Mermaid `RENDEZVOUS1 (…, token, sig)` fields don't exist in struct | Diagram corrected to `RENDEZVOUS1 (RC, E_s, join_proof, confirm_tag)` / `RENDEZVOUS2 (E_s, confirm_tag)`. |
+| 3.1 | Should-fix | Commitment written `H(RC \|\| S_s)` in §4.5.4 prose and §7 vs canonical `H("hopr-join" \|\| RC \|\| S_s)` | Both aligned to the domain-separated form. |
+| 7.1 | Should-fix | Client can't distinguish real intro points from random padding | §4.3.1 `IntroSection`: public = plain list (IBs not secret); private = encrypted-then-padded (only authorised clients decrypt). |
+| 7.3 | Should-fix | Intro micro-payment not wired to a field identifying the forwarding IB | §4.5.3: `INTRODUCE2` body defined; service attributes payment via the standing session and MUST match the AEAD-bound `node_id`. |
+| 7.4 | Should-fix | Undefined behaviour on descriptor/`S_s` expiry mid-session | §4.6: e2e keys fixed at handshake; live joins continue across period rollover; only new connections use the new period. |
+| 7.2 | Should-fix | `INTRODUCE_ACK` semantics (receipt vs forwarding) | §4.5.3: it confirms best-effort receipt, not forwarding. |
+| 2.1 | Should-fix | Trivial messages had no body | §4.5 table note defines the stub bodies (ACKs, `JOIN_UNAVAILABLE` reason byte). |
+| 4.1, 7.5, 7.6, 7.7 | Nit | `S_s` antecedent; `expiry` u32-rel vs `valid_until` u64-abs; `n`→`INTRO_SLOTS`; `capabilities` name collision | §4.5.2 states `S_s` from descriptor + expiry translation; `IntroSection` removes bare `n`; `Descriptor.capabilities`→`session_caps`. |
+| — | Verified clean | `MIN_BRIDGE_STAKE` fully renamed; all constants introduced+used; refs [01]–[12] all cited+defined; token/commitment field chain consistent; stage ordering (descriptor before rendezvous) correct | No change needed. |
+
 ## Not yet fully closed (tracked in §10 Unresolved / §11 Future Work)
 - Exact Ed25519 blinding construction (deferred to companion directory RFC).
 - Concrete slashing challenge/proof formats.
