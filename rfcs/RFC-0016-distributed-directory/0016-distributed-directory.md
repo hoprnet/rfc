@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.1.0 (Raw)
+- **Version:** v0.1.1 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md),
@@ -93,7 +93,7 @@ must read to enforce authenticity, monotonicity, and expiry:
 ```
 RecordEnvelope {
   slot         : [u8; 32],   // MUST equal the request slot
-  auth_pubkey  : [u8; 32],   // key that signs this record (blinded key or bridge key)
+  auth_pubkey  : [u8; 32],   // key that signs this record (the blinded descriptor key)
   sequence     : u64,        // monotonic per slot; higher supersedes; MSB = tombstone
   published_at : u64,        // UNIX seconds
   ttl          : u32,        // seconds of validity from published_at
@@ -104,18 +104,17 @@ RecordEnvelope {
 
 The directory verifies `signature` under `auth_pubkey`, and that `auth_pubkey`
 is the legitimate authority for `slot` (Section 4.3). It does **not** interpret
-`payload`. Two record profiles are defined by consumers:
-
-- **Blinded profile** (service descriptors,
-  [RFC-0015](../RFC-0015-onion-services/0015-onion-services.md) §4.3): `slot` is
-  derived from a *blinded* identity key so the directory cannot link a record to
-  a long-term identity or enumerate services.
-- **Open profile** (OPTIONAL, e.g. bridge liveness): `slot` is derived from an
-  unblinded key because the publisher wants to be found. Whether onion-service
-  bridges use this profile or are instead distributed by the service at
-  connection setup is determined by
-  [RFC-0015](../RFC-0015-onion-services/0015-onion-services.md); this RFC only
-  provides the mechanism.
+`payload`. The sole record profile is the **blinded profile** (service
+descriptors,
+[RFC-0015](../RFC-0015-onion-services/0015-onion-services.md) §4.3): `slot` is
+derived from a *blinded* identity key so the directory cannot link a record to a
+long-term identity or enumerate services. (Onion-service bridges are deliberately
+**not** in the directory — they are discovered by direct capability negotiation
+and vouched for in service descriptors,
+[RFC-0015](../RFC-0015-onion-services/0015-onion-services.md) §4.4, so no
+unblinded/enumerable index exists.) A future consumer needing an unblinded,
+"want-to-be-found" record could add an open profile keyed by an unblinded key;
+none is defined here, and the rest of this RFC assumes blinded descriptors.
 
 ### 4.2 Anonymous access
 
@@ -152,9 +151,6 @@ under `pk_blind` without learning `pk`. The construction MUST reduce
 `blinding_scalar` modulo the group order `L` and clamp it, and MUST canonicalise
 the sign bit, so that blinded signatures verify and slots are not linkable across
 periods by anyone lacking `pk`.
-
-**Slot (open profile).** `slot = H(auth_pubkey || period)` with `auth_pubkey` the
-publisher's unblinded key.
 
 **Responsible set — MUST be ungrindable toward a target slot.** Because `slot` is
 a public function of a known key, naive "closest node IDs" assignment lets an
@@ -217,16 +213,17 @@ A resolver MUST:
 
 ### 4.7 Anti-abuse admission
 
-Because `LOAD` is anonymous and (for open-profile slots) the slot may be
-enumerable, an adversary could flood a slot. The directory MUST expose an
+Because `LOAD` is anonymous, an adversary who knows a service's address (and can
+thus compute its slot) could flood that slot. The directory MUST expose an
 admission hook applied before a node commits work to a request:
 
 - a lightweight **proof-of-work** bound to `(slot, coarse-time)`, or
 - a **fetch micro-payment** (a HOPR ticket or PIX-style allocation).
 
-The hook MUST be cheap for honest use and MUST NOT deanonymise the requester
-(the PoW/payment MUST NOT carry requester identity). Open-profile slots, being
-enumerable, are the more exposed case and the hook is REQUIRED there.
+The hook MUST be cheap for honest use and MUST NOT deanonymise the requester (the
+PoW/payment MUST NOT carry requester identity). Since only blinded descriptor
+slots exist, flooding is targeted-only — an adversary must already know the
+address — which bounds the exposure.
 
 ## 5. Design Considerations
 
@@ -271,11 +268,9 @@ rather than assume "no single node can censor."
 nodes.
 
 **Interest and cadence leakage.** Anonymous sessions hide who queries; query
-spreading bounds per-node demand series; publication jitter hides refresh
-cadence. Open-profile (unblinded) slots additionally leak the existence and
-liveness cadence of the publisher to its responsible nodes and to any crawler —
-an accepted property of "wanting to be found," to be weighed by the consumer
-(see [RFC-0015](../RFC-0015-onion-services/0015-onion-services.md) §7).
+spreading bounds the per-node demand series; publication jitter hides refresh
+cadence. Because all slots are blinded, a responsible node cannot link the slots
+it serves to service identities, and there is no enumerable index to crawl.
 
 **Storage exhaustion.** Bounded record size, bounded `ttl`, `k`-replication, and
 the admission hook (Section 4.7) together bound the storage a slot can consume;
@@ -324,9 +319,9 @@ already provide one.
   per deployment.
 - Storage-incentive model: whether directory nodes are paid (and how) or store as
   a network duty, and its abuse implications.
-- Whether onion-service bridge records use the open profile here or are
-  distributed by the service at setup (decided in
-  [RFC-0015](../RFC-0015-onion-services/0015-onion-services.md)).
+- Whether any future consumer needs an unblinded open profile (none does today;
+  onion-service bridges are discovered off-directory,
+  [RFC-0015](../RFC-0015-onion-services/0015-onion-services.md) §4.4).
 
 ## 11. Future Work
 

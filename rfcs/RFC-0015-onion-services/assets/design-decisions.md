@@ -177,3 +177,31 @@ flooding wins. Established joins are unaffected by their bridge de-advertising.
 liveness records. The on-chain contract (bond slashing/cooldown/withdrawal,
 sequence monotonicity, key-binding verification) remains external (§6).
 Supersedes the earlier "all bridge fields on-chain" form of D8/D14.
+
+### D16 — Bondless, service-provided bridges + multipath (v0.7.0)
+Two user insights collapsed the bridge apparatus:
+- **A hostile service cannot demask the client by controlling the rendezvous
+  bridge**, because leg A is multi-hop (a service-controlled RB sees only the
+  adjacent relay). So the service can safely be the provider of the rendezvous
+  set — client-choice was never needed for demask-prevention.
+- **Off-chain reputation, not a bond.** The only threat a bond priced (covert
+  correlation) is unobservable and never was slashable; observable failures are
+  judged locally. With service-curated, reputation-gated selection there is no
+  global pool to Sybil-flood, so the bond's purpose evaporated.
+
+Resulting model:
+- **No bond, no slashing contract, no on-chain bridge state.** Accountability =
+  local de-selection ("the slash"); incentive = PIX fee stream.
+- **Bridge discovery by direct capability negotiation** (`CAP_QUERY`/`CAP_RESPONSE`,
+  OSCP 0x0d/0x0e). No global bridge directory → the unblinded `BridgeLiveness`
+  DHT records and their enumeration/load-correlation leak are **removed**.
+- Service lists a rotated **`rendezvous_set` in its descriptor**; client picks
+  from it and **MAY union its own** discovered bridges (hostile-service dilution +
+  availability fallback). Liveness/fee learned by **direct contact at reservation**.
+- **Multipath rendezvous (optional, §4.6.1):** client stripes ONE e2e session
+  across M parallel bridges; each bridge sees only 1/M of the flow; reconstruction
+  needs all M to collude. Now the primary structural correlation defence alongside
+  shaping.
+- **RFC-0016 becomes descriptors-only** (blinded); open/bridge profile dropped.
+
+Supersedes D8/D14/D15's on-chain bond and bridge-directory design.
