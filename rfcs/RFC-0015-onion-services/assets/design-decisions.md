@@ -129,3 +129,22 @@ using the existing HOPR flow-control signals (SURB distress `0x01`, out-of-SURBs
 `0x03`). This yields a clean two-layer model: outer per-leg HOPR sessions
 (bridge-terminated, normal SURB flow) carrying an inner end-to-end session
 (client↔service, reliable by default) whose payload the bridge cannot read.
+
+### D14 — Normative announcement record (added v0.4.0)
+RFC-0015 now specifies the **base node announcement record** and the bridge
+extension in §4.4.1, instead of deferring the whole record. Necessary contents:
+- **Base** (`NodeAnnouncement`): `chain_account` (secp256k1, owns Safe/channels/
+  tickets/bond), `packet_pubkey` (Ed25519 off-chain routing identity =
+  path-finding target = descriptor `node_id`), `multiaddrs` (libp2p transport
+  reachability), `sequence` (monotonic anti-replay/update), and a **`key_binding`
+  cross-signature pair** (packet key signs chain account; chain key signs packet
+  key) proving co-ownership — the security-critical field.
+- **Bridge extension** (`BridgeAnnouncement`): base + `roles`, `traffic_classes`,
+  signed `fee_schedule` (`schedule_ver`), `capacity`, `min_version`, `bond_ref`
+  (≥ `MIN_BRIDGE_BOND`), and `bridge_sig`.
+
+**Why:** bridge discovery was a declared draft dependency with no record to filter
+on. **Scope note:** the base record is general HOPR infrastructure; §4.4.1 flags
+it SHOULD migrate to a dedicated announcement RFC later, with 0015 referencing it.
+The on-chain **contract** enforcing monotonicity/key-binding/bond-slashing is
+still external (noted in §6). Onion services themselves are never announced.

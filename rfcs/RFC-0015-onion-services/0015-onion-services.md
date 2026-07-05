@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.3.0 (Raw)
+- **Version:** v0.4.0 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -417,27 +417,74 @@ re-publication does not become a liveness or clock fingerprint.
 
 #### 4.4.1 Announcement
 
-No existing RFC normatively specifies an extensible on-chain announcement record;
+Onion services themselves are **never** announced on-chain — that would reveal
+their existence and location. Announcement applies only to the relay and bridge
+infrastructure. A bridge announcement is an extension of the **base node
+announcement**, the on-chain record every routable HOPR node publishes.
 [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
-only assumes that an announcement mechanism exists and binds a node's off-chain
-key, chain account and transport address, and uses it as an input to discovery.
-This RFC therefore defines a **new** on-chain bridge-announcement schema (to be
-ratified with the announcement-contract work it depends on):
+assumes this record exists (it binds a node's off-chain key, chain account and
+transport address) and uses it as a discovery input, but no RFC has specified its
+contents. This RFC specifies both the base record and the bridge extension
+normatively; the base record is general HOPR infrastructure and SHOULD be
+migrated to a dedicated announcement RFC when one is written, with this section
+becoming a reference.
+
+##### Base node announcement
+
+```
+NodeAnnouncement {
+  version       : u8,            // 0x01
+  chain_account : [u8; 20],      // secp256k1-derived address; owns Safe, channels, tickets, bond
+  packet_pubkey : [u8; 32],      // Ed25519 off-chain key; routing identity (path-finding target,
+                                //   and the node_id referenced by descriptors)
+  multiaddrs    : [Multiaddr; a],// one or more libp2p transport addresses (IP/DNS, port, transport)
+  sequence      : u64,           // monotonic per chain_account; higher supersedes; anti-replay
+  key_binding   : KeyBinding     // proves packet_pubkey and chain_account are co-owned
+}
+
+KeyBinding {
+  packet_sig : [u8; 64],   // Ed25519 by the packet key over H("hopr-bind-chain"  || chain_account || sequence)
+  chain_sig  : [u8; 65]    // secp256k1 by the chain key  over H("hopr-bind-packet" || packet_pubkey || sequence)
+}
+```
+
+The `key_binding` is the security-critical part: the two cross-signatures prove
+the same operator controls both keys, so no node can announce a `packet_pubkey`
+it does not own (which would let it impersonate a routing identity) or attach one
+to another party's `chain_account` (which would misdirect settlement). Verifiers
+MUST check both signatures and MUST reject an announcement whose `sequence` does
+not exceed the last accepted `sequence` for that `chain_account`. The
+`packet_pubkey` is exactly the `OffchainPublicKey` used by path-finding
+([RFC-0014](../RFC-0014-path-finding/0014-path-finding.md)) and is what a
+descriptor's `IntroPoint.node_id` and a reservation token's `rb_node_id`
+reference.
+
+##### Bridge announcement (extension)
+
+A bridge additionally publishes, bound to its base record:
 
 ```
 BridgeAnnouncement {
+  base           : NodeAnnouncement,   // MUST be a valid, current base record for this node
   roles          : u8,     // bit 0 = intro-capable, bit 1 = rendezvous-capable
-  schedule_ver   : u32,    // version of the fee schedule below; signed, monotonic
-  fee_schedule   : FeeSchedule,   // or an on-chain pointer to a signed off-chain record
+  traffic_classes: u8,     // bitmap of supported classes (interactive, stream, bulk; Section 4.7)
+  schedule_ver   : u32,    // version of the fee schedule; signed, monotonic
+  fee_schedule   : FeeSchedule,   // inline, or an on-chain pointer to a signed off-chain record
   capacity       : u32,    // advertised concurrent-join capacity
   min_version    : u8,     // lowest OSCP version supported
-  bond_ref       : BondRef // reference to the slashing bond (Section 4.4.2)
+  bond_ref       : BondRef,       // the slashing bond (Section 4.4.2)
+  bridge_sig     : [u8; 64]       // Ed25519 by base.packet_pubkey over the bridge fields || base.sequence
 }
 
 FeeSchedule {
   reservation_fee : u128,  // small, non-refundable anti-DoS admission (Section 4.7)
-  service_rate    : u128,  // per delivered-frame unit, unlocked via PIX (Section 4.7)
+  service_rate    : u128,  // per leg-A-capacity unit, unlocked via PIX (Sections 4.5.5, 4.7)
   currency        : u8     // settlement asset selector
+}
+
+BondRef {
+  bond_id : u256,   // handle in the bond contract
+  amount  : u128    // MUST be >= MIN_BRIDGE_BOND; slashable, cooldown per Section 4.4.2
 }
 ```
 
@@ -445,11 +492,12 @@ Because this rides on the same on-chain announcement nodes already use, services
 and clients discover bridges by filtering the channel graph they maintain
 ([RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md),
 [RFC-0014](../RFC-0014-path-finding/0014-path-finding.md)); no new discovery
-overlay is required. A bridge MAY reference a fresher signed off-chain
-fee/capacity record to avoid per-update gas cost, but the record MUST be signed
-and carry a monotonic `schedule_ver`; the fee a client agrees to is bound to a
-specific `schedule_ver` (Section 4.5.2), so a bridge cannot bait a low fee and
-enforce a higher one.
+overlay is required, and a client can filter by `roles` and `traffic_classes`
+before selection (Section 4.4.3). A bridge MAY reference a fresher signed
+off-chain fee/capacity record to avoid per-update gas cost, but the record MUST
+carry `bridge_sig` and a monotonic `schedule_ver`; the fee a client agrees to is
+bound to a specific `schedule_ver` (Section 4.5.2), so a bridge cannot bait a low
+fee and enforce a higher one.
 
 #### 4.4.2 Eligibility and bonding
 
@@ -972,8 +1020,12 @@ interoperable implementation:
   commitment payloads under its own message types `0x0b`/`0x0c` (Section 4.5.5)
   rather than the PIX Session-Start discriminants `0x04`/`0x05`; the cryptographic
   agreement is PIX's, only the transport framing differs.
-- A normative **on-chain announcement record** that the `BridgeAnnouncement`
-  schema (Section 4.4.1) extends; no current RFC specifies one.
+- The **base node announcement record** and the bridge extension are specified in
+  Section 4.4.1, but their **on-chain contract** (the announcement and bond
+  contracts that enforce `sequence` monotonicity, key-binding verification, and
+  bond slashing/cooldown) is not yet ratified; an interoperable deployment
+  requires that contract work. The base record SHOULD later migrate to a
+  dedicated announcement RFC.
 - The companion **directory RFC** (Section 4.3.3).
 
 Peers negotiate the OSCP version via the announcement and descriptor; a peer that
