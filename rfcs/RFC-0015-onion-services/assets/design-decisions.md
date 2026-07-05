@@ -148,3 +148,32 @@ on. **Scope note:** the base record is general HOPR infrastructure; §4.4.1 flag
 it SHOULD migrate to a dedicated announcement RFC later, with 0015 referencing it.
 The on-chain **contract** enforcing monotonicity/key-binding/bond-slashing is
 still external (noted in §6). Onion services themselves are never announced.
+
+### D15 — Two-tier bridge announcement + soft-state liveness/revocation (v0.5.0)
+On-chain announcements go stale (a node announced as a bridge need not stay one)
+and cost gas to update. Split the bridge advertisement:
+- **Tier 1, on-chain `BridgeRegistration`** (durable): base node record (identity
+  + key-binding) + `roles` + `bond_ref` + `directory_id`. Asserts *eligibility*,
+  not liveness. Changes rarely.
+- **Tier 2, off-chain `BridgeLiveness`** (soft-state, short TTL, default 300 s):
+  current multiaddrs, fee schedule (`schedule_ver`), capacity, load, published in
+  the **same directory as descriptors but unblinded** (bridges want to be found),
+  keyed by `packet_pubkey`, self-signed, with a `bond_anchor` to the on-chain
+  bond.
+
+**Revocation, three modes:**
+1. Soft (common): stop refreshing → record expires within TTL. Free.
+2. Fast: publish a signed tombstone (higher `sequence`, MSB set).
+3. Hard: on-chain bond withdrawal → `BOND_COOLDOWN`, ineligible immediately,
+   overrides any lingering fresh record; slashable throughout cooldown.
+
+**Why it works:** the on-chain **bond** gates *usability* (Sybil resistance — a
+liveness record without a resolvable bond is ignored, so the fast-refreshing
+directory can't be flooded), while the short-TTL directory record keeps
+*availability* current (staleness self-corrects). Neither staleness nor Sybil
+flooding wins. Established joins are unaffected by their bridge de-advertising.
+
+**Scope:** RFC-0016 now covers both blinded descriptors and unblinded bridge
+liveness records. The on-chain contract (bond slashing/cooldown/withdrawal,
+sequence monotonicity, key-binding verification) remains external (§6).
+Supersedes the earlier "all bridge fields on-chain" form of D8/D14.

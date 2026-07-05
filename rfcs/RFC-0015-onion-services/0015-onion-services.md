@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.4.0 (Raw)
+- **Version:** v0.5.0 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -388,7 +388,13 @@ that residual confirmation channel is discussed in Section 7.
 This RFC defines the interface any directory layer MUST provide; the concrete
 distributed hash table (replication, retention, storage incentives, and the
 blinding construction of Section 4.3.2) is specified in a companion RFC (proposed
-**RFC-0016, HOPR Distributed Directory**; not yet allocated). The interface is:
+**RFC-0016, HOPR Distributed Directory**; not yet allocated). The directory holds
+two kinds of record over the same substrate: **service descriptors** (Section
+4.3.1), stored at *blinded* slots so services cannot be enumerated, and **bridge
+liveness records** (Section 4.4.1), stored *unblinded* at a slot derived from the
+bridge's `packet_pubkey` because a bridge wants to be found. Both are short-lived
+and self-expiring; the difference is only whether the slot key is blinded. The
+interface is:
 
 - `STORE(slot, record)` and `LOAD(slot) -> record?` — a single request format
   serves both. Publication and fetch MUST be **indistinguishable on the wire**:
@@ -459,27 +465,23 @@ not exceed the last accepted `sequence` for that `chain_account`. The
 descriptor's `IntroPoint.node_id` and a reservation token's `rb_node_id`
 reference.
 
-##### Bridge announcement (extension)
+Bridge advertisement is deliberately split into **two tiers** so that
+fast-changing operational state never lives on-chain, where it would go stale and
+cost gas to update. The on-chain tier anchors durable, security-critical
+*eligibility*; a short-lived directory record carries *liveness*.
 
-A bridge additionally publishes, bound to its base record:
+##### Tier 1 — on-chain bridge registration (durable eligibility anchor)
+
+On-chain, a bridge publishes only the slow-changing facts that establish it is
+*allowed* to bridge — not whether it is bridging right now:
 
 ```
-BridgeAnnouncement {
-  base           : NodeAnnouncement,   // MUST be a valid, current base record for this node
-  roles          : u8,     // bit 0 = intro-capable, bit 1 = rendezvous-capable
-  traffic_classes: u8,     // bitmap of supported classes (interactive, stream, bulk; Section 4.7)
-  schedule_ver   : u32,    // version of the fee schedule; signed, monotonic
-  fee_schedule   : FeeSchedule,   // inline, or an on-chain pointer to a signed off-chain record
-  capacity       : u32,    // advertised concurrent-join capacity
-  min_version    : u8,     // lowest OSCP version supported
-  bond_ref       : BondRef,       // the slashing bond (Section 4.4.2)
-  bridge_sig     : [u8; 64]       // Ed25519 by base.packet_pubkey over the bridge fields || base.sequence
-}
-
-FeeSchedule {
-  reservation_fee : u128,  // small, non-refundable anti-DoS admission (Section 4.7)
-  service_rate    : u128,  // per leg-A-capacity unit, unlocked via PIX (Sections 4.5.5, 4.7)
-  currency        : u8     // settlement asset selector
+BridgeRegistration {
+  base         : NodeAnnouncement,  // MUST be a valid, current base record for this node
+  roles        : u8,      // bit 0 = intro-capable, bit 1 = rendezvous-capable (roles the node MAY serve)
+  bond_ref     : BondRef, // the slashing bond (Section 4.4.2)
+  directory_id : u32,     // directory namespace carrying the live record (0 = network default)
+  reg_sig      : [u8; 64] // Ed25519 by base.packet_pubkey over the fields || base.sequence
 }
 
 BondRef {
@@ -488,16 +490,70 @@ BondRef {
 }
 ```
 
-Because this rides on the same on-chain announcement nodes already use, services
-and clients discover bridges by filtering the channel graph they maintain
-([RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md),
-[RFC-0014](../RFC-0014-path-finding/0014-path-finding.md)); no new discovery
-overlay is required, and a client can filter by `roles` and `traffic_classes`
-before selection (Section 4.4.3). A bridge MAY reference a fresher signed
-off-chain fee/capacity record to avoid per-update gas cost, but the record MUST
-carry `bridge_sig` and a monotonic `schedule_ver`; the fee a client agrees to is
-bound to a specific `schedule_ver` (Section 4.5.2), so a bridge cannot bait a low
-fee and enforce a higher one.
+This record changes only when identity, bond, or role eligibility changes —
+rarely — so it does not go stale the way operational data does. It asserts "this
+bonded node is eligible to bridge, and its live record is in directory
+`directory_id`," and nothing about current availability.
+
+##### Tier 2 — off-chain bridge liveness record (soft-state, short TTL)
+
+Everything that changes fast — current availability, addresses, load, and fees —
+lives in a short-lived signed record the bridge publishes to the directory
+(Section 4.3.3), the **same substrate as service descriptors** but *unblinded*,
+because a bridge wants to be found. It is keyed by `packet_pubkey`:
+
+```
+BridgeLiveness {
+  packet_pubkey  : [u8; 32],  // identifies the bridge; MUST match a live BridgeRegistration
+  bond_anchor    : u256,      // = BridgeRegistration.bond_ref.bond_id (proves it is bonded)
+  multiaddrs     : [Multiaddr; a],  // current transport addresses (may differ from the base record)
+  traffic_classes: u8,        // classes offered now (interactive, stream, bulk; Section 4.7)
+  fee_schedule   : FeeSchedule,
+  schedule_ver   : u32,       // monotonic; the value a client binds at reservation (Section 4.5.2)
+  capacity       : u32,       // concurrent-join capacity
+  current_load   : u32,       // joins in progress (advisory, for selection)
+  published_at   : u64,       // UNIX seconds
+  ttl            : u32,       // seconds this record is valid; short (default 300 s)
+  sequence       : u64,       // monotonic per packet_pubkey; MSB set = tombstone (Section 4.4.4)
+  signature      : [u8; 64]   // Ed25519 by packet_pubkey over all preceding fields
+}
+
+FeeSchedule {
+  reservation_fee : u128,  // small, non-refundable anti-DoS admission (Section 4.7)
+  service_rate    : u128,  // per leg-A-capacity unit, unlocked via PIX (Sections 4.5.5, 4.7)
+  currency        : u8     // settlement asset selector
+}
+```
+
+A consumer of a `BridgeLiveness` record MUST:
+
+1. verify `signature` under `packet_pubkey`;
+2. resolve `bond_anchor` on-chain and confirm it is a valid, **non-withdrawing**
+   bond of at least `MIN_BRIDGE_BOND` bound to the same `packet_pubkey` through a
+   live `BridgeRegistration` — a liveness record without a backing bond MUST be
+   ignored. This is what stops the directory being flooded with fake bridges:
+   freshness is cheap and off-chain, but *usability* still costs an on-chain
+   bond;
+3. reject the record if `published_at + ttl` has elapsed, or if a higher
+   `sequence` record for the same `packet_pubkey` exists;
+4. bind the agreed fee to `schedule_ver` at reservation (Section 4.5.2), so a
+   later fee change cannot be applied mid-agreement.
+
+The bridge re-publishes its `BridgeLiveness` before each `ttl` elapses (a
+heartbeat); the directory (RFC-0016) gives it the same anonymous publish/fetch
+and `k`-replication as descriptors. Because only the anchor is on-chain and all
+operational state is soft-state behind a short TTL, the on-chain record does not
+go stale and the directory record self-expires if the bridge stops refreshing —
+which is exactly the ordinary "I am no longer a bridge" path (Section 4.4.4).
+
+Services and clients therefore discover eligible bridges from the on-chain
+`BridgeRegistration` set (filterable from the channel graph they already
+maintain,
+[RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md),
+[RFC-0014](../RFC-0014-path-finding/0014-path-finding.md)) and fetch each
+candidate's current `BridgeLiveness` from the directory to learn who is actually
+online, at what fee and load, before selecting (Section 4.4.3). No discovery
+overlay beyond the directory already required for descriptors is introduced.
 
 #### 4.4.2 Eligibility and bonding
 
@@ -516,6 +572,13 @@ with the companion economic work; until they exist, deployments MUST treat
 correlation resistance as resting on bonding, fresh selection, and traffic
 shaping (Section 4.9) rather than on slashing.
 
+Initiating bond withdrawal enters the `BOND_COOLDOWN` window and is the
+**hard-revocation** path (Section 4.4.4): a node whose bond is withdrawing or
+withdrawn is no longer eligible, and consumers MUST NOT select it even if a
+still-fresh `BridgeLiveness` record lingers (the on-chain bond state is
+authoritative over the directory record). The node remains slashable throughout
+`BOND_COOLDOWN` for misbehaviour committed while it was active.
+
 #### 4.4.3 Selection
 
 - The **service** selects its introduction bridges from intro-capable nodes and
@@ -526,14 +589,57 @@ shaping (Section 4.9) rather than on slashing.
   cross-period linkage signal (Section 7), a service SHOULD rotate its IB set
   across periods.
 - The **client** selects a rendezvous bridge per connection, freshly and
-  unpredictably. Selection MUST be **bond-weighted**, and the influence of
-  advertised `fee` and `capacity` on selection MUST be capped, so an adversary
-  cannot attract a disproportionate share of joins by advertising an
-  artificially low fee or high capacity. The client MUST use a fresh cookie per
-  connection and SHOULD avoid reusing a rendezvous bridge in a way that lets the
-  bridge link two connections. Section 7 discusses the tension between
-  per-connection freshness (which spreads samples to more bridges) and
-  intersection exposure.
+  unpredictably, from candidates whose on-chain `BridgeRegistration` is bonded
+  and whose current `BridgeLiveness` is fresh, online, and offers the needed
+  `traffic_classes` with spare `capacity`. Selection MUST be **bond-weighted**,
+  and the influence of advertised `fee` and `capacity`/`current_load` on
+  selection MUST be capped, so an adversary cannot attract a disproportionate
+  share of joins by advertising an artificially low fee or high capacity. The
+  client MUST use a fresh cookie per connection and SHOULD avoid reusing a
+  rendezvous bridge in a way that lets the bridge link two connections. Section 7
+  discusses the tension between per-connection freshness (which spreads samples
+  to more bridges) and intersection exposure.
+
+Both roles MUST re-verify liveness at use time, not just at selection: a bridge
+whose `BridgeLiveness` has expired, been superseded, or been tombstoned
+(Section 4.4.4), or whose bond is withdrawing, MUST be dropped and another
+selected. Because a service's introduction bridges are long-lived, the service
+also keeps their `BridgeLiveness` fresh in its own view and re-publishes its
+descriptor if an intro bridge disappears.
+
+#### 4.4.4 Revocation and staleness
+
+A node that announced itself as a bridge is not obliged to remain one. Revocation
+has three modes, matched to how urgent and how durable the change is:
+
+1. **Soft revocation (stop bridging / go offline) — the common case.**
+   `BridgeLiveness` is a lease: to stop being a bridge, a node simply **stops
+   refreshing** its record, which expires within `ttl` (default 300 s). No
+   transaction, no gas, no message. Consumers already reject expired records
+   (Section 4.4.1), so a silently-departed bridge disappears from selection
+   within one TTL. This is why fast-changing state is soft-state: staleness is
+   self-correcting.
+2. **Fast explicit revocation (disappear before the TTL).** The bridge publishes
+   a **tombstone** — a `BridgeLiveness` with a higher `sequence` and the
+   `sequence` MSB set and empty operational fields — so consumers drop it
+   immediately rather than waiting out the remaining TTL. Useful for graceful
+   shutdown or emergency withdrawal of an address.
+3. **Hard revocation (leave the role, reclaim the bond).** The node initiates
+   on-chain **bond withdrawal**, entering `BOND_COOLDOWN` (Section 4.4.2). From
+   that moment it is ineligible and MUST NOT be selected even if a fresh
+   `BridgeLiveness` still exists, because the on-chain bond state is
+   authoritative. After the cooldown the bond is returned; throughout it the node
+   stays slashable for prior misbehaviour.
+
+The tiers interlock so that neither staleness nor abuse wins: the **on-chain
+bond** is the durable, hard-to-fake anchor that gates *usability* (defeating
+Sybil flooding of the directory), while the **directory liveness record** is the
+cheap, short-TTL layer that keeps *availability* current (defeating staleness).
+An attacker cannot flood the directory with fresh-but-fake bridges (no bond), and
+an honest bridge cannot become a stale trap (its record expires unless
+refreshed). Mid-session, an already-established join is unaffected by its bridge
+ceasing to advertise — revocation only removes the bridge from *future*
+selection; existing joins run until torn down normally (Section 4.9).
 
 ### 4.5 Introduction and rendezvous protocol
 
@@ -1020,13 +1126,14 @@ interoperable implementation:
   commitment payloads under its own message types `0x0b`/`0x0c` (Section 4.5.5)
   rather than the PIX Session-Start discriminants `0x04`/`0x05`; the cryptographic
   agreement is PIX's, only the transport framing differs.
-- The **base node announcement record** and the bridge extension are specified in
-  Section 4.4.1, but their **on-chain contract** (the announcement and bond
-  contracts that enforce `sequence` monotonicity, key-binding verification, and
-  bond slashing/cooldown) is not yet ratified; an interoperable deployment
+- The **base node announcement record** and the on-chain **bridge registration**
+  are specified in Section 4.4.1, but their **on-chain contract** (enforcing
+  `sequence` monotonicity, key-binding verification, and bond
+  slashing/cooldown/withdrawal) is not yet ratified; an interoperable deployment
   requires that contract work. The base record SHOULD later migrate to a
   dedicated announcement RFC.
-- The companion **directory RFC** (Section 4.3.3).
+- The companion **directory RFC** (Section 4.3.3), which now carries both blinded
+  service descriptors and unblinded bridge liveness records (Section 4.4.1).
 
 Peers negotiate the OSCP version via the announcement and descriptor; a peer that
 does not recognise an OSCP message type MUST respond `JOIN_UNAVAILABLE` or drop
@@ -1072,6 +1179,18 @@ jitter, replica query spreading, and per-period `S_s`/blinding rotation remove
 the publish-vs-fetch, clock, and cross-period linkage channels. `revision`
 monotonicity is public per slot; the fixed-size padded `intro_points` array hides
 the true IB count.
+
+**Bridge liveness integrity and staleness.** `BridgeLiveness` records are
+self-signed by the bridge's `packet_pubkey` and only usable when a consumer can
+resolve their `bond_anchor` to a live on-chain bond (Section 4.4.1), so the
+directory cannot be Sybil-flooded with fresh-but-fake bridges: freshness is cheap
+but usability costs a bond. Only the bridge itself can tombstone its own record
+(higher `sequence`, same key), so a third party cannot force-revoke an honest
+bridge; conversely a departed bridge cannot become a stale trap, because
+consumers reject records past `ttl` and take the highest `sequence` across at
+least two replicas, defeating a single replica that withholds a tombstone or
+serves a superseded record. On-chain bond state overrides the directory: a
+withdrawing bond disqualifies a bridge even with a fresh record (Section 4.4.4).
 
 **Introduction integrity and amplification.** `INTRODUCE1` content is encrypted to
 the service via `intro_enc_key` (private half service-only), with the target IB
@@ -1171,7 +1290,9 @@ key and a non-reused 96-bit nonce (Appendix 1).
 
 - **Companion directory RFC (proposed RFC-0016).** Full DHT mechanics:
   replication, retention, storage incentives, responsible-set rotation, the
-  blinding construction, and the fetch anti-abuse hook.
+  blinding construction, the fetch anti-abuse hook, and the storage/retention
+  policy for short-TTL bridge liveness records (Section 4.4.1) alongside blinded
+  descriptors.
 - **Bridge slashing framework.** Concrete on-chain challengeable misbehaviour
   proofs backing the bond of Section 4.4.2.
 - **Guard mechanism.** A normative guard-relay scheme for both endpoints' legs.
