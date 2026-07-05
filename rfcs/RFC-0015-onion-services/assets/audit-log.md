@@ -92,3 +92,55 @@ contradictions.
 - Concrete PoW puzzle for free-tier.
 - Whether PIX's streaming construction cleanly covers the RB-as-exit mapping needs
   confirmation with PIX authors (the mapping is argued in §4.7 but PIX is a draft).
+
+# Round 3 — bridge announcement / revocation / thin-chain (v0.5.0 → v0.6.0)
+
+Three adversarial reviewers (DHT/directory attack surface; economic/Sybil/
+revocation; thin-chain design analysis) plus the "can a bridge be a non-node?"
+design question. Resolutions in v0.6.0.
+
+## Thin-chain verdict (adopted)
+Only the **bond** is consensus-critical; identity/key-binding is a pre-existing
+sunk on-chain cost; **roles + directory locator moved to the signed DHT liveness
+record**. Pure-DHT rejected: a read-only stake proof cannot prevent one stake
+backing many records (non-double-spend needs consensus). **Dropped the separate
+on-chain `BridgeRegistration` record**; the on-chain footprint is now just a
+bond bound one-to-one to `packet_pubkey`, ideally an **earmark of the node's
+existing Safe stake** (one lock call), with a small **dedicated bond** fallback
+for lightweight channel-less endpoint bridges. Earmark MUST NOT double-count vs
+RFC-0007 CT stake.
+
+## Bridge-is-a-node clarification
+A bridge must speak the HOPR protocol (packet key + transport + session/SURB
+machinery) but, being a session *endpoint* not a mid-path relay, needs **no
+payment channels** — both directions of both legs are funded by client and
+service. So a bridge MAY be a lightweight channel-less endpoint (§4.4.1).
+
+## DHT/directory findings
+| ID | Sev | Resolution |
+| -- | --- | ---------- |
+| C1 | Crit | "≥2 replicas" defeats only a single dishonest replica; §4.3.3 now REQUIRES ungrindable responsible-set assignment + min-k/honest-fraction + quorum from RFC-0016; §7 states the property conditionally. |
+| C2 | Crit | bond↔packet_pubkey binding now enforced by the **bond object itself** (bound key signed at lock time; consumer checks the bond's own key), one bond = one identity (§4.4.1/§4.4.2). |
+| H2 | High | Replica-side monotonicity now REQUIRED (reject lower-sequence STOREs + anti-entropy); dropped the "monotonicity is public per slot" over-claim (§4.3.3). |
+| H3 | High | Security-critical revocation MUST use on-chain path; consumers fail-closed on unfetchable record (§4.4.4). |
+| H4 | High | `current_load`→coarse `load_bucket`, weakly weighted; §7 adds explicit bridge-enumeration + load-correlation leak analysis. |
+| M1 | Med | STORE/LOAD indistinguishability stated as shape-only, not semantic for bridge heartbeats (§4.3.3). |
+| M2 | Med | Reject future `published_at`; require remaining-TTL margin for rendezvous selection (§4.4.1 step 3). |
+| M3 | Med | Consumers SHOULD rate-limit accepted sequence advances (anti-flap) (§4.4.4). |
+| L1/L2 | Low | Interim fetch-flood worse for enumerable bridge slots (blocking hook, §4.3.3); directory_id resolved from on-chain-anchored view only (§4.4.1 step 4). |
+
+## Economic/Sybil/revocation findings
+| ID | Sev | Resolution |
+| -- | --- | ---------- |
+| C1 | Crit | Slashing formats undefined → §4.4.2 now states plainly the bond is an entry deposit until slashing exists and security rests on shaping + capped selection **alone**; §6 makes slashing formats a blocking dependency. |
+| C2 | Crit | Honest framing: recoverable bond prices a rental, not the one-shot correlation payoff; correlation resistance = shaping + capped fresh selection; optional burned admission noted (§4.4.2, §5, §10). |
+| H1 | High | Slashing MUST: withdrawal doesn't stop liability accrual, a challenge freezes bond return, generous deadline for statistical proofs (§4.4.2). |
+| H2 | High | Bond→selection weight now MUST be strictly **sub-linear and per-identity capped** (§4.4.3). |
+| H3 | High | No operator↔identity linkage acknowledged; Sybil cost stated as linear; linkage flagged as open (§4.4.2, §10). |
+| H4 | High | Self-reported load a small weak prior only; selective-service-via-load-faking documented as a known limitation under coarse errors (§4.4.3). |
+| H5 | High | RB MUST honour a reservation citing any schedule_ver published within the last TTL; client MUST abort if commit-time chunk_price exceeds the bound (§4.5.2, §4.5.5). |
+| M1 | Med | Consumer re-reads on-chain bond (checking withdrawing flag) within bounded staleness at commit (§4.4.3). |
+| M2 | Med | `reservation_fee` sized to held-state cost; RB MAY cap client `expiry` (§4.5.2). |
+| M3 | Med | Bond return blocked while any live bonded join exists → no consequence-free post-cooldown window (§4.4.2, §4.4.4). |
+| M4 | Med | PIX allocation carries expiry + client reclaims unspent remainder; long session = sequence of short agreements (§4.7). |
+| L1/L2 | Low | Whitewashing claim corrected (no reputation state to escape); fixed non-amplifiable heartbeat noted as a good property (§4.4.1/§4.4.4). |
