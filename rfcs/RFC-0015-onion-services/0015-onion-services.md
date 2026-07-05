@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.6.0 (Raw)
+- **Version:** v0.6.1 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -521,6 +521,14 @@ at lock time by a signature from that key, so that a consumer verifies the bond'
 exactly one bridge identity, and slashing burns it. `roles` and the directory
 locator move into the signed liveness record below.
 
+A bridge therefore performs an on-chain operation in exactly **two** moments of
+its lifetime: **locking** the bond and **withdrawing** it. It MUST NOT put any
+dynamic or operational state on-chain — not roles, addresses, fees, capacity,
+load, nor availability — because every on-chain write costs throughput and would
+go stale between updates. All of that is soft-state in the DHT (below), refreshed
+by cheap off-chain heartbeats. The bond is deliberately static: a lock does not
+go stale, and nothing that *can* go stale is on-chain.
+
 ##### Off-chain — the bridge liveness record (soft-state, short TTL)
 
 Everything that changes fast — availability, addresses, roles offered, fees, load
@@ -965,6 +973,25 @@ Each HOPR leg is encrypted only to that leg's endpoints, so without an
 additional layer the rendezvous bridge would see plaintext. An end-to-end
 handshake keyed to the service identity is therefore MANDATORY; the bridge only
 ever relays ciphertext.
+
+This layer is not redundant with HOPR's own encryption. The bridge *terminates*
+both legs (it is each side's Sphinx endpoint), and client and service never share
+a path — that is the whole reason they meet at a bridge — so there is no
+Sphinx-level shared secret between them to reuse. A dedicated end-to-end key
+agreement is the only way to keep the junction blind.
+
+Given that, the handshake must provide three things: **confidentiality** from the
+bridge, **service authentication** (the client must reach the real service, not a
+man-in-the-middle bridge — which requires mixing in the service's static key,
+which the client already holds from the descriptor), and **client anonymity** (no
+client static key). Noise-IK [09] is the minimal pattern that yields exactly
+these — an initiator who knows the responder's static key — plus forward secrecy
+from an ephemeral-ephemeral term. It costs **no extra round trips**: both
+ephemerals ride inside messages already being sent (`E_c` in the introduction,
+`E_s` in the rendezvous). The only lighter option is to drop forward secrecy
+(a plain ephemeral-to-static ECIES), which saves one curve operation and no
+latency while exposing all past sessions to a later static-key compromise; this
+RFC keeps forward secrecy.
 
 The handshake is a Noise-IK-style [09] exchange over X25519 [10]. The service's
 per-period static key `S_s = handshake_static` is published (signed) in the
