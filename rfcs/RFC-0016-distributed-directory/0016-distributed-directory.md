@@ -140,7 +140,7 @@ publication jitter (Section 4.5), not on this property.
 **Slot (blinded profile).** For an Ed25519 identity `pk` and current `period`:
 
 ```
-blinding_scalar = H("hopr-dir-blind" || pk || period)  reduced mod L, then clamped
+blinding_scalar = H("hopr-blind" || pk || period)  reduced mod L, then clamped
 pk_blind        = scalar_mult_add(pk, blinding_scalar)   // canonical sign bit
 slot            = H(pk_blind || period)
 auth_pubkey     = pk_blind                                // records signed by the blinded key

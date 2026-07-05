@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.7.1 (Raw)
+- **Version:** v0.8.0 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -309,7 +309,7 @@ Descriptor {
   lifetime         : u32,              // validity in seconds from published_at
   handshake_static : [u8; 32],         // per-period service X25519 static key S_s (below)
   intro_points     : IntroSection,     // see below (public: plain list; private: encrypted+padded)
-  rendezvous_set   : [NodeId; r],      // packet_pubkeys the service vouches for as rendezvous
+  rendezvous_set   : [[u8; 32]; r],    // packet_pubkeys the service vouches for as rendezvous
                                       //   bridges (Section 4.4); rotated per period
   session_caps     : CapabilityFlags,  // session modes, traffic classes
   min_dos_level    : u8,               // monotonic floor a client MUST enforce
@@ -397,7 +397,7 @@ that residual confirmation channel is discussed in Section 7.
 This RFC defines the interface any directory layer MUST provide; the concrete
 distributed hash table (replication, retention, storage incentives, and the
 blinding construction of Section 4.3.2) is specified in a companion RFC (proposed
-**RFC-0016, HOPR Distributed Directory**; not yet allocated). The directory holds
+**RFC-0016, HOPR Distributed Directory**; drafted alongside this RFC). The directory holds
 **only service descriptors** (Section 4.3.1), stored at *blinded* slots so
 services cannot be enumerated. Bridges are **not** in the directory — they are
 discovered by direct capability negotiation and vouched for in service
@@ -514,9 +514,10 @@ accountability is off-chain instead).
 
 There is **no global bridge directory** and no on-chain bridge record. A service
 finds willing rendezvous bridges by **direct capability negotiation** over
-anonymous HOPR sessions: it sends a `CAP_QUERY` (OSCP `0x0d`, Section 4.5) to a
-candidate node and receives a signed `CAP_RESPONSE` (OSCP `0x0e`) stating the
-node's offered roles, traffic classes, and fee schedule:
+anonymous HOPR sessions: it sends a `CAP_QUERY` (OSCP `0x0d`, Section 4.5;
+carrying an optional role/traffic-class filter) to a candidate node and receives a
+signed `CAP_RESPONSE` (OSCP `0x0e`) stating the node's offered roles, traffic
+classes, and fee schedule:
 
 ```
 CAP_RESPONSE {
@@ -554,6 +555,14 @@ correlate — the only place a set of bridges appears is inside a specific
 service's descriptor, visible only to a party that already knows that service's
 address (Section 7).
 
+To prevent `CAP_QUERY` from being an asymmetric-crypto denial-of-service (an
+Ed25519 signature per query over anonymous sessions), a node MUST serve a
+**pre-signed, cacheable** `CAP_RESPONSE` — the response has a monotonic
+`schedule_ver` and does not depend on the query, so a node signs it once per
+schedule change and replays it, and MUST rate-limit query handling. `capacity` is
+**not advertised**; it is a node-local limit a bridge enforces by returning
+`JOIN_UNAVAILABLE` when saturated (Section 4.5.4), so it cannot go stale.
+
 #### 4.4.2 Accountability: off-chain reputation, not a bond
 
 Earlier drafts required an on-chain slashable bond. It is removed. Two
@@ -590,8 +599,35 @@ by how it performs.
 Removing the bond eliminates the on-chain bond/slashing contract, the
 `BOND_COOLDOWN`, and the on-chain hard-revocation path entirely: the bridge layer
 now touches the chain **only** through the node identity that already exists.
-What it does not remove is the residual covert-correlation risk, which — as
-above — no bond addressed anyway and which shaping bounds.
+
+**What this costs, stated plainly.** Removing the bond removes the *only*
+per-identity cost of *being* a bridge. There is therefore **no Sybil-resistance
+mechanism for bridge identity**: any HOPR node is bridge-capable at essentially
+zero marginal cost, and an adversary can run an unbounded Sybil fleet. Local
+reputation does **not** close this, for two reasons: (a) it scores *availability*
+(delivery, latency), which is orthogonal to — if anything positively correlated
+with — a good covert-correlation vantage, so a **long-con** bridge behaves
+perfectly to earn trust and correlates the whole time, invisibly; and (b)
+reputation is non-transferable, so the neutral-prior probation recurs
+independently for every service and client, and the fleet gets a fresh free trial
+against every new target. The design accepts this and does **not** rely on Sybil
+cost or reputation to stop correlation. Correlation is instead bounded by
+mechanisms that do not depend on bridge honesty: **leg-A multi-hop** prevents
+deanonymisation regardless of who controls a bridge (Section 7); **shaping +
+multipath with client-contributed bridges** (Sections 4.9, 4.6.1) bound what a
+bridge vantage yields; and **rotation** caps the sample any one bridge collects.
+
+To raise the cost of the long-con above literally zero without reintroducing a
+bond, a service SHOULD bias cold-start vetting toward bridges with **pre-existing,
+hard-to-fake network standing** — channel stake, node age, and relay reputation
+from
+[RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+probing — all of which a service reads from the channel graph it already
+maintains and none of which a fresh Sybil fleet can cheaply manufacture. This is
+a *selection heuristic over existing signals*, not new on-chain state. A service
+SHOULD also cap the fraction of its traffic any single bridge carries per period,
+independent of that bridge's score, so that even a fully-trusted bridge collects
+a bounded sample.
 
 #### 4.4.3 Selection
 
@@ -690,8 +726,9 @@ not specifically an onion service.
 
 Message bodies not given an explicit struct are trivial: `ESTABLISH_INTRO_ACK`,
 `INTRODUCE_ACK`, and `RENDEZVOUS2` carry only the fields named in prose where
-they are introduced, and `JOIN_UNAVAILABLE` carries a single reserved reason byte
-(kept coarse per Section 4.5.4).
+they are introduced; `JOIN_UNAVAILABLE` carries a single reserved reason byte
+(kept coarse per Section 4.5.4); and `CAP_QUERY` carries only an optional
+role/traffic-class filter (Section 4.4.1).
 
 #### 4.5.1 Establishing an introduction point
 
@@ -763,11 +800,13 @@ anything beyond nothing. `RC` is single-use; the RB MUST reject a second
 registration for a live `RC`. The
 reservation is bounded: an RB MUST cap concurrent reservations per payer epoch,
 and the `reservation_fee` is non-refundable so reserve-and-abandon costs the
-client — it SHOULD be sized against the RB's held-state cost until expiry, not
-merely "small", so that a Sybil-payer flood cannot cheaply exhaust an RB's
-`capacity` against a targeted victim. The bulk of the bridge's compensation is
-**not** paid here; it is unlocked only against delivered service (Sections 4.5.5
-and 4.7).
+client. Because a per-payer cap is only as strong as the cost of minting a PIX
+payer identity — which this RFC does not assume to be high — the `reservation_fee`
+MUST be sized against *aggregate* attacker cost, not merely per-payer, so that a
+Sybil-payer flood cannot cheaply exhaust an RB's local capacity against a targeted
+victim (the strength of the per-payer cap is bounded by the PIX payer-identity
+assumptions, a dependency). The bulk of the bridge's compensation is **not** paid
+here; it is unlocked only against delivered service (Sections 4.5.5 and 4.7).
 
 #### 4.5.3 Introduction
 
@@ -785,8 +824,9 @@ INTRODUCE1 {
 
 // plaintext of enc_blob:
 IntroPayload {
-  rendezvous_token   : RENDEZVOUS_ESTABLISHED,   // RB-signed reservation (Section 4.5.2)
-  client_eph_e2e     : [u8; 32],  // E_c, a SEPARATE ephemeral for the e2e handshake (Section 4.6)
+  rendezvous_tokens  : [RENDEZVOUS_ESTABLISHED; M],  // one RB-signed reservation per path (Section 4.5.2);
+                                                    //   M = 1 for a single-path connection, M > 1 for multipath (Section 4.6.1)
+  client_eph_e2e     : [u8; 32],  // E_c, a SEPARATE ephemeral for the ONE e2e handshake (Section 4.6)
   auth_data          : [u8; a],   // client-authorisation proof (Section 4.8), 0 if none
   intro_payment      : PixAllocationRef,  // bound to this IB node_id + replay_nonce
   replay_nonce       : [u8; 16],  // CSPRNG
@@ -813,17 +853,18 @@ The service MUST maintain a **service-global** replay cache (all `INTRODUCE2`
 funnel to one place) keyed by `replay_nonce`, MUST reject an `IntroPayload` whose
 `timestamp` is outside `±INTRO_WINDOW` (default 60 s), and MUST retain each nonce
 for at least `INTRO_WINDOW`. Crucially, before doing any expensive work the
-service MUST verify `rendezvous_token.rb_signature` and that
-`join_commitment == H("hopr-join" || RC || S_s)`: this proves a real,
-client-funded reservation exists at the named RB, so the service will not open a
-costly leg to an unreserved or black-hole rendezvous bridge (Section 7,
-amplification).
+service MUST verify, **for each** of the `M` `rendezvous_tokens`, its
+`rb_signature` and that `join_commitment == H("hopr-join" || RC || S_s)`: this
+proves a real, client-funded reservation exists at each named RB, so the service
+will not open a costly leg to an unreserved or black-hole rendezvous bridge
+(Section 7, amplification).
 
 #### 4.5.4 Rendezvous join
 
-The service decrypts `enc_blob`, validates the reservation token, completes the
-handshake (Section 4.6) to obtain the e2e key `k` and its ephemeral `E_s`, opens
-a HOPR session to `RB`, and sends:
+The service decrypts `enc_blob`, validates the `M` reservation tokens, completes
+the **single** e2e handshake (Section 4.6) to obtain the e2e key `k` and its
+ephemeral `E_s`, then opens a HOPR session to **each** of the `M` rendezvous
+bridges, sending one `RENDEZVOUS1` per path (`M = 1` in the single-path case):
 
 ```
 RENDEZVOUS1 {
@@ -834,15 +875,17 @@ RENDEZVOUS1 {
 }
 ```
 
-The RB accepts only the **first** `RENDEZVOUS1` per `RC`, checks `join_proof`
-against the `join_commitment` it stored, binds the two sessions into a join, and
+Each RB accepts only the **first** `RENDEZVOUS1` per `RC`, checks `join_proof`
+against the `join_commitment` it stored, binds its two sessions into a join, and
 forwards `service_eph_pubkey` and `confirm_tag` to the client as `RENDEZVOUS2`.
-Because the join is bound to `H("hopr-join" || RC || S_s)`, a party who merely
-learns `RC` (e.g. by observing the RB) cannot squat the join without knowing
-`S_s`. The client verifies `confirm_tag` (Section 4.6). An unknown/expired `RC`,
-a `join_proof` mismatch, a saturated capacity, or a failed reservation check
-yields a uniform `JOIN_UNAVAILABLE` (client-visible error granularity is
-deliberately coarse so the RB's live-`RC` set and load are not probeable).
+Because each join is bound to `H("hopr-join" || RC || S_s)`, a party who merely
+learns one `RC` (e.g. by observing that RB) cannot squat the join without knowing
+`S_s`. The client verifies `confirm_tag` against the single e2e transcript
+(Section 4.6), which binds the **set** of all `M` cookies so one `confirm_tag`
+authenticates the whole multipath session. An unknown/expired `RC`, a `join_proof`
+mismatch, a saturated local capacity, or a failed reservation check yields a
+uniform `JOIN_UNAVAILABLE` (client-visible error granularity is deliberately
+coarse so an RB's live-`RC` set and load are not probeable).
 
 #### 4.5.5 Rendezvous payment agreement (leg-A PIX commitment)
 
@@ -914,7 +957,8 @@ service generates an ephemeral `E_s` (sent in `RENDEZVOUS1`). Define:
 
 ```
 transcript_hash = H( "hopr-onion-e2e/v1" || pk_S || S_s || E_c || E_s
-                     || RC || descriptor.revision )
+                     || RC_1 || ... || RC_M || descriptor.revision )
+                     // the ordered set of all M rendezvous cookies; M = 1 for single-path
 es = DH(E_c, S_s)      // authenticates the service (only the S_s holder computes it)
 ee = DH(E_c, E_s)      // ephemeral-ephemeral, forward secrecy
 k  = KDF("hopr-onion-e2e", ee || es, transcript_hash)
@@ -964,37 +1008,48 @@ is one single-path session).
 
 A client MAY establish the connection over **several rendezvous bridges in
 parallel** rather than one, striping a single logical session across them so that
-no individual bridge sees more than a fraction of the flow. This is the primary
-structural defence (alongside shaping) against a rendezvous bridge's correlation
-vantage: a single bridge — even a hostile, service-chosen one — observes only its
-own sub-flow, and reconstructing the whole connection requires **all** of the
-`M` bridges the client selected to collude. With diverse selection (the service's
-set unioned with the client's own, Section 4.4.3), the probability that all `M`
-are adversarial falls off sharply in `M`.
+no individual bridge sees more than a fraction of the flow. Reconstructing the
+connection from the bridges then requires **all** `M` to collude.
+
+**Multipath defends only against bridge-side correlation, never against the
+endpoint.** The service is one end of the single e2e session and reassembles the
+whole flow regardless of `M`; multipath does nothing against a hostile *service*.
+It follows that the guarantee is **conditional on selection diversity**: if all
+`M` bridges are drawn from the service's `rendezvous_set` and the service is
+hostile, "all `M` collude" is trivially satisfied and multipath provides **no**
+protection — worse, it hands a hostile service `M` correlated vantages and costs
+`M`× the fees, so it is *strictly worse than single-path*. Therefore, when
+multipath is used as a correlation defence against a possibly-hostile service, at
+least one — SHOULD be `⌈M/2⌉` — of the `M` bridges MUST be **client-selected from
+bridges the client discovered itself** (Section 4.4.1), not from the descriptor
+set. Stated precisely: multipath protects against a bridge adversary controlling
+fewer than all `M` paths, **and assumes not all `M` are drawn from a single
+vouching party**.
 
 Mechanically:
 
 - The client selects `M` distinct rendezvous bridges (`M = 1` is the ordinary
-  single-path case) and reserves at each (Section 4.5.2), obtaining `M`
-  reservation tokens.
-- The introduction (Section 4.5.3) conveys the `M` rendezvous points to the
-  service, which joins all of them.
-- There is **one** end-to-end handshake and **one** e2e key (Section 4.6); the
-  session-data protocol
+  single-path case), at least `⌈M/2⌉` client-discovered, and reserves at each
+  (Section 4.5.2), obtaining `M` reservation tokens carried in `IntroPayload`
+  (Section 4.5.3).
+- There is **one** end-to-end handshake and **one** e2e key (Section 4.6), whose
+  transcript binds the set of all `M` cookies; the session-data protocol
   ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) segments are
-  distributed across the `M` joined paths and reassembled at each end, exactly as
-  a multipath transport stripes one stream across several links. Each path is
-  independently constant-rate shaped (Section 4.9), so the split is not undone by
-  a bridge inferring the whole from its share.
-- Each path is a separate HOPR leg pair and is **paid independently** (Section
-  4.7): the client funds `M` client-side legs and `M` bridge fee streams; the
-  service funds `M` service-side legs. Multipath therefore trades cost and
-  complexity for correlation resistance and resilience (a failed bridge degrades
+  striped across the `M` joined paths and reassembled at each end.
+- Each path is provisioned at rate `R/M` of the target rate `R` and independently
+  constant-rate shaped (Section 4.9), so a single bridge sees a genuine fraction
+  (not the full rate). To stop the `M` legs being a co-onset fingerprint, path
+  establishment and per-path reservation timing MUST be **staggered/jittered**,
+  not simultaneous — otherwise `M` same-rate legs opened to one service within one
+  round trip are themselves a linkage signal to a multi-bridge adversary.
+- Each path is a separate HOPR leg pair, **paid independently** (Section 4.7):
+  the client funds `M` client-side legs and `M` bridge fee streams. Multipath
+  trades cost for correlation resistance and resilience (a failed bridge degrades
   rather than drops the connection).
 
 The multipath degree `M` is chosen by the client per its threat model and the
-number of trustworthy bridges available; ordering, reassembly, and per-path
-accounting are elaborated in future work (Section 11).
+number of *independently-trusted* bridges available; striping, ordering,
+reassembly, and per-path accounting are elaborated in future work (Section 11).
 
 ##### Multi-session — many independent sessions
 
@@ -1003,12 +1058,18 @@ MAY run **several independent end-to-end sessions** to the same service, each
 with its **own handshake, own e2e key, own pseudonym and cookie(s), and its own
 single- or multi-path routing**. This serves application multiplexing (for
 example separating control from bulk, or distinct requests) and adds
-unlinkability: because independent sessions share no e2e key and no pseudonym and
-traverse different bridges, they are unlinkable at the HOPR and bridge layers,
-and linkable **at the service only if the application chooses to correlate them**
-(for example by presenting the same application-layer identity). Each session and
-each of its paths is established as in Section 4.5 and paid independently
-(Section 4.7).
+unlinkability **at the bridge and e2e-crypto layers**: independent sessions share
+no e2e key and no pseudonym and traverse different bridges. This unlinkability is
+**not absolute**: all N sessions' leg-A forward paths and return SURBs are funded
+from the *same client's channel neighbourhood*, so an adversary observing several
+bridges can still link them via the shared funded-channel fingerprint (Section
+7) — and the stable guard set recommended in Section 7 *strengthens* that
+linkage. So the sessions are unlinkable at the bridge/crypto layer, linkable at
+the service only if the application correlates them, and partially linkable below
+via channel-graph analysis; the two goals (session diversity vs a stable, small
+guard set) are in tension and a client must choose its point on that spectrum.
+Each session and each of its paths is established as in Section 4.5 and paid
+independently (Section 4.7).
 
 The two knobs are complementary: **multipath** ensures no single bridge sees a
 whole session; **multi-session** ensures no single session — and no observer of
@@ -1068,7 +1129,13 @@ handover.
    simply earns nothing, aligning incentives without needing an undetectable
    "did it forward?" oracle. A small availability retainer MAY supplement this
    but MUST NOT dominate it, so the marginal incentive is to forward. All IB
-   payments settle PIX-style, hiding the paying service.
+   payments settle PIX-style, hiding the paying service. To stop an IB colluding
+   with Sybil "clients" from farming these micro-payments off a targeted service,
+   the per-`INTRODUCE2` payment MUST be gated behind the same `intro_payment`/PoW
+   admission as introductions (Section 4.8): a service with a free tier
+   (`intro_payment_min = 0`) that also pays IB micro-payments would fund such a
+   farm, so it MUST require the introduction PoW under load before the IB payment
+   accrues.
 
 By default the **client** funds the rendezvous stream and the **service** funds
 intro micro-payments. Two alternatives are permitted but not required
@@ -1134,8 +1201,9 @@ each leg.
 timing/volume correlation oracle across the two legs, each leg MUST be shaped to
 a constant or cover-padded rate independently of the other, so the byte and
 timing profile of leg A does not reveal that of leg B. The two legs MUST run
-independent SURB and padding schedules. Shaping parameters follow the traffic
-class negotiated in `capabilities`; the baseline is constant-rate padding in the
+independent SURB and padding schedules. Shaping parameters follow the
+`traffic_classes` the bridge offered in its `CAP_RESPONSE` (Section 4.4.1) and the
+session's negotiated class; the baseline is constant-rate padding in the
 spirit of Loopix cover traffic [04]. Without shaping, the "mixing on every leg"
 property is insufficient against an adversary positioned at the join, which is
 why shaping is normative here rather than advisory.
@@ -1160,8 +1228,8 @@ signals, surfaced through
   vector) bears the teardown: after `STARVE_GRACE` (default 30 s) the bridge MAY
   tear the join down, and the service MAY cheaply abandon a starved join.
 - The bridge MUST bound per-join state and total concurrent joins to its
-  advertised `capacity`, rejecting new reservations with `JOIN_UNAVAILABLE` when
-  saturated.
+  node-local capacity limit (not advertised; Section 4.4.1), rejecting new
+  reservations with `JOIN_UNAVAILABLE` when saturated.
 
 The normative host model is that the service runs on or behind a HOPR node with
 funded channels. A **paid-gateway** deployment — a non-node service renting a
@@ -1206,9 +1274,13 @@ service-curated, client-augmentable, reputation-gated selection there is no glob
 bridge pool to Sybil-flood, so the bond's remaining purpose evaporated. The
 result is a bridge layer with **no bridge-specific on-chain state at all** and no
 slashing contract — a large reduction in both on-chain footprint and external
-dependencies. Accountability is local de-selection; the incentive to behave is the
-PIX fee stream (Section 4.7); correlation is resisted by shaping and by multipath
-diffusion (below), not by capital at stake.
+dependencies. Accountability is local de-selection; the incentive to behave —
+*with respect to availability and honest splicing* — is the PIX fee stream
+(Section 4.7), which provides **no** disincentive against covert correlation (a
+correlating bridge maximises its fee by delivering diligently). Correlation is
+resisted by shaping and multipath, and deanonymisation is prevented by leg-A
+multi-hop — not by capital at stake. The trade is honest but real: there is no
+Sybil cost on bridge identity (Section 4.4.2).
 
 **Why shaping (and multipath) are the correlation defence.** A rendezvous bridge
 holds both matched flows of the connection it joins; it does not need to be global
@@ -1290,10 +1362,16 @@ rendezvous set (Section 4.4.3), a *hostile* service can steer a client onto a
 bridge it controls with certainty. This does **not** deanonymise the client: leg
 A is multi-hop, so a service-controlled rendezvous bridge sees only the adjacent
 relay, never the client, as long as one leg-A hop is honest. What it grants is a
-shaping-bounded timing vantage over the service's own clients; the client
-counters it by (a) augmenting the service's set with bridges of its own (Section
-4.4.3) and (b) multipath striping so no one bridge — service-chosen or not — sees
-the whole flow (Section 4.6.1).
+shaping-bounded timing vantage over the service's own clients. Critically,
+**multipath does not by itself counter a hostile service**: the service is one
+endpoint and reassembles the whole flow regardless of `M`, and if the client
+draws all `M` bridges from the service's set they are all service-controlled, so
+multipath then only *worsens* the vantage. The effective counter is that the
+client MUST include client-discovered bridges in a multipath set (`⌈M/2⌉`,
+Section 4.6.1) — only bridges the *hostile service does not control* dilute its
+view. A client that cannot contribute its own bridges gains nothing from
+multipath against a hostile service and SHOULD prefer single-path plus its own
+independent rendezvous choice.
 
 **Intersection and clustering across connections.** An adversary running many
 rendezvous bridges collects leg fingerprints across connections; a service's leg B
@@ -1329,7 +1407,14 @@ grant do not exist. The only place a set of bridges is visible is inside a
 specific service's descriptor, seen only by a party that already knows that
 service's address — a service-scoped disclosure of the same nature as the
 intro-point list, not a global map. A `CAP_RESPONSE` is obtained by addressing a
-specific node, so it reveals nothing to a passive crawler.
+specific node, so it reveals nothing to a passive crawler. Removing the directory
+cuts both ways, however: it also removes the only vantage from which a defender
+could notice **bridge concentration** — a cheap Sybil fleet (Section 4.4.2) can
+get vouched into many services' `rendezvous_set`s over time and perform
+cross-service intersection on the more-stable service-side (leg-B) fingerprints,
+and no party has a global view to detect it. The mitigations are the same
+non-reputational ones: services rotate their sets aggressively and cap per-bridge
+traffic share (Section 4.4.2), and shaping/multipath bound each bridge's sample.
 
 **Introduction integrity and amplification.** `INTRODUCE1` content is encrypted to
 the service via `intro_enc_key` (private half service-only), with the target IB
@@ -1383,11 +1468,21 @@ key and a non-reused 96-bit nonce (Appendix 1).
 - **Bridge as correlation vantage.** The RB knowingly links the two legs of the
   connection it joins; the scheme bounds — not eliminates — the vantage via
   shaping, multipath diffusion, and diverse fresh selection.
+- **No Sybil cost on bridge identity.** Removing the bond removed the only
+  per-identity cost of being a bridge; an adversary can run unbounded bridges for
+  free and play a long-con (behave well to earn trust, then correlate, invisibly).
+  The design accepts this: deanonymisation is prevented by leg-A multi-hop
+  regardless, correlation is bounded by shaping + multipath + rotation, and a
+  cold-start vetting prior over existing signals (channel stake, node age,
+  RFC-0010 reputation) raises the cost above zero without a bond (Section 4.4.2).
 - **Weak accountability for covert misbehaviour.** Off-chain reputation catches
   observable failures but not covert correlation (unobservable by any mechanism);
-  the defence there is shaping + multipath, not accountability.
+  worse, it rewards availability, which is orthogonal to — if anything
+  anti-correlated with — correlation risk. The defence there is shaping +
+  multipath + rotation, not accountability.
 - **Dependency on draft work.** Settlement depends on the still-draft PIX RFC and
-  its RFC-0004 SURB extension.
+  its RFC-0004 SURB extension, and on the PIX payer-identity cost assumption
+  (Section 4.5.2).
 
 ## 9. Alternatives
 

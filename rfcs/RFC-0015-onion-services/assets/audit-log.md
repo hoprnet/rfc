@@ -144,3 +144,38 @@ service. So a bridge MAY be a lightweight channel-less endpoint (§4.4.1).
 | M3 | Med | Bond return blocked while any live bonded join exists → no consequence-free post-cooldown window (§4.4.2, §4.4.4). |
 | M4 | Med | PIX allocation carries expiry + client reclaims unspent remainder; long session = sequence of short agreements (§4.7). |
 | L1/L2 | Low | Whitewashing claim corrected (no reputation state to escape); fixed non-amplifiable heartbeat noted as a good property (§4.4.1/§4.4.4). |
+
+# Round 4 — post-pivot re-audit (v0.7.1 → v0.8.0)
+
+Two reviewers: regression/consistency, and anonymity/economics of the bondless +
+service-provided-bridge + multipath/multi-session model.
+
+## Regression / consistency
+| ID | Sev | Finding | Resolution |
+| -- | --- | ------- | ---------- |
+| 5.1 | Blocking | Multipath claimed M rendezvous points + one handshake, but IntroPayload carried a single rendezvous_token / one ephemeral | `rendezvous_tokens: [RENDEZVOUS_ESTABLISHED; M]`; service issues M RENDEZVOUS1; §4.5.3/4.5.4 reworded. |
+| 5.2 | Should | Single-RC transcript_hash can't bind M cookies | §4.6 transcript now binds the ordered set RC_1..RC_M; confirm_tag authenticates the whole multipath session. |
+| 1.1 | Should | "advertised capacity" orphaned after BridgeLiveness removal | capacity is now node-local (JOIN_UNAVAILABLE when saturated), not advertised; §4.4.1/4.9 reworded. |
+| 2.1 | Should | §4.9 shaping referenced nonexistent `capabilities` field | now references CAP_RESPONSE `traffic_classes` + session class. |
+| 4.1 | Should | `NodeId` undefined | `rendezvous_set: [[u8; 32]; r]`. |
+| 7.1 | Should | Blinding domain string mismatch (0015 "hopr-blind" vs 0016 "hopr-dir-blind") | unified to "hopr-blind" in both. |
+| nits | — | CAP_QUERY body, mermaid CAP note, RFC-0016 "not yet allocated" | CAP_QUERY body noted (optional filter); RFC-0016 marked "drafted alongside"; capacity local. |
+
+## Anonymity / economics
+| ID | Sev | Finding | Resolution |
+| -- | --- | ------- | ---------- |
+| C1 | Critical | Multipath from the service's set only is *worse* than single-path vs a hostile service (all M service-controlled) | §4.6.1: client-contributed bridges MANDATORY (SHOULD ⌈M/2⌉) when multipath is a correlation defence; guarantee precondition restated; §7 hostile-service para updated. |
+| C2 | Critical | No Sybil resistance for bridge identity now (bond removed); reputation is orthogonal to correlation; long-con | §4.4.2 states it plainly; correlation bounded by leg-A + shaping + multipath + rotation, not reputation; cold-start vetting prior over existing signals (channel stake, node age, RFC-0010 rep) raises cost without a bond; per-bridge traffic-share cap. §5/§8 truth-in-labelling. |
+| H1 | High | Multipath math overstated (endpoint sees all; co-onset fingerprint; R vs R/M) | §4.6.1: multipath defends bridge-side only, not endpoint; staggered/jittered path setup REQUIRED; each path provisioned at R/M. |
+| H2 | High | Multi-session unlinkability overclaimed (shared funded-channel neighbourhood) | §4.6.1 qualified: unlinkable at bridge/crypto layer only; channel-graph linkage + guard-set tension noted. |
+| H3/H4 | High | Reputation/fee reward availability, orthogonal to correlation | §4.4.2/§5/§8 reworded to say so plainly. |
+| M1 | Med | CAP_QUERY asymmetric-crypto DoS | CAP_RESPONSE pre-signed/cacheable (no per-query signing) + rate-limit. |
+| M2 | Med | Cross-service Sybil correlation; no-directory hides concentration from defenders | §7 note; aggressive rotation + per-bridge share cap. |
+| M3 | Med | Reservation per-payer cap only as strong as PIX payer-identity scarcity | §4.5.2: reservation_fee sized against aggregate attacker cost; dependency noted. |
+| L1/L2 | Low | "nothing on chain" oversells (PIX remains); INTRODUCE2 micro-payment farm | §6 wording; §4.7 gates IB micro-payment behind intro_payment/PoW. |
+
+Load-bearing takeaway (both reviewers): the no-bond pivot is sound *reasoning* but
+must be *honestly labelled* — it removed the only Sybil cost, so C1 (mandatory
+client bridges) and C2 (stated no-Sybil-cost + cold-start prior) are the real
+fixes; multipath is a bridge-side-only defence conditional on client-contributed
+diversity.
