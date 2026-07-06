@@ -627,7 +627,8 @@ maintains and none of which a fresh Sybil fleet can cheaply manufacture. This is
 a *selection heuristic over existing signals*, not new on-chain state. A service
 SHOULD also cap the fraction of its traffic any single bridge carries per period,
 independent of that bridge's score, so that even a fully-trusted bridge collects
-a bounded sample.
+a bounded sample. The scoring, the cold-start ranking, and this concentration cap
+are specified concretely in Section 4.4.5.
 
 #### 4.4.3 Selection
 
