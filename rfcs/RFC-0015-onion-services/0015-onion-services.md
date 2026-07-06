@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.8.5 (Raw)
+- **Version:** v0.8.6 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -1622,6 +1622,29 @@ fingerprint — so clients maintain a stable guard set (Section 4.10), which is 
 tension with per-connection RB freshness and multi-session unlinkability and must
 be balanced per the endpoint's threat model.
 
+**Interaction with mixing and cover traffic.** Onion-service legs are carried as
+ordinary fixed-size Sphinx packets
+([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md))
+through the same mixers
+([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and paid by the same Proof
+of Relay as all other traffic, and their mandatory constant-rate shaping (Section
+4.9) already emits cover padding when idle. A relay therefore **cannot
+distinguish** an onion leg's packets — real or padding — from any other HOPR
+traffic, so onion legs introduce no new relay-level distinguisher and their
+padding **doubles as legitimate cover traffic** that enlarges the mixer's
+anonymity set for everyone. The relationship is symbiotic: onion legs benefit from
+the network's baseline cover
+([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md))
+and contribute to it, which directly mitigates the mixer's stated low-volume
+weakness. The shaping cost noted in Drawbacks is thus partly a public good rather
+than pure overhead. The one residual is the general low-volume limit of
+[RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md): if the *whole* network is
+near-idle, even shaped onion traffic sits in a small anonymity set — this is not
+onion-specific and is mitigated by network cover traffic and by multipath
+spreading a connection across relays. Relays MUST NOT special-case onion traffic
+(they cannot, given fixed-size packets), and onion legs SHOULD be treated as
+first-class mixnet traffic for mixing purposes.
+
 **Cryptographic hygiene.** Ed25519 keys (`pk_S`, `delegate_pubkey`, blinded keys)
 MUST use canonical encodings and verification that rejects small-order points
 (or ristretto255 to remove cofactor concerns). X25519 MUST follow RFC 7748 [11]:
@@ -1702,10 +1725,10 @@ key and a non-reused 96-bit nonce (Appendix 1).
   (the mechanism is specified in Section 4.6.1; the scheduler policy is open).
 - Concrete `GUARD_COUNT`/`GUARD_LIFETIME` values and the guard-rotation trigger
   policy (the guard mechanism is specified in Section 4.10; the constants are open).
-- Whether onion-service legs may double as cover traffic
-  ([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md),
-  [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)),
-  and whether that helps or harms anonymity.
+- Quantifying the anonymity-set benefit of treating onion-leg padding as network
+  cover traffic (the qualitative answer — net positive, no new distinguisher — is
+  in Section 7; the quantitative gain and any tuning of shaped rates against
+  network cover levels are open).
 - Concentration mitigation: rendezvous-set rotation cadence versus the client's
   reliance on the service-offered set.
 
