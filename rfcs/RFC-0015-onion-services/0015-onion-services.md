@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.8.2 (Raw)
+- **Version:** v0.8.3 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -1328,6 +1328,45 @@ HOPR node to inject and receive its traffic, the gateway paid PIX-style — is a
 OPTIONAL pattern (Section 11); it broadens who can host services at the cost of a
 gateway trust and metadata surface.
 
+### 4.10 Guard relays for endpoint legs
+
+Every leg in this protocol is a HOPR path the endpoint itself constructs: a
+client builds `client → … → RB`, a service builds `service → … → IB` and
+`service → … → RB`. If an endpoint chose the **first hop** of each leg freshly
+and independently every time, then over many connections it would eventually,
+with near-certainty, route a leg through an adversary-controlled first hop — the
+classic predecessor/statistical attack — and each such event is a chance to begin
+tracing back toward the endpoint. Guard relays bound this: an endpoint pins the
+first hop of its legs to a small, stable **guard set**, so it is either
+consistently safe (its guards are honest) or consistently exposed (a bad initial
+draw), rather than gradually certain to be caught.
+
+- **Both endpoints use guards.** A client's `client → RB` legs and a service's
+  `service → IB` / `service → RB` legs MUST take their first hop from the
+  endpoint's own guard set. The `M` legs of a multipath session (Section 4.6.1)
+  still enter through the guard set — multipath diversifies the *far* (bridge)
+  end while guards stabilise the *near* (entry) end; the two are complementary.
+- **Selection.** Guards are chosen from high-reputation, high-stake, aged, stable
+  relays using the same scarce, hard-to-fake signals as bridge cold-start
+  (Section 4.4.5): channel stake, node age, and
+  [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+  relay reputation. The guard set is small (`GUARD_COUNT`, default 2–3).
+- **Rotation is slow and staggered.** Guards MUST NOT be rotated per connection.
+  They rotate only on a long period (`GUARD_LIFETIME`, default weeks), on guard
+  failure, or on demotion by reputation, and rotate one at a time so the entry
+  fingerprint does not change wholesale at once.
+
+**The tension is explicit and intentional.** A stable guard set is itself a
+fingerprint (it is the concrete form of the "funded-channel neighbourhood"
+linkage of Section 7), and it works *against* the multi-session unlinkability of
+Section 4.6.1 — sessions sharing a guard set are linkable at the entry. This is
+the same trade Tor makes: bounding the *worst-case* probability of endpoint
+compromise matters more, for a location-hiding endpoint, than hiding a guard set
+that was never secret. The default is therefore to **use guards**; a client whose
+priority is unlinkability of distinct activities rather than location-hiding MAY
+widen or diversify its guard set per session-group, accepting the raised long-run
+compromise probability. The endpoint chooses its point on that spectrum.
+
 ## 5. Design Considerations
 
 **Why two phases rather than a single bridge.** A single announced bridge that
@@ -1469,9 +1508,8 @@ rendezvous bridges collects leg fingerprints across connections; a service's leg
 is the more stable side. Constant-rate shaping denies clustering by making legs
 uniform, and multipath dilutes each bridge's sample. The tension is explicit:
 per-connection RB freshness spreads samples across more bridges while reducing
-per-bridge linkage; services SHOULD additionally constrain their leg entry relays
-to a stable guard set to bound long-run deanonymisation (a normative guard
-mechanism is deferred, Section 11).
+per-bridge linkage; both endpoints additionally constrain their leg entry relays
+to a stable guard set to bound long-run deanonymisation (Section 4.10).
 
 **Standing introduction session fingerprint.** A naive standing session is a
 durable liveness signal to a chosen, paid IB. Section 4.5.1 mitigates this with a
@@ -1535,8 +1573,9 @@ free-riding: a bridge earns only for delivered frames. A bridge-side intro-
 payment verifier can correlate a payment with a target service, so the service is
 the recommended verifier (Section 4.8.1). Channel-graph funding constrains
 anonymity sets — a client's funded-channel neighbourhood can grow into a
-fingerprint — so clients SHOULD maintain a stable guard set of funded channels,
-which is in tension with per-connection RB freshness and must be balanced.
+fingerprint — so clients maintain a stable guard set (Section 4.10), which is in
+tension with per-connection RB freshness and multi-session unlinkability and must
+be balanced per the endpoint's threat model.
 
 **Cryptographic hygiene.** Ed25519 keys (`pk_S`, `delegate_pubkey`, blinded keys)
 MUST use canonical encodings and verification that rejects small-order points
@@ -1614,8 +1653,8 @@ key and a non-reused 96-bit nonce (Appendix 1).
   are deployment/governance choices).
 - Congestion-fairness of the striping weight across paths of unequal quality
   (the mechanism is specified in Section 4.6.1; the scheduler policy is open).
-- Guard-set selection and rotation policy for service and client legs, and its
-  interaction with per-connection RB freshness.
+- Concrete `GUARD_COUNT`/`GUARD_LIFETIME` values and the guard-rotation trigger
+  policy (the guard mechanism is specified in Section 4.10; the constants are open).
 - Whether onion-service legs may double as cover traffic
   ([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md),
   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)),
@@ -1635,7 +1674,9 @@ key and a non-reused 96-bit nonce (Appendix 1).
   that removes the per-relationship cold-start of Section 4.4.5 (the local scoring
   and scarce-signal prior are specified; a network-wide signal that shortens the
   long-con window is future work).
-- **Guard mechanism.** A normative guard-relay scheme for both endpoints' legs.
+- **Guard-rotation hardening.** Formal analysis of guard-rotation timing and
+  the unlinkability/compromise trade of Section 4.10 (the mechanism is specified;
+  its parameterisation and formal guarantees are open).
 - **Paid-gateway hosting.** A full specification of the non-node service model.
 - **Metered and subsidised economics.** Per-byte bridge settlement and the
   service-subsidised / client-pays-all variants.
