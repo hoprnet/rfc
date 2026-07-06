@@ -18,8 +18,8 @@
   [RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md),
   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md),
   [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md),
-  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md),
-  [RFC-0014](../RFC-0014-path-finding/0014-path-finding.md)
+  [RFC-0014](../RFC-0014-path-finding/0014-path-finding.md),
+  [RFC-0016](../RFC-0016-distributed-directory/0016-distributed-directory.md)
 
 ## 1. Abstract
 
@@ -48,7 +48,7 @@ delegation.
 Incentivisation reuses HOPR Proof of Relay
 ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)) for the two
 transport legs and the PIX privacy-pool settlement construction
-([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md),
+(RFC-0012,
 a draft dependency) for the bridge role, so every participant is paid **only
 against verifiable service** and without any party learning who paid it. This
 document normatively defines service identity and naming, the descriptor format
@@ -990,7 +990,7 @@ Immediately after leg A is established (on receipt of `RENDEZVOUS2`), the client
 and the rendezvous bridge run a PIX agreement on leg A so that the bridge's
 service stream (Section 4.7) is redeemable. The bridge is the PIX Exit (payee)
 and the client is the PIX Entry (payer); this is the full PIX construction
-([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)),
+(RFC-0012),
 carried under the OSCP tag rather than the PIX Session-Start discriminants:
 
 1. The bridge sends `PIX_COMMIT_REQUEST` carrying its `ExitCommitment = b·BP`,
@@ -1548,7 +1548,7 @@ Dependencies that are **not yet part of the finalised repository** and gate an
 interoperable implementation:
 
 - The **PIX construction**
-  ([RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md),
+  (RFC-0012,
   currently a draft on an unmerged branch): its full agreement (commitment
   handshake, coefficient commitments, share generation and verification,
   stealth-address recovery), its privacy-pool operations
@@ -1883,7 +1883,7 @@ The current HOPR Onion Services instantiation uses:
   [09]; DH outputs checked against the all-zero value.
 - Hash `H`: **BLAKE3-256**, consistent with
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) and
-  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md).
+  RFC-0012.
 - KDF / HKDF: **BLAKE3** derive-key mode, `KDF(c, k, s) = blake3_kdf(c, s || k)`;
   directional subkeys via BLAKE3 keyed expansion with distinct context labels.
 - Symmetric encryption for e2e frames and the intro blob:
@@ -1893,7 +1893,7 @@ The current HOPR Onion Services instantiation uses:
 - Address encoding: **base32** (RFC 4648 [12], lowercase, unpadded).
 - On-chain settlement (tickets, PIX, announcements): **secp256k1** [05],
   as in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) and
-  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md).
+  RFC-0012.
 
 ## 14. Appendix 2: HOPR Session Binding
 
