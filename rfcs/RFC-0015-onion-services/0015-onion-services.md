@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.8.4 (Raw)
+- **Version:** v0.8.5 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -372,18 +372,20 @@ derived from `pk_S` and the current time period, following the Tor v3 key
 blinding approach [06]:
 
 ```
-period          = floor(now / PERIOD_LENGTH)             // PERIOD_LENGTH default 86400 s
-blinding_scalar = H("hopr-blind" || pk_S || period) reduced mod L, then clamped
-pk_blind        = scalar_mult_add(pk_S, blinding_scalar) // Ed25519 blinding, canonicalised sign bit
-slot            = H(pk_blind || period)                  // directory address
+period   = floor(now / PERIOD_LENGTH)   // PERIOD_LENGTH default 86400 s
+h        = clamp_and_reduce( H("hopr-blind" || pk_S || period) )   // per-period scalar
+pk_blind = h · pk_S                      // Ed25519 POINT scalar-multiplication (not addition)
+slot     = H(pk_blind || period)         // directory address
 ```
 
 The descriptor stored at `slot` is signed by the correspondingly blinded private
-key. The exact Ed25519 blinding construction (scalar reduction modulo the group
-order `L`, clamping, cofactor and sign-bit handling) is normatively pinned in
-the companion directory RFC; implementations MUST follow it exactly, as an
-unreduced or unclamped scalar yields either linkable slots or unverifiable
-signatures.
+key `a_blind = (h · a_S) mod L`, and verifies under `pk_blind` with standard
+Ed25519. The **exact** construction — scalar clamping and reduction modulo the
+group order `L`, point (not scalar) multiplication, and canonical `pk_blind`
+encoding — is normatively pinned in
+[RFC-0016](../RFC-0016-distributed-directory/0016-distributed-directory.md) §4.3;
+implementations MUST follow it exactly (a scalar-addition or unreduced/unclamped
+scalar yields either linkable slots or unverifiable signatures).
 
 Enumeration guarantee, stated precisely: because `blinding_scalar` derives from
 `pk_S`, only a party that already knows the `.hopr` address can compute `slot`.
@@ -1689,8 +1691,10 @@ key and a non-reused 96-bit nonce (Appendix 1).
 
 - Concrete values for `intro_payment_min`, fee rates, `INTRO_SLOTS`, the
   rendezvous-set size, and the default multipath degree; and their governance.
-- The exact Ed25519 key-blinding construction and its proof obligations (to be
-  pinned with the companion directory RFC).
+- A formal unlinkability proof of the Ed25519 key-blinding construction (the
+  construction is pinned in
+  [RFC-0016](../RFC-0016-distributed-directory/0016-distributed-directory.md) §4.3;
+  only the formal proof is open).
 - Concrete `max_bridge_share`, EMA windows, and cold-start prior weights for the
   reputation scoring of Section 4.4.5 (the mechanism is specified; the constants
   are deployment/governance choices).

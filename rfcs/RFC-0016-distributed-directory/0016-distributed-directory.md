@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.1.1 (Raw)
+- **Version:** v0.1.2 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md),
@@ -137,20 +137,38 @@ publication jitter (Section 4.5), not on this property.
 
 ### 4.3 Slot derivation and responsible-set assignment
 
-**Slot (blinded profile).** For an Ed25519 identity `pk` and current `period`:
+**Slot (blinded profile).** The blinding is the Tor v3 rendezvous construction
+[03] over Ed25519 [04] [05]. Let `B` be the Ed25519 base point, `L` the
+prime-order subgroup order, and let an identity be the keypair `(a, A)` with
+`A = a·B` (`A` is `pk`). For the current `period`:
 
 ```
-blinding_scalar = H("hopr-blind" || pk || period)  reduced mod L, then clamped
-pk_blind        = scalar_mult_add(pk, blinding_scalar)   // canonical sign bit
-slot            = H(pk_blind || period)
-auth_pubkey     = pk_blind                                // records signed by the blinded key
+// 1. Derive and clamp the per-period blinding scalar h:
+t = H("hopr-blind" || pk || period)          // 32-byte hash
+h = t with the standard Ed25519 clamping applied and reduced mod L:
+      h[0]  &= 248        // clear low 3 bits (cofactor: h is a multiple of 8)
+      h[31] &= 63
+      h[31] |= 64         // set bit 254
+      h = h mod L
+// 2. Blinded PUBLIC key (anyone knowing pk can compute it):
+pk_blind = h · A          // Ed25519 POINT scalar-multiplication (NOT scalar addition),
+                          //   re-encoded canonically (canonical sign bit)
+slot        = H(pk_blind || period)
+auth_pubkey = pk_blind    // records are signed by, and verified under, pk_blind
+// 3. Blinded PRIVATE key (only the identity holder, for signing):
+a_blind      = (h · a) mod L                 // so that a_blind · B = h·A = pk_blind
+prefix_blind = H("hopr-blind-prefix" || prefix)   // fresh RH half of the expanded key
 ```
 
-Only a party that knows `pk` can compute `slot`; the directory verifies records
-under `pk_blind` without learning `pk`. The construction MUST reduce
-`blinding_scalar` modulo the group order `L` and clamp it, and MUST canonicalise
-the sign bit, so that blinded signatures verify and slots are not linkable across
-periods by anyone lacking `pk`.
+Signatures made with the blinded expanded key `(a_blind, prefix_blind)` verify
+under `pk_blind` with **standard, unmodified** Ed25519 verification [05]. Only a
+party that knows `pk` can compute `h` (hence `slot`), so the directory verifies
+records under `pk_blind` without learning `pk`. Implementations MUST use point
+scalar-multiplication for `pk_blind` (a common error is scalar *addition*, which
+does not preserve the discrete-log relation and yields unverifiable signatures),
+MUST clamp and reduce `h` as shown, and MUST canonicalise the `pk_blind`
+encoding; otherwise blinded signatures fail to verify or slots become linkable
+across periods.
 
 **Responsible set — MUST be ungrindable toward a target slot.** Because `slot` is
 a public function of a known key, naive "closest node IDs" assignment lets an
@@ -312,8 +330,8 @@ already provide one.
 
 ## 10. Unresolved Questions
 
-- The exact Ed25519 blinding construction and its security proof (shared with
-  [RFC-0015](../RFC-0015-onion-services/0015-onion-services.md) §4.3.2).
+- A formal security proof of the blinding construction (the construction itself
+  is now pinned in Section 4.3; only its formal unlinkability proof is open).
 - Source of the per-period random beacon on the target chain/network.
 - Concrete `(k, q, f)` defaults and the admission-hook choice (PoW vs payment)
   per deployment.
@@ -339,6 +357,8 @@ already provide one.
 [03] Dingledine, R., Mathewson, N., & Syverson, P. (2004). [Tor: The Second-Generation Onion Router](https://svn.torproject.org/svn/projects/design-paper/tor-design.pdf). _13th USENIX Security Symposium_. See also the Tor Rendezvous Specification v3 (hidden-service directory).
 
 [04] Bernstein, D. J., Duif, N., Lange, T., Schwabe, P., & Yang, B.-Y. (2012). [High-speed high-security signatures](https://ed25519.cr.yp.to/ed25519-20110926.pdf). _Journal of Cryptographic Engineering, 2_(2), 77-89.
+
+[05] Josefsson, S., & Liusvaara, I. (2017). [Edwards-Curve Digital Signature Algorithm (EdDSA)](https://www.rfc-editor.org/rfc/rfc8032.html). _IETF RFC 8032_.
 
 ## 13. Appendix 1: Cryptographic Instantiation
 
