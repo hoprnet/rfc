@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.8.0 (Raw)
+- **Version:** v0.8.1 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -685,6 +685,59 @@ Mid-session, an established join is unaffected by its bridge being de-selected �
 revocation only removes it from *future* selection; existing joins run until torn
 down normally (Section 4.9), and the bridge is paid only for what it actually
 delivers (Section 4.7).
+
+#### 4.4.5 Reputation scoring and cold-start vetting
+
+Because there is no bond and no global reputation, each service and client
+maintains its **own local per-bridge score** and bootstraps trust from signals it
+can already see. This section specifies that scoring and the cold-start procedure;
+it is the concrete answer to how a party assembles a trustworthy bridge set from
+zero (Section 4.4.2).
+
+**Local score.** For each bridge it has interacted with, a party maintains a score
+combining the same observable quantities
+[RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+already uses for relay edges — join-completion rate, round-trip latency, and
+availability (does it answer `CAP_QUERY`/`RENDEZVOUS_ESTABLISH`) — as an
+exponential moving average over recent joins so that recent behaviour dominates
+and a bridge that degrades is down-weighted quickly. This score measures
+**availability and honest splicing only**; it is explicitly *not* evidence of
+non-correlation (Section 4.4.2), and MUST NOT be treated as such.
+
+**Cold-start (no prior interaction).** A service (or client) with no history
+selects initial candidates by ranking on **scarce, hard-to-fake signals it reads
+from the channel graph it already maintains**, none of which a fresh Sybil fleet
+can cheaply manufacture:
+
+1. **Discover** rendezvous-capable nodes via `CAP_QUERY` to promising channel-graph
+   peers, keeping those whose signed `CAP_RESPONSE` offers the needed role, traffic
+   class, and an acceptable fee.
+2. **Rank** the responders by a prior over (a) **channel stake / collateral**
+   already locked on-chain by the node, (b) **node age** since first announcement,
+   and (c) **relay reputation** from the party's own
+   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+   probing. A brand-new Sybil ranks low on all three.
+3. **Trial** the top candidates on real joins under a neutral score, and update the
+   local score from the outcome.
+4. **Promote** consistently-good bridges into the vouched `rendezvous_set` (a
+   service) or the trusted client set; **demote and drop** underperformers.
+
+**Concentration cap.** Independent of score, a service SHOULD cap the fraction of
+its connections routed through any single bridge per period
+(`max_bridge_share`), and rotate its `rendezvous_set` across periods (Section
+4.3.1), so that even a maximally-trusted bridge — which could still be a
+long-con correlator — collects only a bounded, rotating sample of the service's
+traffic. This is the primary limiter on a single bridge's correlation vantage
+that does not depend on detecting misbehaviour.
+
+**Accepted limits.** The score is **local and non-transferable**: every party
+re-runs cold-start independently, and a bridge's good standing with one service
+confers none with another. This recurring neutral-prior phase is the long-con
+surface (Section 4.4.2); the scarce-signal prior raises its cost above zero but
+does not eliminate it, which is why the correlation defences (leg-A multi-hop,
+shaping, multipath, this concentration cap) do not rely on reputation. A
+network-wide or transferable reputation signal that would remove the per-relation
+cold-start is deferred (Section 11).
 
 ### 4.5 Introduction and rendezvous protocol
 
@@ -1518,8 +1571,9 @@ key and a non-reused 96-bit nonce (Appendix 1).
   rendezvous-set size, and the default multipath degree; and their governance.
 - The exact Ed25519 key-blinding construction and its proof obligations (to be
   pinned with the companion directory RFC).
-- The capability-negotiation (`CAP_QUERY`/`CAP_RESPONSE`) exchange details and how
-  a service seeds an initial bridge set with no prior reputation.
+- Concrete `max_bridge_share`, EMA windows, and cold-start prior weights for the
+  reputation scoring of Section 4.4.5 (the mechanism is specified; the constants
+  are deployment/governance choices).
 - Reassembly, ordering, and fairness for multipath striping (Section 4.6.1), and
   the per-path SURB/fee accounting.
 - Guard-set selection and rotation policy for service and client legs, and its
@@ -1538,9 +1592,10 @@ key and a non-reused 96-bit nonce (Appendix 1).
   rotation, the blinding construction, and the fetch anti-abuse hook.
 - **Multipath rendezvous specification.** A full treatment of striping, ordering,
   reassembly, and per-path accounting for Section 4.6.1.
-- **Bridge reputation model.** An optional shared/transferable reputation signal so
-  a new service can seed a bridge set without cold-start, beyond purely local
-  scoring.
+- **Transferable reputation.** An optional shared/attestable reputation signal
+  that removes the per-relationship cold-start of Section 4.4.5 (the local scoring
+  and scarce-signal prior are specified; a network-wide signal that shortens the
+  long-con window is future work).
 - **Guard mechanism.** A normative guard-relay scheme for both endpoints' legs.
 - **Paid-gateway hosting.** A full specification of the non-node service model.
 - **Metered and subsidised economics.** Per-byte bridge settlement and the
