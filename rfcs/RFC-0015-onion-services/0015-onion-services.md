@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.8.3 (Raw)
+- **Version:** v0.8.4 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -941,6 +941,23 @@ mismatch, a saturated local capacity, or a failed reservation check yields a
 uniform `JOIN_UNAVAILABLE` (client-visible error granularity is deliberately
 coarse so an RB's live-`RC` set and load are not probeable).
 
+**Partial establishment when the service cannot use an offered bridge.** The
+service is not obliged to join every bridge the client named: it may be unable to
+reach a bridge, the bridge may refuse the service's leg, the service may distrust
+that bridge from its own reputation (Section 4.4.5), or the class/capacity may not
+fit. For each such path the service simply does not send `RENDEZVOUS1`; the client
+detects the failure by the **absence of a `RENDEZVOUS2` for that cookie within
+`JOIN_TIMEOUT`** (default a few seconds) — no separate failure channel is
+required, and the service reveals no reason (which would leak its topology or
+reputation). The connection then proceeds over the surviving paths **only if the
+diversity invariant of Section 4.6.1 still holds**; the decision to accept the
+surviving set is the **client's**, never the service's (see below). The client
+forfeits the small non-refundable `reservation_fee` at each unused bridge, so it
+SHOULD prefer client-contributed bridges with high measured reachability (from its
+own [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+observations) to minimise wasted reservations; an optional pre-introduction
+reachability check is discussed in Section 4.6.1.
+
 #### 4.5.5 Rendezvous payment agreement (leg-A PIX commitment)
 
 Immediately after leg A is established (on receipt of `RENDEZVOUS2`), the client
@@ -1079,6 +1096,26 @@ bridges the client discovered itself** (Section 4.4.1), not from the descriptor
 set. Stated precisely: multipath protects against a bridge adversary controlling
 fewer than all `M` paths, **and assumes not all `M` are drawn from a single
 vouching party**.
+
+**Enforcing diversity across partial establishment (the negotiation outcome).**
+A service that cannot or will not join some of the client's chosen bridges
+(Section 4.5.4) leaves the client with a *surviving* set of `M′ ≤ M` established
+paths. The client MUST evaluate the invariant on the survivors, not on what it
+requested: it proceeds only if at least `⌈M′/2⌉` of the established paths are
+**client-contributed**, and otherwise MUST abort or renegotiate. This makes the
+diversity guarantee robust against a **hostile service that selectively fails the
+client-contributed paths** to force a service-only set: such selective failure
+breaks the invariant, the client detects it (by which `RENDEZVOUS2` arrived), and
+refuses to proceed — so the hostile service gains no usable connection rather than
+a fully-controlled one. The client's recourse on a broken invariant is to
+renegotiate with alternative client-contributed bridges (fresh reservations), to
+lower `M`, or to abandon the service; the *service* never gets to unilaterally
+substitute or veto the client's contribution down to a set it controls. An
+OPTIONAL pre-introduction step lets the client ask the service (over the
+introduction path) which of its candidate bridges the service can reach *before*
+committing reservations, trading one round trip and earlier disclosure of the
+candidate set for avoided reservation-fee waste; it does not change the invariant
+rule, which is always enforced on the finally-established set.
 
 Mechanically:
 
@@ -1427,8 +1464,8 @@ composable options, not niceties.
 
 **Parameter defaults.** `PERIOD_LENGTH` 86400 s, at least 3 live intro points, and
 `MAX_DELEGATION` 7 days mirror proven Tor v3 choices; fee units, `INTRO_SLOTS`,
-the multipath degree, and window timers are parameters left to the client's
-threat model and to governance.
+the multipath degree, `JOIN_TIMEOUT`, `GUARD_COUNT`/`GUARD_LIFETIME`, and window
+timers are parameters left to the client's threat model and to governance.
 
 ## 6. Compatibility
 
@@ -1502,7 +1539,12 @@ client MUST include client-discovered bridges in a multipath set (`⌈M/2⌉`,
 Section 4.6.1) — only bridges the *hostile service does not control* dilute its
 view. A client that cannot contribute its own bridges gains nothing from
 multipath against a hostile service and SHOULD prefer single-path plus its own
-independent rendezvous choice.
+independent rendezvous choice. A hostile service's remaining move — accepting only
+its own bridges and **selectively failing the client-contributed paths** (Section
+4.5.4) — is caught by the client enforcing the diversity invariant on the
+*surviving* paths (Section 4.6.1): if too few client paths establish, the client
+aborts, so selective failure yields the service no connection rather than a
+controlled one.
 
 **Intersection and clustering across connections.** An adversary running many
 rendezvous bridges collects leg fingerprints across connections; a service's leg B
