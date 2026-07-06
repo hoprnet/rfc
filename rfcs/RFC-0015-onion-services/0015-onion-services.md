@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.8.1 (Raw)
+- **Version:** v0.8.2 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -1101,8 +1101,8 @@ Mechanically:
   rather than drops the connection).
 
 The multipath degree `M` is chosen by the client per its threat model and the
-number of *independently-trusted* bridges available; striping, ordering,
-reassembly, and per-path accounting are elaborated in future work (Section 11).
+number of *independently-trusted* bridges available; striping, reassembly, and
+path-failure handling are specified below.
 
 ##### Multi-session — many independent sessions
 
@@ -1128,6 +1128,44 @@ The two knobs are complementary: **multipath** ensures no single bridge sees a
 whole session; **multi-session** ensures no single session — and no observer of
 one — sees the whole client-service relationship. A cautious client can stack
 them: N independent sessions, each striped across M bridges.
+
+##### Striping, reassembly and path failure
+
+Multipath reuses the session-data protocol
+([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) rather than
+adding a new sequence space. That protocol already numbers every segment globally
+within a session (`frame_id`, `seq_num`), and reliable mode already tolerates
+out-of-order arrival and drives retransmission. Multipath therefore works as
+follows:
+
+- **Striping.** The sender assigns each outgoing segment to one of the `M` paths,
+  weighting the assignment by each path's provisioned rate (`R/M`, equal by
+  default). Because the constant-rate shaping (Section 4.9) drives each path
+  regardless of real traffic, the sender fills real segments into the shaped slots
+  of whichever path has capacity, emitting cover padding on any path whose real
+  queue is empty; a bridge cannot tell a real segment from padding.
+- **Reassembly is path-agnostic.** The receiver reassembles frames from
+  `(frame_id, seq_num)` exactly as in
+  [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), regardless of
+  which path delivered each segment. No path identifier is needed in the frame; the
+  M paths are simply M transports feeding one reorder buffer. The buffer MUST be
+  sized to absorb the **maximum inter-path latency skew** so a segment arriving
+  late on a slow path is not treated as lost.
+- **Acknowledgements** may return on any path; frame ACKs and retransmission
+  requests are session-global and not bound to the path that carried the original.
+- **Path failure degrades, it does not drop.** If a path stalls (SURB starvation,
+  Section 4.9, or an unresponsive bridge), the sender stops assigning new segments
+  to it and redistributes across the survivors;
+  [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) reliable-mode
+  retransmission recovers any segments lost on the failed path. The session
+  survives as long as at least one path remains; multipath is thus also a
+  resilience mechanism. A client MAY re-establish a replacement path (a fresh
+  reservation + `RENDEZVOUS1`, extending the existing e2e session's cookie set) to
+  restore degree `M`.
+- **Per-path accounting.** Each path carries its own SURB pool and its own PIX
+  agreement (Section 4.5.5); a bridge is paid via its own leg's return
+  acknowledgements for the segments (real or padding) it delivered, so accounting
+  is naturally per-path and needs no cross-path settlement.
 
 ### 4.7 Incentivisation
 
@@ -1574,8 +1612,8 @@ key and a non-reused 96-bit nonce (Appendix 1).
 - Concrete `max_bridge_share`, EMA windows, and cold-start prior weights for the
   reputation scoring of Section 4.4.5 (the mechanism is specified; the constants
   are deployment/governance choices).
-- Reassembly, ordering, and fairness for multipath striping (Section 4.6.1), and
-  the per-path SURB/fee accounting.
+- Congestion-fairness of the striping weight across paths of unequal quality
+  (the mechanism is specified in Section 4.6.1; the scheduler policy is open).
 - Guard-set selection and rotation policy for service and client legs, and its
   interaction with per-connection RB freshness.
 - Whether onion-service legs may double as cover traffic
@@ -1590,8 +1628,9 @@ key and a non-reused 96-bit nonce (Appendix 1).
 - **Companion directory RFC (proposed RFC-0016).** Full DHT mechanics for blinded
   descriptors: replication, retention, storage incentives, responsible-set
   rotation, the blinding construction, and the fetch anti-abuse hook.
-- **Multipath rendezvous specification.** A full treatment of striping, ordering,
-  reassembly, and per-path accounting for Section 4.6.1.
+- **Multipath scheduler.** An optimised striping scheduler over paths of unequal
+  latency/quality (the correctness mechanics are in Section 4.6.1; this is the
+  performance policy).
 - **Transferable reputation.** An optional shared/attestable reputation signal
   that removes the per-relationship cold-start of Section 4.4.5 (the local scoring
   and scarce-signal prior are specified; a network-wide signal that shortens the
