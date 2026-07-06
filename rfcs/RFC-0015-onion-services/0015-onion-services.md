@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.8.6 (Raw)
+- **Version:** v0.9.0 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -187,7 +187,7 @@ sequenceDiagram
     DIR-->>C: signed descriptor
 
     Note over C,RB: Stage 3 — rendezvous + introduction
-    C->>RB: RENDEZVOUS_ESTABLISH (cookie RC, reservation deposit)
+    C->>RB: RENDEZVOUS_ESTABLISH (cookie RC, non-refundable reservation_fee)
     RB-->>C: RENDEZVOUS_ESTABLISHED (signed reservation token)
     C->>IB: INTRODUCE1 (enc-to-S: RB addr, RC, token, E_c)
     IB->>S: INTRODUCE2 (forwarded)
@@ -207,7 +207,11 @@ intermediate hops each way, per
 subject to mixing
 ([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and paid via Proof of
 Relay ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)). The
-diagram shows the logical overlay, not the packet path.
+diagram shows the logical overlay, not the packet path. It depicts the
+**single-path happy case**; it elides bridge discovery (`CAP_QUERY`/`CAP_RESPONSE`,
+Section 4.4.1), the leg-A PIX payment exchange (Section 4.5.5), multipath (`M`
+parallel legs, Section 4.6.1), and the partial-establishment / negotiation-failure
+path (Sections 4.5.4, 4.6.1).
 
 The onion-service control messages defined in this RFC are carried in the HOPR
 application protocol
@@ -278,7 +282,7 @@ A host holding a valid `DelegationCert` MAY perform exactly the actions whose
 capability bit is set, during `[not_before, not_after)`. Verifiers MUST reject a
 delegated action whose corresponding bit is unset and MUST treat any unknown
 capability bit as unauthorised (deny by default). `service_pubkey` MUST equal
-the `pk_S` of the dialed address, preventing cross-identity cert reuse.
+the `pk_S` of the dialled address, preventing cross-identity cert reuse.
 
 Capability bit 2 (terminate e2e session) additionally requires the delegate to
 hold the per-period handshake static private key. Because `S_s` is derived from
@@ -311,7 +315,7 @@ Descriptor {
   intro_points     : IntroSection,     // see below (public: plain list; private: encrypted+padded)
   rendezvous_set   : [[u8; 32]; r],    // packet_pubkeys the service vouches for as rendezvous
                                       //   bridges (Section 4.4); rotated per period
-  session_caps     : CapabilityFlags,  // session modes, traffic classes
+  session_caps     : u16,              // bitfield: session modes + supported traffic classes (interactive/stream/bulk)
   min_dos_level    : u8,               // monotonic floor a client MUST enforce
   dos_policy       : DosPolicy,        // Section 4.8
   delegation       : DelegationCert?,  // present iff signed by a delegate
@@ -387,7 +391,7 @@ encoding — is normatively pinned in
 implementations MUST follow it exactly (a scalar-addition or unreduced/unclamped
 scalar yields either linkable slots or unverifiable signatures).
 
-Enumeration guarantee, stated precisely: because `blinding_scalar` derives from
+Enumeration guarantee, stated precisely: because `h` derives from
 `pk_S`, only a party that already knows the `.hopr` address can compute `slot`.
 This makes the directory **crawl-resistant** — it cannot be swept for service
 identities. It does **not** hide a service from an adversary who already guesses
@@ -525,7 +529,7 @@ classes, and fee schedule:
 CAP_RESPONSE {
   packet_pubkey  : [u8; 32],  // the responding node's key
   roles          : u8,        // bit 0 = intro-capable, bit 1 = rendezvous-capable
-  traffic_classes: u8,        // interactive, stream, bulk (Section 4.7)
+  traffic_classes: u8,        // bitfield of offered classes: interactive/stream/bulk (shaping per Section 4.9)
   fee_schedule   : FeeSchedule,
   schedule_ver   : u32,       // signed, monotonic; restated and honoured at reservation (Section 4.5.2)
   signature      : [u8; 64]   // Ed25519 by packet_pubkey over all preceding fields
@@ -598,8 +602,8 @@ with no reputation bootstraps exactly as an unprobed relay edge does in
 it is tried opportunistically under a neutral prior and earns or loses standing
 by how it performs.
 
-Removing the bond eliminates the on-chain bond/slashing contract, the
-`BOND_COOLDOWN`, and the on-chain hard-revocation path entirely: the bridge layer
+Removing the bond eliminates the on-chain bond/slashing contract, its withdrawal
+cooldown, and the on-chain hard-revocation path entirely: the bridge layer
 now touches the chain **only** through the node identity that already exists.
 
 **What this costs, stated plainly.** Removing the bond removes the *only*
@@ -657,8 +661,17 @@ are specified concretely in Section 4.4.5.
   from any published record.
 
 Both roles MUST re-verify at use time: a rendezvous bridge that does not answer,
-or fails or under-performs at connection time, MUST be dropped and another
-selected. Reputation is continuously updated from these outcomes.
+or fails or under-performs at connection time, MUST be dropped for this
+connection and another selected. Reputation, however, MUST be updated **only from
+failures the observer can attribute to the bridge itself** — a `RENDEZVOUS_ESTABLISH`
+timeout, a reservation refusal, or a `CAP_QUERY` non-response, all of which the
+client observes directly against the bridge. A path that fails because the
+**service** never sent `RENDEZVOUS1` (detected only as a missing `RENDEZVOUS2`,
+Section 4.5.4) is **unattributable** — the client cannot tell a down bridge from a
+service that declined to join it — and MUST NOT lower the bridge's score.
+Otherwise a hostile service could selectively fail the client's own bridges to
+make the client demote and discard exactly the independently-trusted bridges the
+diversity invariant depends on (Section 4.6.1).
 
 #### 4.4.4 Revocation and staleness
 
@@ -730,17 +743,28 @@ its connections routed through any single bridge per period
 (`max_bridge_share`), and rotate its `rendezvous_set` across periods (Section
 4.3.1), so that even a maximally-trusted bridge — which could still be a
 long-con correlator — collects only a bounded, rotating sample of the service's
-traffic. This is the primary limiter on a single bridge's correlation vantage
-that does not depend on detecting misbehaviour.
+traffic. Note this caps **per-service** self-exposure only: because there is no
+bridge directory, a service cannot see how many *other* services a bridge serves,
+so `max_bridge_share` does **not** bound a bridge's cross-service aggregate sample
+(Section 7) — only rotation and shaping/multipath limit that.
 
-**Accepted limits.** The score is **local and non-transferable**: every party
-re-runs cold-start independently, and a bridge's good standing with one service
-confers none with another. This recurring neutral-prior phase is the long-con
-surface (Section 4.4.2); the scarce-signal prior raises its cost above zero but
-does not eliminate it, which is why the correlation defences (leg-A multi-hop,
-shaping, multipath, this concentration cap) do not rely on reputation. A
-network-wide or transferable reputation signal that would remove the per-relation
-cold-start is deferred (Section 11).
+**Accepted limits — the prior is weak against a resourced adversary.** The
+"scarce" signals raise the Sybil cost against *casual* adversaries only, not
+against a resourced or incumbent one, and the "hard-to-fake" framing must be read
+with that caveat: channel stake is **refundable** collateral (recoverable on
+channel close — the same recoverable-rental economics that justified removing the
+bond), node age is **free to pre-accrue** (a patient adversary ages a fleet at
+zero marginal cost), and RFC-0010 relay reputation is earned by honest
+*relaying*, which is **orthogonal to** (if anything positively correlated with) a
+good correlation vantage. So the prior amounts to "is this a real, established
+relay operator" — which a well-funded or nation-state adversary, or one already
+running a legitimate relay business, simply is, and can then long-con. The score
+is also **local and non-transferable**: every party re-runs cold-start
+independently, so the neutral-prior phase recurs per relationship (Section 4.4.2).
+This is why the correlation defences (leg-A multi-hop, shaping, multipath,
+rotation, the concentration cap) do **not** rely on reputation; reputation only
+prices *observable non-performance*. A transferable reputation signal is deferred
+(Section 11).
 
 ### 4.5 Introduction and rendezvous protocol
 
@@ -1045,7 +1069,7 @@ view; the client recomputes `transcript_hash` with the `E_s` it actually receive
 and the `E_c` it sent, so any substitution of `E_s` by a malicious RB (a MitM
 attempt) changes `transcript_hash`, fails the MAC, and MUST cause the client to
 abort. Binding `pk_S` means a valid `confirm_tag` proves the responder holds an
-`S_s` cryptographically tied to the exact address dialed, closing the gap
+`S_s` cryptographically tied to the exact address dialled, closing the gap
 between the descriptor signature chain and the key-agreement layer.
 
 Forward secrecy: a passive recorder holding `E_c` and `E_s` public values and a
@@ -1099,25 +1123,36 @@ set. Stated precisely: multipath protects against a bridge adversary controlling
 fewer than all `M` paths, **and assumes not all `M` are drawn from a single
 vouching party**.
 
-**Enforcing diversity across partial establishment (the negotiation outcome).**
-A service that cannot or will not join some of the client's chosen bridges
-(Section 4.5.4) leaves the client with a *surviving* set of `M′ ≤ M` established
-paths. The client MUST evaluate the invariant on the survivors, not on what it
-requested: it proceeds only if at least `⌈M′/2⌉` of the established paths are
-**client-contributed**, and otherwise MUST abort or renegotiate. This makes the
-diversity guarantee robust against a **hostile service that selectively fails the
-client-contributed paths** to force a service-only set: such selective failure
-breaks the invariant, the client detects it (by which `RENDEZVOUS2` arrived), and
-refuses to proceed — so the hostile service gains no usable connection rather than
-a fully-controlled one. The client's recourse on a broken invariant is to
-renegotiate with alternative client-contributed bridges (fresh reservations), to
-lower `M`, or to abandon the service; the *service* never gets to unilaterally
-substitute or veto the client's contribution down to a set it controls. An
-OPTIONAL pre-introduction step lets the client ask the service (over the
-introduction path) which of its candidate bridges the service can reach *before*
-committing reservations, trading one round trip and earlier disclosure of the
-candidate set for avoided reservation-fee waste; it does not change the invariant
-rule, which is always enforced on the finally-established set.
+**What the invariant does and does not protect.** Be precise about the threat.
+Multipath cannot protect against the *service*: the service is an endpoint and
+reassembles the whole flow regardless of `M` (Section 4.6). The `⌈M/2⌉`
+client-contribution rule genuinely protects against **third-party bridge
+adversaries** (no single non-endpoint party sees the whole flow). Against a
+*hostile service*, its effect is not confidentiality but **fail-closed
+availability**: a hostile service that selectively fails the client-contributed
+paths breaks the invariant, the client detects it (by which `RENDEZVOUS2`
+arrived), and aborts — so the service gets no usable connection rather than a
+controlled one, but the client does not gain a working private channel either.
+That is the honest outcome; do not read the invariant as "defeating" a hostile
+service beyond denying it a controlled connection.
+
+**Enforcing it across partial establishment.** This rule applies **only when the
+client is running multipath as a correlation defence** (it contributed bridges,
+per above). In that mode, a service that cannot or will not join some chosen
+bridges (Section 4.5.4) leaves a *surviving* set of `M′ ≤ M` established paths,
+and the client MUST evaluate the invariant on the survivors — proceed only if at
+least `⌈M′/2⌉` are client-contributed, else abort or renegotiate. The ordinary
+**single-path-from-descriptor case (`M = 1`, no client contribution) is not
+subject to this rule** — there the client has chosen to trust the service's
+bridge and relies on leg-A multi-hop and shaping, not on bridge diversity. The
+client's recourse on a broken invariant is to renegotiate with alternative
+client-contributed bridges (fresh reservations), lower `M`, or abandon the
+service; the *service* never gets to unilaterally substitute or veto the client's
+contribution down to a set it controls. An OPTIONAL pre-introduction step lets the
+client ask the service which candidate bridges it can reach *before* committing
+reservations, trading one round trip and earlier candidate-set disclosure for
+avoided reservation-fee waste; it does not change the rule, always enforced on the
+finally-established set.
 
 Mechanically:
 
@@ -1184,24 +1219,30 @@ follows:
   regardless of real traffic, the sender fills real segments into the shaped slots
   of whichever path has capacity, emitting cover padding on any path whose real
   queue is empty; a bridge cannot tell a real segment from padding.
-- **Reassembly is path-agnostic.** The receiver reassembles frames from
-  `(frame_id, seq_num)` exactly as in
+- **Reassembly is path-agnostic, with a bounded buffer.** The receiver reassembles
+  frames from `(frame_id, seq_num)` exactly as in
   [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), regardless of
-  which path delivered each segment. No path identifier is needed in the frame; the
-  M paths are simply M transports feeding one reorder buffer. The buffer MUST be
-  sized to absorb the **maximum inter-path latency skew** so a segment arriving
-  late on a slow path is not treated as lost.
+  which path delivered each segment; the M paths are simply M transports feeding
+  one reorder buffer. The reorder buffer MUST be **bounded to a fixed maximum**,
+  not sized to an attacker-controlled skew: a malicious slow path could otherwise
+  delay just under a "max skew" threshold to force unbounded buffering and
+  head-of-line stalls. Instead of waiting on the slowest path, the receiver
+  applies a **per-path segment deadline** — a segment later than the deadline is
+  treated as lost and requested for retransmission on a *healthy* path (a "slow
+  path" is demoted distinctly from a "failed" one). Beyond the buffer cap the
+  receiver drops/NAKs and lets reliable-mode recovery re-fetch on healthy paths.
 - **Acknowledgements** may return on any path; frame ACKs and retransmission
   requests are session-global and not bound to the path that carried the original.
-- **Path failure degrades, it does not drop.** If a path stalls (SURB starvation,
-  Section 4.9, or an unresponsive bridge), the sender stops assigning new segments
-  to it and redistributes across the survivors;
+- **Path failure or slowness degrades, it does not drop.** If a path stalls (SURB
+  starvation, Section 4.9, an unresponsive bridge, or persistent deadline misses),
+  the sender stops assigning new segments to it and redistributes across the
+  survivors;
   [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) reliable-mode
-  retransmission recovers any segments lost on the failed path. The session
-  survives as long as at least one path remains; multipath is thus also a
-  resilience mechanism. A client MAY re-establish a replacement path (a fresh
-  reservation + `RENDEZVOUS1`, extending the existing e2e session's cookie set) to
-  restore degree `M`.
+  retransmission recovers the affected segments on a healthy path (a slow-but-not-
+  lost segment is force-retransmitted via the deadline above rather than blocking
+  the session). The session survives as long as at least one path remains. A
+  client MAY re-establish a replacement path (a fresh reservation + `RENDEZVOUS1`,
+  extending the existing e2e session's cookie set) to restore degree `M`.
 - **Per-path accounting.** Each path carries its own SURB pool and its own PIX
   agreement (Section 4.5.5); a bridge is paid via its own leg's return
   acknowledgements for the segments (real or padding) it delivered, so accounting
@@ -1358,6 +1399,14 @@ signals, surfaced through
   counterparty that persistently fails to replenish (a starvation-griefing
   vector) bears the teardown: after `STARVE_GRACE` (default 30 s) the bridge MAY
   tear the join down, and the service MAY cheaply abandon a starved join.
+- **Shaping degrades gracefully under starvation, not silently.** The constant-rate
+  guarantee (and hence the real-vs-padding indistinguishability of Section 4.6.1)
+  holds only while cover padding can be sent; endpoints SHOULD size the SURB
+  reserve so starvation does not force a visible rate dip, and MUST NOT drop
+  padding ahead of real segments in a way that makes the rate track real traffic.
+  When starvation does degrade the rate, the flow-shape distinguisher of Section 7
+  widens — this is an accepted degradation, bounded by the grace-then-teardown
+  above.
 - The bridge MUST bound per-join state and total concurrent joins to its
   node-local capacity limit (not advertised; Section 4.4.1), rejecting new
   reservations with `JOIN_UNAVAILABLE` when saturated.
@@ -1386,15 +1435,31 @@ draw), rather than gradually certain to be caught.
   endpoint's own guard set. The `M` legs of a multipath session (Section 4.6.1)
   still enter through the guard set — multipath diversifies the *far* (bridge)
   end while guards stabilise the *near* (entry) end; the two are complementary.
+- **A guard is never the sole intermediate.** Because the guard is the first hop,
+  it learns the endpoint's node identity directly (like a Tor guard). A leg
+  therefore MUST contain **at least one non-guard intermediate relay** between the
+  guard and the far bridge, freshly selected per connection. This preserves the
+  location guarantee under the honest-hop assumption restated as **"at least one
+  honest hop *other than the guard*"**: a single malicious guard combined with a
+  malicious (e.g. service-chosen) rendezvous bridge is then still separated by a
+  fresh honest relay, so it cannot alone deanonymise the endpoint. A guard-directly-
+  to-bridge (zero non-guard intermediate) leg is PROHIBITED for onion-service legs.
 - **Selection.** Guards are chosen from high-reputation, high-stake, aged, stable
   relays using the same scarce, hard-to-fake signals as bridge cold-start
   (Section 4.4.5): channel stake, node age, and
   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
   relay reputation. The guard set is small (`GUARD_COUNT`, default 2–3).
-- **Rotation is slow and staggered.** Guards MUST NOT be rotated per connection.
-  They rotate only on a long period (`GUARD_LIFETIME`, default weeks), on guard
-  failure, or on demotion by reputation, and rotate one at a time so the entry
-  fingerprint does not change wholesale at once.
+- **Rotation is slow, staggered, and not attacker-steerable.** Guards MUST NOT be
+  rotated per connection. They rotate only on a long period (`GUARD_LIFETIME`,
+  default weeks), on **locally-attributable** sustained guard failure, and one at
+  a time so the entry fingerprint does not change wholesale. Rotation MUST NOT be
+  triggered by third-party-influenceable reputation (e.g. RFC-0010 probe scores an
+  adversary can degrade by attacking the victim's path *through* its current
+  honest guard), and the replacement MUST be drawn from a **pre-committed,
+  diversified candidate pool** fixed in advance — never "whichever candidate is
+  top-ranked at rotation time." Otherwise an adversary could degrade a victim's
+  current guard to force a rotation and time a Sybil to be the guaranteed
+  replacement.
 
 **The tension is explicit and intentional.** A stable guard set is itself a
 fingerprint (it is the concrete form of the "funded-channel neighbourhood"
@@ -1548,6 +1613,22 @@ its own bridges and **selectively failing the client-contributed paths** (Sectio
 aborts, so selective failure yields the service no connection rather than a
 controlled one.
 
+**The client's bridge set is disclosed to the service (inherently).** The service
+must open a leg to each rendezvous bridge, so it decrypts `IntroPayload` and
+learns the `rb_node_id` of *every* chosen bridge, including the client-contributed
+ones — any `rb_node_id` outside the service's own `rendezvous_set` is, by
+construction, identifiably a client-private bridge. Client-contributed bridges are
+therefore **not hidden from the service**; their value is denying the service a
+*bridge-side* vantage it does not need as the endpoint and forcing fail-closed on
+sabotage (above), not concealment. Two consequences follow and are accepted:
+(1) a service learns, and can permanently blocklist, a client's private bridges —
+and repeated renegotiation-on-abort is a **bridge-set enumeration oracle**, so a
+client MUST bound renegotiation rounds and SHOULD rotate its private bridges
+per service-relationship rather than exposing one global set to every service;
+(2) two clients sharing a private bridge are linkable *to a service that sees
+both* (not to third parties). These are inherent to the client contributing
+bridges and are the cost of the fail-closed guarantee.
+
 **Intersection and clustering across connections.** An adversary running many
 rendezvous bridges collects leg fingerprints across connections; a service's leg B
 is the more stable side. Constant-rate shaping denies clustering by making legs
@@ -1628,22 +1709,33 @@ ordinary fixed-size Sphinx packets
 through the same mixers
 ([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and paid by the same Proof
 of Relay as all other traffic, and their mandatory constant-rate shaping (Section
-4.9) already emits cover padding when idle. A relay therefore **cannot
-distinguish** an onion leg's packets — real or padding — from any other HOPR
-traffic, so onion legs introduce no new relay-level distinguisher and their
-padding **doubles as legitimate cover traffic** that enlarges the mixer's
-anonymity set for everyone. The relationship is symbiotic: onion legs benefit from
-the network's baseline cover
-([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md))
-and contribute to it, which directly mitigates the mixer's stated low-volume
-weakness. The shaping cost noted in Drawbacks is thus partly a public good rather
-than pure overhead. The one residual is the general low-volume limit of
-[RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md): if the *whole* network is
-near-idle, even shaped onion traffic sits in a small anonymity set — this is not
-onion-specific and is mitigated by network cover traffic and by multipath
-spreading a connection across relays. Relays MUST NOT special-case onion traffic
-(they cannot, given fixed-size packets), and onion legs SHOULD be treated as
-first-class mixnet traffic for mixing purposes.
+4.9) emits cover padding when idle. At the **per-packet** level a relay cannot
+distinguish an onion leg's packets — real or padding — from any other HOPR
+traffic, so their padding **doubles as legitimate cover traffic** that enlarges
+the mixer's anonymity set: onion legs both contribute to and benefit from the
+network's baseline cover
+([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md)),
+mitigating the mixer's low-volume weakness, and the shaping cost is thus partly a
+public good rather than pure overhead.
+
+There is, however, a **flow-level distinguisher that must be acknowledged**:
+ordinary HOPR traffic is bursty, whereas a shaped onion leg is conspicuously
+*constant-rate*. A first-hop/guard relay or the rendezvous bridge can therefore
+classify a *flow* (not a packet) as "a constant-rate stream" and infer that the
+adjacent node is carrying onion-service traffic — a **membership leak** (this node
+uses/hosts an onion service), landing notably on the more-identifiable service
+side. This is the same reason Section 4.5.1 jitters the standing-session
+keep-alive cadence; the data-leg shaping deliberately makes the opposite trade,
+buying per-packet-timing correlation resistance at the cost of a flow-shape tell.
+The design accepts this: the membership leak does not by itself locate or identify
+the peer (leg-A multi-hop and the non-guard honest hop of Section 4.10 protect
+location), and a deployment MAY shape to a randomised/variable-rate envelope
+instead of a strictly constant rate to blend better, trading some correlation
+resistance for flow-blending. The residual low-volume limit of
+[RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md) also applies (a near-idle
+whole network shrinks every anonymity set; not onion-specific). Relays cannot
+special-case onion traffic per packet and SHOULD treat it as first-class mixnet
+traffic.
 
 **Cryptographic hygiene.** Ed25519 keys (`pk_S`, `delegate_pubkey`, blinded keys)
 MUST use canonical encodings and verification that rejects small-order points

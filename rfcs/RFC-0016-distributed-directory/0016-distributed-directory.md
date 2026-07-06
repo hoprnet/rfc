@@ -6,7 +6,7 @@
 - **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2026-07-05
 - **Updated:** 2026-07-05
-- **Version:** v0.1.2 (Raw)
+- **Version:** v0.1.3 (Raw)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md),
@@ -143,20 +143,24 @@ prime-order subgroup order, and let an identity be the keypair `(a, A)` with
 `A = a·B` (`A` is `pk`). For the current `period`:
 
 ```
+// 0. pk MUST first pass a full subgroup check (reject non-prime-order / mixed-order
+//    points: verify L·pk == identity), since pk_blind is computed from a supplied pk.
 // 1. Derive and clamp the per-period blinding scalar h:
 t = H("hopr-blind" || pk || period)          // 32-byte hash
-h = t with the standard Ed25519 clamping applied and reduced mod L:
-      h[0]  &= 248        // clear low 3 bits (cofactor: h is a multiple of 8)
+h = t clamped as a valid Ed25519 scalar:
+      h[0]  &= 248        // clear low 3 bits (cofactor)
       h[31] &= 63
       h[31] |= 64         // set bit 254
-      h = h mod L
+      // h is used as an integer scalar; it is NOT separately reduced mod L before
+      // the point multiplication, so the low-3-bits-clear (cofactor) property is preserved.
 // 2. Blinded PUBLIC key (anyone knowing pk can compute it):
 pk_blind = h · A          // Ed25519 POINT scalar-multiplication (NOT scalar addition),
                           //   re-encoded canonically (canonical sign bit)
 slot        = H(pk_blind || period)
 auth_pubkey = pk_blind    // records are signed by, and verified under, pk_blind
 // 3. Blinded PRIVATE key (only the identity holder, for signing):
-a_blind      = (h · a) mod L                 // so that a_blind · B = h·A = pk_blind
+a_blind      = (h · a) mod L                 // reduced mod L here (scalars live mod L);
+                                             //   a_blind · B = h·A = pk_blind holds
 prefix_blind = H("hopr-blind-prefix" || prefix)   // fresh RH half of the expanded key
 ```
 
@@ -165,10 +169,14 @@ under `pk_blind` with **standard, unmodified** Ed25519 verification [05]. Only a
 party that knows `pk` can compute `h` (hence `slot`), so the directory verifies
 records under `pk_blind` without learning `pk`. Implementations MUST use point
 scalar-multiplication for `pk_blind` (a common error is scalar *addition*, which
-does not preserve the discrete-log relation and yields unverifiable signatures),
-MUST clamp and reduce `h` as shown, and MUST canonicalise the `pk_blind`
-encoding; otherwise blinded signatures fail to verify or slots become linkable
-across periods.
+does not preserve the discrete-log relation and yields unverifiable signatures);
+MUST clamp `h` but MUST NOT separately reduce it mod `L` before the point
+multiplication (clamping and a subsequent mod-`L` reduction are contradictory —
+the reduction destroys the cofactor-clearing the clamp is for, and two
+implementations disagreeing on this would derive different slots); MUST validate
+the supplied `pk` with a full subgroup check (step 0); and MUST canonicalise the
+`pk_blind` encoding. Otherwise blinded signatures fail to verify, a mixed-order
+`pk` yields cofactor ambiguity, or slots become linkable across periods.
 
 **Responsible set — MUST be ungrindable toward a target slot.** Because `slot` is
 a public function of a known key, naive "closest node IDs" assignment lets an
