@@ -10,7 +10,7 @@ as of 2026-07-06.
 | RFC  | Title                                  | Status         | Version |
 | ---- | -------------------------------------- | -------------- | ------- |
 | 0001 | RFC Lifecycle, Process and Structure   | Finalised      | v1.0.0  |
-| 0002 | Common Mixnet Terms and Keywords       | Finalised      | v1.0.0  |
+| 0002 | Common mixnet terms and keywords       | Finalised      | v1.0.0  |
 | 0003 | HOPR Overview                          | Finalised      | v1.0.0  |
 | 0004 | HOPR Packet Protocol                   | Finalised      | v1.0.1  |
 | 0005 | Proof of Relay                         | Finalised      | v1.0.0  |
@@ -18,11 +18,11 @@ as of 2026-07-06.
 | 0007 | Economic Reward System                 | Implementation | v0.3.0  |
 | 0008 | Session Data Protocol                  | Finalised      | v1.0.0  |
 | 0009 | Session Start Protocol                 | Finalised      | v1.0.0  |
-| 0010 | Automatic Path Discovery               | Finalised      | v1.1.0  |
-| 0011 | Application Layer Protocol             | Finalised      | v1.0.0  |
+| 0010 | Automatic path discovery               | Finalised      | v1.1.0  |
+| 0011 | Application Layer protocol             | Finalised      | v1.0.0  |
 | 0012 | Protocol for Incentivization of eXits  | Draft (PR)     | v0.4.1  |
 | 0013 | Return Path Incentivization            | Raw (PR stub)  | v0.1.0  |
-| 0014 | Path-Finding                           | Finalised      | v1.0.0  |
+| 0014 | Path-finding                           | Finalised      | v1.0.0  |
 
 Protocol stack (RFC-0003), bottom to top: Transport (TCP/UDP/QUIC/...) →
 HOPR Packet Protocol (0004) → HOPR Application Protocol (0011) → Session
@@ -108,12 +108,13 @@ encrypted with `KDF("HASH_KEY_REPLY_PRP", SenderKey, Pseudonym)` before relays
 add their layers. The reply sender cannot read or correlate the reply content
 en route; the return path is chosen by the SURB creator.
 
-RFC-0004 v1.1.0 (introduced with the PIX draft) adds a SURB
-`recipient_data` extension field (`recipient_data_len = 0` for ordinary
-SURBs) which PIX uses to attach encrypted incentive shares to SURBs.
+The PIX draft (RFC-0012, §7) defines a SURB `recipient_data` extension field
+(`recipient_data_len = 0` for ordinary SURBs) that it uses to attach encrypted
+incentive shares to SURBs; RFC-0004 itself is v1.0.1 and does not include it.
 
-SURB flow-control signals (RFC-0011 flags): `0x01` SURB distress (peer's SURB
-stock low), `0x03` out of SURBs.
+SURB flow-control signals (implementation-defined, documented in RFC-0011,
+whose interpretation is implementation-specific): `0x01` SURB distress (peer's
+SURB stock low), `0x03` out of SURBs.
 
 ### 2.5 Acknowledgements
 

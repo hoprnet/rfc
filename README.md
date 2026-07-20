@@ -10,7 +10,7 @@ HOPR project. Each RFC resides in its own repository within this organisation, p
 RFCs define the core HOPR protocol, its interfaces, and related smart contract specifications. This repository serves as an index and guide for
 navigating all individual RFC repositories.
 
-For a single-file, precise condensation of the whole protocol stack across all RFCs, see [SUMMARY.md](./SUMMARY.md).
+For a single-file, precise condensation of the protocol stack across RFC-0001 through RFC-0014, see [SUMMARY.md](./SUMMARY.md).
 
 ## Repository Structure
 
