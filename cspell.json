@@ -119,7 +119,14 @@
     "Aumasson",
     "Neves",
     "Kalman",
-    "Repr"
+    "Repr",
+    "BabyJubJub",
+    "Schnorr",
+    "Ethereum",
+    "PoK",
+    "prover",
+    "pipelined",
+    "pipelining"
   ],
   "flagWords": [
     "finalize",
