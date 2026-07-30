@@ -6,7 +6,7 @@
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
 - **Created:** 2025-03-28
 - **Updated:** 2026-07-30
-- **Version:** v0.4.0 (Draft)
+- **Version:** v0.5.0 (Draft)
 - **Supersedes:** none
 - **Related Links:** [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
@@ -58,6 +58,10 @@ conventions adopted across the HOPR RFC series. Additionally, the following pack
 
 - **PoK** stands for _Proof of Knowledge_ - a non-interactive zero-knowledge proof that the prover knows the discrete logarithm of a published group
   element.
+
+- **Full-matrix mode** and **constant-term mode** denote the two ways an instantiation MAY commit to the polynomials, as defined in Section 2.3.3.
+  Full-matrix mode publishes a commitment to every coefficient - a Feldman commitment - which allows an individual share to be verified in isolation.
+  Constant-term mode publishes only the commitments to the constant terms, and establishes validity once a polynomial has been interpolated.
 
 ## 1.3 Goals
 
@@ -161,8 +165,9 @@ The protocol follows to perform the first `SSA_Agreement_1` between `A` and `B`:
 6. `A` creates `SSA_i = EntryCommitment_i + ExitCommitment_i` and performs `Allocate(ChunkPrice, Deposit_Handle, SSA_i)` with `W`. `A` MUST NOT
    allocate before the whole `EntryCommitment_i` message has been sent, so that `B` is always able to derive `SSA_i` at the moment funds appear at it.
 7. `B` MUST NOT continue communicating with `A` if `EntryCommitment_i` in not received within a certain time limit and terminates here.
-8. Once `B` receives the full `EntryCommitment_i` message, the Exit node MUST (in this order): a) verify the degree and number of received polynomials
-   is acceptable, otherwise it MUST terminate communications with `A` b) verify that every received coefficient commitment belongs to the large order
+8. Once `B` receives the full `EntryCommitment_i` message, the Exit node MUST (in this order): a) verify the number of received polynomials and the
+   degree agreed in `params` are acceptable, otherwise it MUST terminate communications with `A` - note that in constant-term mode the degree is not
+   observable from the message and is taken from `params` alone b) verify that every received coefficient commitment belongs to the large order
    (sub)group of `C`, otherwise it MUST terminate communications with `A` c) compute `EntryCommitment_i = M_i_0_0 + M_i_0_1 + ... + M_i_0_(m-1)` and
    verify `PoKVerify(PoK_i, EntryCommitment_i, P || i)`; if verification fails, or if no `PoK_i` was received, `B` MUST terminate communications with
    `A` **without** deriving or publishing any deposit address for `SSA_i` (see Section 2.3.3.1) d) create
@@ -186,12 +191,14 @@ Once the `SSA_Agreement_i` process is finished by incentives being allocated to 
 - Once a reply packet is delivered to the first downstream relayer on the return path, the Exit `B` is able to decrypt `EncryptedShare_i_u` as
   described in Section 2.3.5, resulting in `Share_i_u`.
 
-- The Exit MUST verify each `Share_i_u` (see Section 2.3.5). Verification failures MUST be counted, and once their number exceeds an
-  implementation-chosen threshold, the Exit MUST terminate communication with `A` (it SHOULD also dump all the SURBs indexed by `P`). A failed share
-  MUST NOT occupy a share slot of its polynomial, so that a later valid share can still take its place.
+- The Exit MUST validate every `Share_i_u` (see Sections 2.3.5 and 2.3.6). Validation failures MUST be counted, and once their number exceeds an
+  implementation-chosen threshold, the Exit MUST terminate communication with `A` (it SHOULD also dump all the SURBs indexed by `P`). In full-matrix
+  mode a failed share MUST NOT occupy a share slot of its polynomial, so that a later valid share can still take its place. In constant-term mode no
+  such slot exists: validity is only established once the polynomial has been interpolated, so the failure is attributed to the polynomial as a whole.
 
-- Once `B` obtains `t+1` distinct successfully verified shares for some fixed `i` and `u`, these MAY be immediately turned into `SSA_Priv_i_u` as
-  described in Section 2.3.6. Shares are distinct when their `x` values differ; a repeated `x` carries no new information and MUST be discarded.
+- Once `B` obtains `t+1` distinct shares for some fixed `i` and `u` - successfully verified ones, in full-matrix mode - these MAY be immediately
+  turned into `SSA_Priv_i_u` as described in Section 2.3.6. Shares are distinct when their `x` values differ; a repeated `x` carries no new
+  information and MUST be discarded.
 
 - Once `SSA_Priv_i_u` is recovered for each `u = 0..m`, the Exit computes `SSA_Priv_i = SSA_Priv_i_0 + SSA_Priv_i_1 + ... + SSA_Priv_i_(m-1)`.
 
@@ -262,12 +269,36 @@ the index transposition. Naturally, these commitments form an `t+1`-by-`m` matri
 
 In other words, each `r`-th row contains every `r`-th coefficient of all `m` polynomials.
 
+**Commitment mode.** Only the first row `M_i_0` - the commitments to the constant terms - is REQUIRED. The rows `r = 1..t+1` are OPTIONAL, and an
+instantiation MUST fix one of the following two modes:
+
+- **Full-matrix mode** transfers all `t+1` rows. The full row set is a Feldman commitment to each polynomial, which lets the Exit verify an individual
+  share the moment it arrives (Section 2.3.5, step 5). This isolates a faulty share: it is rejected on its own and replaced by a surplus share, so a
+  single corrupt share does not cost the whole agreement.
+- **Constant-term mode** transfers only the row `r = 0`. No individual share can then be checked, and validity is instead established once a
+  polynomial has been interpolated, by opening its constant-term commitment (Section 2.3.6). This reduces the commitment transfer, the Exit's
+  commitment storage and its commitment ingest cost by a factor of `t+1`, and removes per-share group arithmetic entirely. The price is that a faulty
+  share is detected only after `t+1` shares of its polynomial have been delivered, and cannot be singled out from among them.
+
+Both modes satisfy the goals of Section 1.3, because the incentive is protected by `PoK_i` (Section 2.3.3.1) and by the arity of the interpolation,
+not by the per-coefficient commitments: an Entry that withholds valid shares cannot recover its own allocation either way.
+
+Constant-term mode is RECOMMENDED where the Exit is the sole reconstructing party, as it is in this protocol. Classic verifiable secret sharing needs
+per-share verification because the shares sit with mutually distrusting parties that reconstruct later; here the Exit holds every share, interpolates
+locally, is the whole quorum, and consumes only the recovered constant term. Opening the constant-term commitment is therefore exact for the property
+actually relied on. Full-matrix mode SHOULD be preferred where the Exit must tolerate corrupt shares from an otherwise cooperating Entry - that is,
+where a share can be corrupted without the Entry being at fault.
+
+The message format is identical in both modes; the mode only decides which rows are ever emitted. An Exit operating in constant-term mode MUST ignore
+any `EntryCommitment_i_r` with `r != 0`, and SHOULD do so without decoding the commitments it carries. It MUST NOT treat such a message as an error,
+at any point in the exchange, so that an Entry emitting the full matrix remains interoperable at the cost of its own bandwidth.
+
 ```
 struct EntryCommitment_i {
 	P: Pseudonym,
 	i: u32,
 	PoK_i: ProofOfKnowledge,
-	M_i: Matrix (t+1)-by-m
+	M_i: Matrix (t+1)-by-m, or 1-by-m in constant-term mode
 }
 ```
 
@@ -287,20 +318,25 @@ struct EntryCommitment_i_r {
 Each such message carries the polynomial index alongside every commitment, so a slice need not be contiguous in `s` and the receiver does not depend
 on the arrival order for correctness.
 
-The messages MUST be emitted in two phases:
+The messages MUST be emitted in two phases, the second of which is empty in constant-term mode:
 
 1. **Constant terms first.** Every message of row `r = 0` is sent before any other row, so the Exit can compute `EntryCommitment_i`, check `PoK_i` and
    derive `SSA_i` as early as possible — that is the one row it needs in full before anything else can proceed. `PoK_i` MUST be present on every
    message of this phase, and MUST be absent from every message of the second phase; its presence is therefore implied by `r = 0` and requires no
    separate flag. Carrying it on every constant-term message rather than only one means no single lost message can strand an otherwise recoverable
    agreement; the Exit keeps the first valid proof it sees and ignores the rest.
-2. **Remaining coefficients, blocked by polynomial.** The rows `r = 1..t+1` are then emitted a *block of polynomials* at a time: for a block of
-   polynomial indices, every remaining coefficient of that block is sent before moving to the next block. This completes whole columns of `M_i`
-   progressively, so a polynomial becomes fully committed — and therefore its shares verifiable — long before the last message arrives. Walking
-   row-major instead would complete no column until the final message, forcing the Exit to defer every share received in the meantime.
+2. **Remaining coefficients, blocked by polynomial** (full-matrix mode only). The rows `r = 1..t+1` are then emitted a _block of polynomials_ at a
+   time: for a block of polynomial indices, every remaining coefficient of that block is sent before moving to the next block. This completes whole
+   columns of `M_i` progressively, so a polynomial becomes fully committed — and therefore its shares verifiable — long before the last message
+   arrives. Walking row-major instead would complete no column until the final message, forcing the Exit to defer every share received in the
+   meantime.
 
 The block size SHOULD equal the number of commitments that fit in a single message, so that every message stays full and block boundaries align with
 those of the first phase.
+
+In constant-term mode the first phase is the entire exchange, and every polynomial becomes reconstructible at the same instant: the message that
+completes the constant-term row is simultaneously the one that yields `EntryCommitment_i`, `SSA_i` and the commitment against which each polynomial
+will be opened. Shares received before it MUST still be retained, since until then there is no `SSA_i` for a recovered value to contribute to.
 
 The implementers MAY choose to deny such `t` and `m` choices, where a single `EntryCommitment_i_r` message could carry no commitment at all.
 
@@ -352,8 +388,10 @@ an unsigned 16-bit number.
 
 Individual shares of the same polynomial are **not** numbered on the wire: a share is identified by its `x` value, which is derived from the SURB the
 share travels with and is therefore distinct for every share (see below). The Entry `A` MUST generate at least `t+1` shares for each `u`, `i` and
-pseudonym `P`, and send them to the Exit `B`. Additional shares beyond `t+1` MAY be generated and are called _surplus shares_; they absorb packet loss
-and shares that fail verification, both of which would otherwise leave a polynomial permanently short.
+pseudonym `P`, and send them to the Exit `B`. Additional shares beyond `t+1` MAY be generated and are called _surplus shares_; they absorb packet
+loss, which would otherwise leave a polynomial permanently short. In full-matrix mode they additionally absorb shares that fail verification, since
+such a share is rejected before it occupies a slot. In constant-term mode they do not: a corrupt share is only detected once it has already been
+interpolated together with `t` others.
 
 To generate `EncryptedShare_i_u` for some `i > 0`, `0 <= u < m` and pseudonym `P`, the Entry `A` first computes `Share_i_u` as follows:
 
@@ -417,7 +455,8 @@ In the next step, `B` MUST verify that:
 3. Neither `x` nor `y` is zero.
 4. No share with the same `x` has already been accepted for this `i` and `u`. A repeat MUST be discarded without further processing, as it carries no
    new information.
-5. The `Share_i_u` corresponds to polynomial `T_i_u[x]` by checking that `RHS - LHS = 0` (where 0 denotes the neutral element of `C`'s curve group):
+5. **Full-matrix mode only:** that `Share_i_u` corresponds to polynomial `T_i_u[x]`, by checking that `RHS - LHS = 0` (where 0 denotes the neutral
+   element of `C`'s curve group):
 
 ```
 LHS = M_i_0_u + x * M_i_1_u + x^2 * M_i_2_u + ... x^t * M_i_t_u
@@ -430,6 +469,11 @@ verified once its column completes, rather than discarded (see Section 2.3.3).
 On successful verification, `B` knows that `(x, y)` constitutes a valid share, that can be used to recover `SSA_Priv_i_u`. A share that fails
 verification MUST NOT be retained, so a later valid share can still occupy its place.
 
+In constant-term mode step 5 is not performed, and checks 1 to 4 are the whole of the per-share processing. Note that checks 3 and 4 remain REQUIRED
+and become load-bearing rather than merely economical: a zero `x` would evaluate the polynomial at its constant term, and a repeated `x` makes the
+interpolation of Section 2.3.6 singular. A share that passes them is retained unconditionally, and whether it belongs to the committed polynomial is
+settled only by Section 2.3.6.
+
 ### 2.3.6 Recovery of `SSA_Priv_i_u` and `SSA_Priv_i` at the Exit
 
 Once the Exit `B` determines at least `t+1` distinct `(x, y)`-pairs for a given `i`, `u`, as per previous section, it can recover `SSA_Priv_i_u` by
@@ -437,8 +481,25 @@ executing Lagrange interpolation of the `T_i_u[x]` polynomial using those pairs 
 
 The interpolation will yield the constant term `T_i_u_0` which is equal to `SSA_Priv_i_u`.
 
+`B` MUST then check that the recovered value opens the polynomial's constant-term commitment:
+
+```
+SSA_Priv_i_u * BP == M_i_0_u
+```
+
+In constant-term mode this is the only validity check the shares receive, and it is exact for the value the Exit actually consumes: it holds if and
+only if interpolating the `t+1` submitted shares yields the committed constant term. In full-matrix mode it is implied by step 5 of Section 2.3.5
+having passed for each of those shares, and MAY therefore be skipped.
+
+If the check fails, at least one of the `t+1` shares did not come from the committed polynomial. In constant-term mode which one cannot be determined
+from what the Exit holds, and `SSA_Priv_i` can never be completed, since it is the sum over _all_ `m` polynomials. The Exit MUST count this as a
+validation failure per Section 2.3.1 and SHOULD terminate communication with `A` at once, rather than continue serving an agreement that is already
+unrecoverable. Recovering from it instead would require error correction over the submitted shares - they form a Reed-Solomon codeword, so up to
+`floor(surplus / 2)` corrupt shares are in principle correctable - which this RFC does not specify.
+
 Once all polynomials `T_i_0`, `T_i_1`, ..., `T_i_(m-1)` are interpolated, the `SSA_Priv_i_0`, ..., `SSA_Priv_i_(m-1)` are determined. `B` SHOULD
-release the coefficient commitments and the collected shares of a polynomial as soon as it is interpolated, since neither is needed afterwards.
+release the coefficient commitments and the collected shares of a polynomial as soon as it is interpolated and checked, since neither is needed
+afterwards.
 
 The `SSA_Priv_i` is the sum `b_i + SSA_Priv_i_0 + SSA_Priv_i_1 + ... + SSA_Priv_i_(m-1)`, where `b_i` is the value generated in Section 2.3.2.
 
@@ -457,12 +518,26 @@ logical binding between them, before the PIX protocol starts (see Appendix 2). T
 altogether if `Q` falls outside the range it is willing to serve, or if `m` or `t+1` exceed the dimensions it is able to reconstruct with. Otherwise
 it accepts the advertised values unchanged and echoes them in every `ExitCommitmentRequest_i`.
 
-Only the product `m * (t+1)` is economically meaningful, but the split between the two governs the Exit's costs and is therefore not free:
+Only the product `m * (t+1)` is economically meaningful, but the split between the two governs the Exit's costs and is therefore not free. Which way
+it pulls depends on the commitment mode of Section 2.3.3.
 
-- the Exit's commitment storage is `m * (t+1)` group elements, i.e. invariant in the split;
+In **full-matrix mode**:
+
+- the commitment transfer, the Exit's commitment storage and its commitment ingest cost are `m * (t+1)` group elements, i.e. invariant in the split;
 - verifying one share costs `O(t)` scalar multiplications and there are `m * (t+1)` shares, so total verification work grows linearly in `t`.
 
 The split SHOULD therefore keep `t` as small as the tolerance for lost and unverifiable shares allows, and place the remaining factor into `m`.
+
+In **constant-term mode** that reasoning does not apply, and the pull is the other way:
+
+- the commitment transfer, the Exit's commitment storage and its commitment ingest cost are `m` group elements - linear in `m` and independent of `t`;
+- validity checking is one scalar multiplication per polynomial, i.e. `m` in total, likewise independent of `t`;
+- interpolating one polynomial is `O(t^2)` field operations and there are `m` of them, so total interpolation work is `m * (t+1) * t`, i.e. linear in
+  `t` - but in field arithmetic rather than group arithmetic, which is cheaper by orders of magnitude;
+- detection latency for a faulty share is `t+1` delivered packets of its polynomial, so it too grows linearly in `t`.
+
+The split SHOULD therefore balance the group operations that scale with `m` against the field operations and the detection latency that scale with
+`t`. Because the two kinds of operation differ so greatly in cost, implementations SHOULD measure rather than assume where the optimum lies.
 
 Since the Exit does not choose the parameters, an Entry MAY be refused service but cannot be made to accept a quota it did not propose. An Exit
 running modified code that echoes different values than were advertised is rejected by the Entry at step 3b of Section 2.3.1, and would in any case
@@ -487,6 +562,8 @@ The HOPR PIX is the following instantiation of PIX:
   protocol and MUST NOT be derived at runtime.
 - The deposit address of `SSA_i` is derived from the group element by the privacy pool's own address convention: for secp256k1 it is the Ethereum
   address of the corresponding public key; for BabyJubJub it is the encoded public key itself.
+- The commitment mode (Section 2.3.3) is **constant-term mode**: no Feldman commitments are transferred, and validity is enforced per polynomial once
+  `t+1` of its shares have arrived. See Appendix 2 for the consequences.
 
 Encoded sizes for the BabyJubJub instantiation (secp256k1 in parentheses where it differs):
 
@@ -505,8 +582,14 @@ Implementation limits and defaults:
 | `t+1` (shares per polynomial)                | 64      | 2 .. 4096       |
 | surplus shares per polynomial (beyond `t+1`) | 32      | 0 .. 4096       |
 
-With the defaults and a maximum HOPR packet payload of 1038 bytes, one SSA agreement covers a quota of `8192 * 64 * 1038` bytes ≈ 519 MiB and requires
-`8192 * 64 = 524288` coefficient commitments to be transferred in the `EntryCommitment_i` messages.
+With the defaults and a maximum HOPR packet payload of 1038 bytes, one SSA agreement covers a quota of `8192 * 64 * 1038` bytes ≈ 519 MiB.
+
+The number of coefficient commitments that must be transferred in the `EntryCommitment_i` messages depends on the commitment mode:
+
+| Mode                          | Commitments per agreement | Bytes at 32 per commitment |
+| ----------------------------- | ------------------------- | -------------------------- |
+| constant-term (this Appendix) | `8192`                    | ≈ 262 KB                   |
+| full-matrix (Feldman)         | `8192 * 64 = 524288`      | ≈ 16.8 MB                  |
 
 # Appendix 2
 
@@ -523,10 +606,25 @@ the `additional_data` 64-bit field in the `StartSession` message. To further ind
 
 The following behaviours are implementation choices of the HOPR instantiation, in the terms of Section 2.3:
 
+- **Commitment mode: constant-term, no Feldman.** The implementation does **not** use Feldman commitments. The Entry emits only the row `r = 0` of
+  `M_i` - one commitment per polynomial - and no share is verified in isolation. Validity is enforced per polynomial once `t+1` of its shares have
+  been received (64 by default; this is the value the implementation configures as its _threshold_), by opening the polynomial's constant-term
+  commitment as in Section 2.3.6. The `SsaCommit` message retains its `r` field unchanged, and the Exit ignores any message carrying `r != 0` -
+  without decoding its commitments, and at any point in the exchange - so an Entry that emits the full matrix remains interoperable and only wastes
+  its own bandwidth.
+- **Detection latency and its bound.** Because validity is settled per polynomial rather than per share, a misbehaving Entry is detected on the
+  `t+1`-th share of the first polynomial it corrupts, having by then been served `t+1` packets: 64 of the 524288 that make up one agreement, or 0.012%
+  of the quota. A single corrupt share makes `SSA_i` unrecoverable rather than being absorbed by the surplus, so no fault isolation is retained.
+- **Corrupt shares are treated as adversarial.** A share travels in the additional recipient data of a SURB, which reaches the Exit inside an
+  authenticated HOPR packet (RFC-0004), and is decrypted with the `ack_secret` that the acknowledgement challenge it is filed under uniquely
+  determines (RFC-0005). There is therefore no non-adversarial path to a share that fails to interpolate. This is what makes giving up the fault
+  isolation of full-matrix mode acceptable in this instantiation: an Entry that corrupts shares forfeits an allocation it has already made.
 - **Return path length.** A Session with `UsePIX` MUST use a return path with at least one intermediate hop. On a 0-hop return path no first
   downstream relayer exists, so no `ack_secret` is disclosed and no share can be decrypted (see Section 2.1).
-- **Unverifiable-share tolerance.** The Exit closes the Session once more than 3 shares have failed the verification of Section 2.3.5.
+- **Unverifiable-share tolerance.** Zero: the Exit closes the Session on the _first_ validation failure of Section 2.3.6. A failure means a whole
+  polynomial did not open its commitment, which already makes `SSA_Priv_i` unrecoverable, so there is nothing a tolerance could preserve; closing at
+  once is also what bounds the served packets to the `t+1` above.
 - **Deposit deadline.** After deriving `SSA_i`, the Exit arms a timer and closes the Session if the allocation is not observed before it expires.
 - **Early recovery threshold.** The Exit initiates `SSA_Agreement_(i+1)` once 85% of the `m` polynomials of `SSA_i` have been recovered.
 - **Commitment lifetimes.** An incomplete `EntryCommitment_i` is discarded after 2 minutes, an SSA that has not been fully recovered after 10 minutes,
-  and a polynomial verifier that has gone unused after 30 minutes.
+  and a polynomial's reconstruction state - its constant-term commitment and its collected shares - after 30 minutes unused.
