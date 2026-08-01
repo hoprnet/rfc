@@ -67,11 +67,16 @@
               renovate-config-validator = {
                 enable = true;
                 name = "Renovate config validator";
-                entry = "${pkgs.writeShellScript "validate-renovate" ''
-                  if [ -n "''${NIX_BUILD_TOP:-}" ]; then exit 0; fi
-                  ${pkgs.nodejs}/bin/npx --yes --package renovate -- renovate-config-validator "$@"
-                ''}";
+                entry = "${pkgs.renovate}/bin/renovate-config-validator";
                 files = "renovate\\.json$";
+                language = "system";
+                pass_filenames = true;
+              };
+              dependabot-validator = {
+                enable = true;
+                name = "Dependabot config validator";
+                entry = "${pkgs.check-jsonschema}/bin/check-jsonschema --builtin-schema vendor.dependabot";
+                files = "\\.github/dependabot\\.yml$";
                 language = "system";
                 pass_filenames = true;
               };
