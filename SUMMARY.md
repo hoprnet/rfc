@@ -20,8 +20,8 @@ as of 2026-07-06.
 | 0009 | Session Start Protocol                 | Finalised      | v1.0.0  |
 | 0010 | Automatic Path Discovery               | Finalised      | v1.1.0  |
 | 0011 | Application Layer Protocol             | Finalised      | v1.0.0  |
-| 0012 | Protocol for Incentivization of eXits  | Draft (PR)     | v0.4.1  |
-| 0013 | Return Path Incentivization            | Raw (PR stub)  | v0.1.0  |
+| 0012 | Protocol for Incentivisation of eXits  | Draft (PR)     | v0.4.1  |
+| 0013 | Return Path Incentivisation            | Raw (PR stub)  | v0.1.0  |
 | 0014 | Path-Finding                           | Finalised      | v1.0.0  |
 | 0015 | Onion Services over HOPR               | Raw            | v0.9.0  |
 | 0016 | HOPR Distributed Directory             | Raw            | v0.1.3  |
@@ -256,7 +256,7 @@ unprobed edges, `min_ack_rate = 0.1`.
 Output `ResolvedTransportRouting = { forward ValidatedPath, return
 ValidatedPaths (for SURBs), HoprPseudonym }`.
 
-## 7. PIX — Protocol for Incentivization of eXits (RFC-0012 draft v0.4.1)
+## 7. PIX — Protocol for Incentivisation of eXits (RFC-0012 draft v0.4.1)
 
 Fills the "destination earns nothing" gap for Exit nodes serving Entry
 traffic. Entities: Entry `A` (client), Exit `B` (server), privacy pool `W`

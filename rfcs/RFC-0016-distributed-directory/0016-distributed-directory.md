@@ -362,7 +362,7 @@ already provide one.
 
 [02] Maymounkov, P., & Mazières, D. (2002). [Kademlia: A Peer-to-peer Information System Based on the XOR Metric](https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf). _IPTPS 2002_, 53-65.
 
-[03] Dingledine, R., Mathewson, N., & Syverson, P. (2004). [Tor: The Second-Generation Onion Router](https://svn.torproject.org/svn/projects/design-paper/tor-design.pdf). _13th USENIX Security Symposium_. See also the Tor Rendezvous Specification v3 (hidden-service directory).
+[03] Dingledine, R., Mathewson, N., & Syverson, P. (2004). [Tor: The Second-Generation Onion Router](https://svn.torproject.org/svn/projects/design-paper/tor-design.pdf). _13th USENIX Security Symposium_.
 
 [04] Bernstein, D. J., Duif, N., Lange, T., Schwabe, P., & Yang, B.-Y. (2012). [High-speed high-security signatures](https://ed25519.cr.yp.to/ed25519-20110926.pdf). _Journal of Cryptographic Engineering, 2_(2), 77-89.
 
@@ -373,8 +373,9 @@ already provide one.
 - Hash `H`: **BLAKE3-256**, consistent with
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md).
 - Record and blinded-slot signatures: **Ed25519** [04], canonical encoding,
-  small-order points rejected; key blinding per Section 4.3 with scalar reduced
-  modulo `L` and clamped.
+  small-order points rejected; key blinding per Section 4.3 with `h` clamped
+  (not separately reduced modulo `L`) before point multiplication, and
+  `a_blind` reduced modulo `L`.
 - Distributed hash table: **Kademlia**-style XOR metric [02] for routing, with
   responsible-set membership additionally gated by on-chain identity and a
   per-period beacon (Section 4.3).

@@ -377,7 +377,7 @@ blinding approach [06]:
 
 ```
 period   = floor(now / PERIOD_LENGTH)   // PERIOD_LENGTH default 86400 s
-h        = clamp_and_reduce( H("hopr-blind" || pk_S || period) )   // per-period scalar
+h        = clamp( H("hopr-blind" || pk_S || period) )              // per-period scalar; do not separately reduce mod L
 pk_blind = h · pk_S                      // Ed25519 POINT scalar-multiplication (not addition)
 slot     = H(pk_blind || period)         // directory address
 ```
@@ -1859,7 +1859,7 @@ key and a non-reused 96-bit nonce (Appendix 1).
 
 [05] Standards for Efficient Cryptography Group. (2010). [SEC 2: Recommended Elliptic Curve Domain Parameters](https://www.secg.org/sec2-v2.pdf). _Standards for Efficient Cryptography_.
 
-[06] Dingledine, R., Mathewson, N., & Syverson, P. (2004). [Tor: The Second-Generation Onion Router](https://svn.torproject.org/svn/projects/design-paper/tor-design.pdf). _13th USENIX Security Symposium_. See also the Tor Rendezvous Specification v3.
+[06] Dingledine, R., Mathewson, N., & Syverson, P. (2004). [Tor: The Second-Generation Onion Router](https://svn.torproject.org/svn/projects/design-paper/tor-design.pdf). _13th USENIX Security Symposium_.
 
 [07] Bernstein, D. J., Duif, N., Lange, T., Schwabe, P., & Yang, B.-Y. (2012). [High-speed high-security signatures](https://ed25519.cr.yp.to/ed25519-20110926.pdf). _Journal of Cryptographic Engineering, 2_(2), 77-89.
 
