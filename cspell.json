@@ -115,10 +115,18 @@
     "Spirakis",
     "trustlessness",
     "fulfil",
-    "unprobed"
+    "unprobed",
     "Aumasson",
     "Neves",
-    "Kalman"
+    "Kalman",
+    "Repr",
+    "BabyJubJub",
+    "Schnorr",
+    "Ethereum",
+    "PoK",
+    "prover",
+    "pipelined",
+    "pipelining"
   ],
   "flagWords": [
     "finalize",
