@@ -188,21 +188,64 @@ graph is the canonical topology store.
 
 ### 6.2 Probing (RFC-0010)
 
-Two modes: **immediate-neighbour** ping/pong (0-hop, nonce-based, carries one SURB; yields latency, drop rate, ack rate) and **loopback path probes**
-(sender = receiver over 1–3 random intermediate hops; payload indistinguishable from cover traffic; 40-byte 5-slot path identifier + 8-byte probe ID +
-16-byte ns timestamp). Probe results continuously score edges; unreliable edges are passively starved of traffic (score-weighted selection),
-optionally actively excluded (local decision only).
+Two modes: **immediate-neighbour** ping/pong (0-hop, nonce-based, carries one SURB) and **loopback path probes** (sender = receiver over `n` random
+intermediate hops, `1 ≤ n ≤ 3`, where the upper bound is RFC-0004's hop limit rather than a probing constant; `n` SHOULD vary across probes; **carries
+no SURB**, since the path already terminates at the originating node; payload indistinguishable from cover traffic). Probe results continuously score
+edges.
+
+The loopback **path-telemetry payload** is 8-byte probe ID + 40-byte path identifier + 16-byte timestamp, in that wire order. The path identifier is
+five 8-byte little-endian slots: slot 0 the originator, each subsequent non-zero slot the next relay in traversal order, the final non-zero slot the
+loopback node; trailing unused slots are zero. Consequently `0` is **reserved and MUST NOT be used as a valid node identifier**, and receivers read
+the path length as the run of consecutive non-zero slots from slot 0. The timestamp is nanoseconds since the UNIX epoch as a big-endian `u128` — note
+the mixed byte order against the little-endian slots, which §10 records as a known limitation. The originator MUST verify the probe returned to itself
+before recording any observation from it.
+
+**Next-hop telemetry (PPT, §4.3.1) MUST** be collected for each direct peer connection, providing at minimum latency, packet drop rate, and
+acknowledgement rate — "the ratio of acknowledged messages to sent messages on the channel, including production traffic as well as probes". PPT
+exists because loopback cannot cover this ground: §4.2.1.3 notes that making multi-hop probes indistinguishable from real traffic renders "direct
+verification of immediate peer properties via loopback" infeasible, so PPT operates at 0-hop outside the multi-hop anonymity requirement.
+
+**Probe scheduling (§4.2.1.4)**: implementations SHOULD order pending probes by a priority combining at least staleness and current edge score; the
+stated requirement is "only that both staleness and current score participate". Note the direction — edges with _lower_ scores SHOULD be probed
+**more** urgently, "to confirm whether the poor score reflects persistent degradation or a transient event".
+
+**Exclusion (§4.2.3)**: implementations MUST realise at minimum a passive tier and MAY add active slashing. Passive exclusion MUST "weight path
+selection by per-edge score so that edges with lower scores receive proportionally less traffic", which "ensures that unreliable edges are
+progressively starved rather than suddenly eliminated, and that their score is continuously updated by the ongoing probe stream". Active slashing,
+when implemented, SHOULD consider a failure threshold, a slashing duration and a recovery mechanism; slashing decisions MUST be made locally, without
+coordination between nodes.
+
+Two reader's notes, neither of them RFC text:
+
+- Although the range starts at `n = 1`, a 1-hop loopback `me→X→me` lets the sole relay observe that its predecessor and successor are the same node,
+  identifying both the loop and its originator. Implementations therefore commonly restrict loopback probing to `n ≥ 2`, making the effective probed
+  range `2 ≤ n ≤ 3`.
+- The scheduling direction and the passive-exclusion rationale together imply that probe generation must not be gated by the same score that starves
+  data traffic: an edge pruned from candidate paths receives no probes, so its score can never be updated, which is precisely the outcome §4.2.3 rules
+  out.
 
 ### 6.3 Path-finding (RFC-0014)
 
-Edge score = probe success rate × step-function latency score (≤75 ms → 1.0; ≤125 → 0.7; ≤200 → 0.3; >200 → 0.15; no data → 0.05), averaged over
-immediate/intermediate streams. Path value = product of edge costs. Candidate generation enumerates simple paths of exactly `hops+1` edges (with a
-phase-2 fallback that appends a channel-less final hop), caps `max_paths = 8`, validates against on-chain state (open channels on every non-final
-edge, no duplicate nodes), then samples **weighted-random** by path value (cached 60 s TTL, background refresh 30 s). Constants: `edge_penalty = 0.5`
-for unprobed edges, `min_ack_rate = 0.1`.
+Per-stream link score = probe success rate × step-function latency score (≤75 ms → 1.0; ≤125 → 0.7; ≤200 → 0.3; >200 → 0.15; no data → 0.05), over an
+EMA of latency (window `N ≥ 3`) and of probe success rate (window `N ≥ 5`). The two streams combine **conditionally, not by unconditional averaging**:
+`(imm + inter) / 2` only when **both are present**, otherwise whichever single stream is present; an edge with no observations at all scores `0`. Path
+value = product of edge costs. Candidate generation enumerates simple paths of exactly `hops+1` edges (with a phase-2 fallback that appends a
+channel-less final hop), caps `max_paths = 8`, validates against on-chain state (open channels on every non-final edge, no duplicate nodes), then
+samples **weighted-random** by path value (cached 60 s TTL, background refresh 30 s). Constants: `edge_penalty = 0.5` for unprobed edges,
+`min_ack_rate = 0.1`.
 
 Output `ResolvedTransportRouting = { forward ValidatedPath, return
 ValidatedPaths (for SURBs), HoprPseudonym }`.
+
+Two reader's notes on §4.2, neither of them RFC text:
+
+- The RFC does not define "present". Read it as _has recorded observations_, not _allocated_. An implementation that counts a stream as present
+  because some unrelated update brought it into existence — a capacity update, say — averages real measurements against a phantom zero, halving the
+  score of every edge that only one stream can ever observe.
+- §4.2 and §4.3 pull in opposite directions on unobserved edges: §4.2 says such an edge "has a score of `0` and MUST be treated as unusable", while
+  §4.3 assigns it "a cost of `edge_penalty` (default `0.5`) rather than `0`", which "allows unprobed edges to be selected". The reconciliation
+  implementations reach is that `0` is the _score_ while `edge_penalty` is the substituted _cost_ — but that leaves an unprobed edge and a
+  measured-and-dead edge indistinguishable unless the two are tracked apart, a known source of inverted rankings.
 
 ## 7. PIX — Protocol for Incentivization of eXits (RFC-0012 draft v0.4.1)
 
