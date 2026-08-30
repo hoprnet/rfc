@@ -90,7 +90,7 @@ The directory is an abstract map from `slot` to a single current `record`:
 Records are **opaque** to the directory except for a small envelope the directory
 must read to enforce authenticity, monotonicity, and expiry:
 
-```
+```text
 RecordEnvelope {
   slot         : [u8; 32],   // MUST equal the request slot
   auth_pubkey  : [u8; 32],   // key that signs this record (the blinded descriptor key)
@@ -142,7 +142,7 @@ publication jitter (Section 4.5), not on this property.
 prime-order subgroup order, and let an identity be the keypair `(a, A)` with
 `A = a·B` (`A` is `pk`). For the current `period`:
 
-```
+```text
 // 0. pk MUST first pass a full subgroup check (reject non-prime-order / mixed-order
 //    points: verify L·pk == identity), since pk_blind is computed from a supplied pk.
 // 1. Derive and clamp the per-period blinding scalar h:
