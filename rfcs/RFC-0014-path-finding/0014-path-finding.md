@@ -19,8 +19,7 @@ This RFC specifies the multi-hop path-finding mechanism for the HOPR protocol. G
 produced by the probing mechanism defined in [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md), a path-finding node
 enumerates simple paths of a requested length, scores each candidate from its per-edge quality values, prunes the pool for consistency and relay
 diversity, validates every candidate against on-chain channel state, and selects one path by weighted-random sampling. Accepted candidates are cached
-with periodic background refresh to amortise discovery cost. This revision reconciles the specification with the reference implementation as shipped
-in hoprnet `release/4.0` (hopr-api 2.0.0, hopr-network-graph 0.5.0, hopr-transport 0.48.1).
+with periodic background refresh to amortise discovery cost.
 
 ## 2. Motivation
 
@@ -113,20 +112,6 @@ where `latency_score` is a step function:
 | > 200 ms        | 0.15          |
 | no data         | 0.05          |
 
-**Intermediate stream and SURB delivery** — the intermediate link score additionally folds in a real-traffic delivery signal derived from completed
-SURB round trips (RFC-0010 §4.2). The intermediate probe success rate is the pessimistic minimum of the loopback-probe success rate and the SURB
-delivery rate, so that either signal alone can condemn an edge and neither masks the other:
-
-```text
-inter_probe_rate = min(surb_delivery_rate, loopback_probe_rate)   when both are present
-                 = whichever is present                            otherwise
-```
-
-The SURB delivery rate is read relative to a decaying per-edge peak rather than as an absolute ratio — the reply-block balancer over-mints SURBs, so
-the raw expected/observed ratio is not itself a delivery rate. It is further discounted by a short-term trend factor when recent delivery falls below
-half the windowed average. This is a soft discount, not a gate: a temporarily degraded relay is displaced by better-scoring peers rather than excluded
-outright.
-
 **Combined edge score** — the edge score combines the two measurement streams:
 
 ```text
@@ -174,9 +159,8 @@ The admission and cost rules applied by the variants are:
    (free relaying) an open channel of any positive balance suffices. This funding gate replaces the earlier positive-capacity check, expressing
    capacity in units of the tickets a hop must actually pay.
 
-3. **Minimum acknowledgement rate**: an edge whose immediate-probe acknowledgement rate is below `min_ack_rate` (default `0.1`) receives a
-   non-positive cost and is pruned; an edge with no acknowledgement observation is charged the `edge_penalty` instead. The `min_ack_rate` parameter
-   MUST be in `[0, 1]`.
+3. **Minimum acknowledgement rate**: an edge whose immediate-probe acknowledgement rate is below `min_ack_rate` receives a non-positive cost and is
+   pruned; an edge with no acknowledgement observation is charged the `edge_penalty` instead. The `min_ack_rate` parameter MUST be in `[0, 1]`.
 
 4. **Unprobed-edge penalty**: an edge that lacks probe observations is assigned a cost of `edge_penalty` (default `0.5`) rather than `0`. This allows
    unprobed edges to be selected but makes them less likely than well-observed edges. The `edge_penalty` parameter MUST be in `(0, 1]`.
@@ -201,8 +185,8 @@ the averaged combined edge score of §4.2 rather than by a single measurement st
 The path selector enumerates simple paths through the channel graph using bounded depth-first search (DFS). The algorithm tracks a visited-node set to
 prevent cycles; all returned paths are acyclic (no node is visited twice).
 
-The hop bound is `MAX_INTERMEDIATE_HOPS = 3`, which limits the maximum path length to `MAX_INTERMEDIATE_HOPS + 1 = 4` directed edges. This limit is
-enforced by the path identifier encoding, which reserves space for exactly five node slots.
+The hop bound is `MAX_INTERMEDIATE_HOPS`, which limits the maximum path length to `MAX_INTERMEDIATE_HOPS + 1` directed edges. This limit is enforced
+by the path identifier encoding, which reserves space for exactly five node slots.
 
 Candidate enumeration is capped at `max_paths` (default `50`) paths per query to bound the cost of the DFS.
 
@@ -258,8 +242,9 @@ When the pool is larger than the floor, the selector:
 This bounds the pool to a diverse, well-measured set rather than many near-duplicate routes sharing a first hop.
 
 During traversal the selector folds per-path quality aggregates alongside the path value: total path latency, the minimum per-edge probe success rate,
-the minimum per-edge acknowledgement rate, and a fundable-ticket floor (the minimum over edges of `balance / ticket_face_value`). These aggregates
-feed the consistency pruning above and the composite selection weight (§4.5).
+the minimum per-edge acknowledgement rate, and a fundable-ticket floor (the minimum over edges of `balance / ticket_face_value`, treated as unknown
+when the ticket price is zero so that free-relaying queries fall back to a neutral capacity factor in §4.5). These aggregates feed the consistency
+pruning above and the composite selection weight (§4.5).
 
 ### 4.5 Weighted random selection
 
@@ -342,11 +327,11 @@ chain-address and packet-key forms.
 | `max_plausible_loopback_rtt` | 30 s       | Upper bound on a plausible loopback round-trip, used to reject implausible latency attributions |
 
 **Cache miss behaviour**: when a routing request is not satisfied from cache, the planner MUST invoke the selector, validate all candidates, and
-insert the resulting `WeightedCollection` before returning a selected path. Subsequent calls for the same key are served from cache until the TTL
+insert the resulting `WeightedCollection` before returning a selected path. Subsequent calls for the same key MUST be served from cache until the TTL
 expires.
 
-**Routing variants that bypass the cache**: explicit intermediate-path requests (`RoutingOptions::IntermediatePath`) and zero-hop direct requests
-(`hops = 0`) MUST bypass the cache entirely. These are validated on every invocation.
+**Routing variants that bypass the cache**: explicit intermediate-path requests and zero-hop direct requests MUST bypass the cache entirely. These are
+validated on every invocation.
 
 **Background refresh**: the path planner SHOULD run a background task that periodically iterates all live cache keys and re-inserts a fresh
 `WeightedCollection` for each key where the selector succeeds. This proactive sweep ensures that traffic bursts are served from cache rather than
@@ -354,11 +339,6 @@ triggering concurrent cache misses.
 
 The background task MUST NOT block request handling. A key whose refresh attempt fails (selector returns no candidates or no candidates validate) MUST
 be left with its current (possibly stale) cache entry until the TTL expires naturally.
-
-**Reactive re-planning**: in addition to the periodic sweep, the planner MAY recompute every cache entry that originates at a given peer on demand —
-for example, when that peer is observed to have gone silent. Reactive recomputation replaces each affected entry in place rather than dropping it;
-dropping the entry was observed to collapse the affected session's usable share of paths. The operation reports how many entries had their selection
-shares shift by more than a small threshold, so that a caller can tell whether a recomputation was material.
 
 ### 4.8 Output
 
@@ -449,8 +429,10 @@ without changing the candidate generation or weighted-selection mechanisms, prov
 adversary observing two flows with the same optimal path could link them to the same sender. Weighted-random selection (§4.5) ensures that flows
 across the same source–destination pair will, over time, use different relay sets, reducing this linkage.
 
-**Resource exhaustion**: the DFS enumeration is bounded by `max_paths` and the hop limit (`MAX_INTERMEDIATE_HOPS = 3`). The cache is bounded by
-`max_cache_capacity`. Together these prevent a malicious or misbehaving caller from exhausting memory or CPU through path-finding requests.
+**Resource exhaustion**: the DFS enumeration is bounded by `max_paths` and the hop limit (`MAX_INTERMEDIATE_HOPS`). The cache is bounded by
+`max_cache_capacity`. Together these bound the work of any single query and the memory retained across queries. They do not by themselves cap total
+load — a cache miss still runs selection and validation, and explicit-path and zero-hop requests bypass the cache — so a deployment exposed to
+untrusted callers SHOULD additionally impose request rate or concurrency limits.
 
 **Random source asymmetry**: forward-path selection draws from a fast non-cryptographic thread-local generator, while return-path selection draws from
 a cryptographically-secure generator (§4.5). Return paths are the more sensitive of the two because they are encoded into SURBs that the destination
@@ -459,8 +441,8 @@ stronger threat model MAY route the forward draw through the cryptographic gener
 
 ## 8. Drawbacks
 
-**Exponential enumeration cost**: DFS enumeration of simple paths is exponential in hop count. The hop bound of 3 intermediates keeps this tractable
-in practice, but raising the bound would require either a different algorithm (§9) or a stricter `max_paths` cap.
+**Exponential enumeration cost**: DFS enumeration of simple paths is exponential in hop count. The bound on the number of intermediates keeps this
+tractable in practice, but raising the bound would require either a different algorithm (§9) or a stricter `max_paths` cap.
 
 **Staleness window**: a freshly broken channel may be selected during the window between the last cache refresh and TTL expiry (at most
 `cache_ttl + refresh_period ≈ 15 s` in the default configuration). Applications that require immediate response to topology changes must accept either
@@ -510,8 +492,8 @@ None at this time.
 - **Bayesian edge scoring**: explore a Bayesian posterior model over edge reliability as an alternative to EMA-based scoring, to improve cold-start
   behaviour (few observations) and provide confidence intervals for path-value estimates.
 
-- **Reactive path repair**: the planner already recomputes a peer's cache entries on demand when it goes silent (§4.7). Further work is to trigger
-  this from a wider range of detected relay failures and to tune the share-shift threshold that decides when a recomputation is material.
+- **Reactive path repair**: investigate triggering immediate cache eviction and re-selection on detected relay failure, reducing the dependence on
+  background refresh for recovery from broken paths.
 
 - **Path-selection telemetry**: export a metric (e.g., a histogram of chosen path values over time) to aid in tuning `edge_penalty` and
   `min_ack_rate`.

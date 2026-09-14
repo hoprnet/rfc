@@ -18,8 +18,7 @@ This RFC specifies an automatic path discovery mechanism for the HOPR protocol, 
 networks. The mechanism allows message senders to remain anonymous while ensuring optimal message delivery by actively probing network nodes to assess
 compliance with HOPR protocol functionality and detect non-adversarial behaviour. The specification defines two complementary probing modes —
 immediate-neighbour probing for direct peers, and loopback path probing for multi-hop paths — along with telemetry collection methods to support path
-selection and quality-of-service (QoS) assessment. This revision reconciles the specification with the reference implementation as shipped in hoprnet
-`release/4.0` (hopr-transport-probe 0.8.0, hopr-ct-full-network 0.4.0, hopr-network-graph 0.5.0).
+selection and quality-of-service (QoS) assessment.
 
 ## 2. Motivation
 
@@ -188,12 +187,12 @@ attempts across different paths, it enables construction of a comprehensive view
 
 The following properties apply to loopback path probing:
 
-- The number of intermediate relay nodes `n` MUST lie within `1 ≤ n ≤ MAX_INTERMEDIATE_HOPS`, where `MAX_INTERMEDIATE_HOPS = 3` is the maximum number
-  of intermediate relays supported by the HOPR packet format defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md). The
+- The number of intermediate relay nodes `n` MUST lie within `1 ≤ n ≤ MAX_INTERMEDIATE_HOPS`, where `MAX_INTERMEDIATE_HOPS` is the maximum number of
+  intermediate relays supported by the HOPR packet format defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md). The
   value of `n` SHOULD vary across probes to distribute coverage and avoid predictable probing patterns. The reference implementation varies `n` by a
-  deterministic rotation over the supported intermediate hop counts (currently `{2, 3}`), emitting one batch per hop count each interval; randomness
-  is applied only when selecting which candidate path of a given hop count to probe (via a weighted shuffle). Single-relay paths (`n = 1`) are not
-  probed by the current profile.
+  deterministic rotation over the supported intermediate hop counts, emitting one batch per hop count each interval; randomness is applied only when
+  selecting which candidate path of a given hop count to probe. Single-relay paths are excluded by the current profile, since a one-hop loopback lets
+  the sole relay observe that its predecessor and successor are the same node.
 - Each probe MUST carry a path identifier and a timestamp so that observations can be attributed to specific edges upon loopback completion (see
   §4.3.3).
 - The originator MUST verify that the loopback probe returns to itself before recording any observations from it.
@@ -222,7 +221,8 @@ graph TD;
 
 _Fig. 2: Network topology for loopback path probing_
 
-The probing traffic from node A would follow the loopback path probing pattern, with `n` selected randomly:
+The probing traffic from node A would follow the loopback path probing pattern, with the hop count `n` taken in turn from the supported values and
+only the candidate path of each hop count chosen at random:
 
 ```ascii
 A -> B -> F -> A
@@ -256,8 +256,8 @@ By aggregating such measurements across multiple paths, implementations can buil
 
 When a loopback probe returns, the latency contribution of each intermediate edge that is not yet independently known can be estimated by subtracting
 the known latencies of the remaining edges from the total observed round-trip time. The reference implementation attributes the residual to the
-penultimate edge of the probed path (the one edge whose latency the return isolates), guarded by a plausibility bound (`max_plausible_loopback_rtt`,
-default 30 s) and a future-timestamp check so that clock skew or implausibly large round-trip times do not corrupt the per-edge estimates.
+penultimate edge of the probed path (the one edge whose latency the return isolates), guarded by a plausibility bound on the round-trip time and a
+future-timestamp check so that clock skew or implausibly large round-trip times do not corrupt the per-edge estimates.
 
 ##### 4.2.1.4 Probe scheduling and prioritisation
 
@@ -391,11 +391,6 @@ absence of an open on-chain payment channel. At a minimum, the PPT MUST provide 
 
 3. **Acknowledgement rate**: Track the ratio of acknowledged messages to sent messages on the channel, including production traffic as well as probes.
 
-In the reference implementation the acknowledgement rate is maintained as a decayed counter (decay factor `0.9`) and is reported only once a minimum
-sample volume has accumulated, so that a single early acknowledgement or loss does not swing the rate. The measured round-trip latency of an
-immediate-neighbour probe is halved to yield a unidirectional per-edge latency estimate, and each neighbour observation updates both the `me → peer`
-and `peer → me` directed edges.
-
 The PPT MAY be utilised by other mechanisms as an information source, such as channel management strategies that optimise the outgoing network
 topology by opening channels to high-performance peers and closing channels to unreliable peers.
 
@@ -494,27 +489,6 @@ to preserve anonymity and prevent relay nodes from distinguishing probe traffic 
 
 - **Session-derived cover traffic**: Probe traffic MAY be incorporated as cover traffic for active sessions (see
   [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) to serve dual purposes and reduce the per-session probing overhead.
-
-### 4.5 Reference implementation parameters (informative)
-
-The following defaults are provided for orientation; they are properties of the reference implementation (hoprnet `release/4.0`), not normative
-requirements, and MAY be tuned per deployment.
-
-| Parameter                      | Default | Description                                                                                 |
-| ------------------------------ | ------- | ------------------------------------------------------------------------------------------- |
-| `timeout`                      | 3 s     | Per-probe response timeout (probe engine).                                                  |
-| `interval` (probe engine)      | 5 s     | Cadence of the probe execution engine; MUST be `≥ timeout`.                                 |
-| `max_parallel_probes`          | 50      | Maximum concurrent in-flight probes.                                                        |
-| `recheck_threshold`            | 60 s    | Minimum age before an edge is re-probed by the engine.                                      |
-| `interval` (traffic generator) | 30 s    | Cadence at which the traffic generator produces probe batches.                              |
-| `shuffle_ttl`                  | 60 s    | Lifetime of the cached weighted shuffle of neighbour candidates (`2 × generator interval`). |
-| `probe_connected_only`         | `true`  | Restrict immediate-neighbour probes to already-connected edges.                             |
-| `staleness_weight`             | 0.4     | Weight of observation staleness in immediate-probe prioritisation (§4.2.1.4).               |
-| `quality_weight`               | 0.3     | Weight of `(1 − score)` in immediate-probe prioritisation (§4.2.1.4).                       |
-| `base_priority`                | 0.3     | Baseline probe priority; also the uniform weight of loopback candidates.                    |
-| SURB window                    | 24 s    | Sliding delivery window for the SURB round-trip signal (twelve 2-second buckets, §4.2.5).   |
-| SURB trend floor               | 0.5     | Threshold below which the short-term delivery trend discounts the SURB rate (§4.2.5).       |
-| `max_plausible_loopback_rtt`   | 30 s    | Upper bound on a plausible loopback round-trip for latency attribution (§4.2.1.3).          |
 
 ## 5. Design considerations
 
