@@ -3,10 +3,10 @@
 - **RFC Number:** 0010
 - **Title:** Automatic path discovery
 - **Status:** Finalised
-- **Author(s):** @Teebor-Choka
+- **Author(s):** Tibor Csóka (@Teebor-Choka)
 - **Created:** 2025-02-25
-- **Updated:** 2026-05-18
-- **Version:** v1.1.0 (Finalised)
+- **Updated:** 2026-09-14
+- **Version:** v1.2.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
@@ -187,9 +187,12 @@ attempts across different paths, it enables construction of a comprehensive view
 
 The following properties apply to loopback path probing:
 
-- The number of intermediate relay nodes `n` SHOULD be selected randomly within the range `1 ≤ n ≤` the maximum number of intermediate relay nodes
-  supported by the HOPR packet format defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md). The value of `n` SHOULD
-  vary across probes to prevent predictable probing patterns.
+- The number of intermediate relay nodes `n` MUST lie within `1 ≤ n ≤ MAX_INTERMEDIATE_HOPS`, where `MAX_INTERMEDIATE_HOPS` is the maximum number of
+  intermediate relays supported by the HOPR packet format defined in [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md). The
+  value of `n` SHOULD vary across probes to distribute coverage and avoid predictable probing patterns. The reference implementation varies `n` by a
+  deterministic rotation over the supported intermediate hop counts, emitting one batch per hop count each interval; randomness is applied only when
+  selecting which candidate path of a given hop count to probe. Single-relay paths are excluded by the current profile, since a one-hop loopback lets
+  the sole relay observe that its predecessor and successor are the same node.
 - Each probe MUST carry a path identifier and a timestamp so that observations can be attributed to specific edges upon loopback completion (see
   §4.3.3).
 - The originator MUST verify that the loopback probe returns to itself before recording any observations from it.
@@ -218,7 +221,8 @@ graph TD;
 
 _Fig. 2: Network topology for loopback path probing_
 
-The probing traffic from node A would follow the loopback path probing pattern, with `n` selected randomly:
+The probing traffic from node A would follow the loopback path probing pattern, with the hop count `n` taken in turn from the supported values and
+only the candidate path of each hop count chosen at random:
 
 ```ascii
 A -> B -> F -> A
@@ -251,7 +255,9 @@ additional anonymity, repeated observations of this value averaged over longer t
 By aggregating such measurements across multiple paths, implementations can build a statistical model of individual node performance characteristics.
 
 When a loopback probe returns, the latency contribution of each intermediate edge that is not yet independently known can be estimated by subtracting
-the known latencies of the remaining edges from the total observed round-trip time.
+the known latencies of the remaining edges from the total observed round-trip time. The reference implementation attributes the residual to the
+penultimate edge of the probed path (the one edge whose latency the return isolates), guarded by a plausibility bound on the round-trip time and a
+future-timestamp check so that clock skew or implausibly large round-trip times do not corrupt the per-edge estimates.
 
 ##### 4.2.1.4 Probe scheduling and prioritisation
 
@@ -265,16 +271,31 @@ Implementations SHOULD order pending probes by a priority that combines at least
 The exact weighting formula is left to implementations. The requirement is only that both staleness and current score participate in prioritisation
 decisions.
 
+In the reference implementation this prioritisation applies to immediate-neighbour probes, which are scored per edge as:
+
+```ascii
+priority = staleness_weight · min(staleness, 300s)/300s + quality_weight · (1 − score) + base_priority
+```
+
+with defaults `staleness_weight = 0.4`, `quality_weight = 0.3`, `base_priority = 0.3`, and an unobserved edge forced to maximum priority (staleness
+300 s, score 0). Loopback path candidates are not individually prioritised this way; they are assigned a uniform `base_priority` weight and selected
+by weighted shuffle among candidates of the same hop count (§4.2.1.2).
+
 ##### 4.2.1.5 Prober deployment profiles (informative)
 
-A node MAY operate one of two deployment profiles:
+Two conceptual profiles are distinguished:
 
-- **Minimal prober**: emits only immediate-neighbour probes (§4.2.1.1). Deployments MAY disable loopback path probing via node profile or policy
-  configuration. Suitable for nodes that primarily require next-hop telemetry without full topology discovery.
+- **Minimal prober**: emits only immediate-neighbour probes (§4.2.1.1). Suitable for nodes that primarily require next-hop telemetry without full
+  topology discovery.
 - **Full prober**: emits both immediate-neighbour probes and loopback path probes (§4.2.1.2). Suitable for nodes that require a comprehensive topology
   view for multi-hop path selection.
 
 Whichever probes a node emits MUST conform to §4.2.1.1 and §4.2.1.2 respectively.
+
+The reference implementation ships a single combined traffic generator (`hopr-ct-full-network`) that always emits both modes; it does not expose a
+runtime profile flag to select the minimal profile, and production nodes therefore run the full prober. The minimal profile remains a permitted
+configuration for constrained deployments but is not separately wired in the reference build. A related toggle, `probe_connected_only` (default
+`true`), narrows which neighbours receive immediate probes rather than switching profiles.
 
 #### 4.2.2 Evaluation mechanism
 
@@ -320,6 +341,34 @@ rate). Path selection SHOULD consider:
 These considerations ensure that path discovery supports not only path viability assessment but also efficient utilisation of available network
 capacity.
 
+#### 4.2.5 SURB round-trip delivery signal
+
+Beyond active probing, implementations MAY derive a delivery signal from ordinary production traffic by observing completed Single-Use Reply Block
+(SURB) round trips. When a message sent along a forward path elicits a reply carried by a SURB along a return path, the successful completion is
+direct evidence that every edge on both legs carried traffic. This signal complements probe observations without generating any additional traffic.
+
+The reference implementation records SURB round trips as follows:
+
+- **Crediting scope**: a completed round trip credits every edge across both the forward and return legs, joined at the replying node. Unlike loopback
+  latency tomography (§4.2.1.3), which isolates a single edge, a completed round trip has no unknown leg to isolate, so crediting the whole loop
+  preserves the full evidence.
+
+- **Attribution safety**: the path identifier carried by the round trip is a snapshot of the sender's topology at emission time. If any slot no longer
+  resolves to a live node, or names an edge the graph no longer holds, the entire attribution is aborted and nothing is credited, rather than
+  mis-crediting whichever node now occupies that position. Reports whose emission timestamp lies in the future (backward clock skew) or older than the
+  observation window are dropped.
+
+- **Windowed, peak-relative rate**: delivery is tracked in a sliding window (reference: twelve 2-second buckets, a 24-second window). Because the
+  reply block balancer over-mints SURBs, the absolute expected/observed ratio is not itself a delivery rate; it is instead read relative to a decaying
+  per-edge peak (half-life equal to the window) and discounted by a short-term trend factor when recent delivery falls below half the windowed average
+  (trend floor `0.5`).
+
+- **Combination**: the resulting SURB delivery rate is combined with the loopback-probe success rate by taking the pessimistic minimum, so that either
+  signal alone can down-weight an edge and neither masks the other. The signal is a soft discount on the edge score (§4.2.2), never a hard exclusion —
+  consistent with the passive-exclusion tier of §4.2.3.
+
+The consumption of this signal by path selection is specified in [RFC-0014](../RFC-0014-path-finding/0014-path-finding.md) §4.2.
+
 ### 4.3 Telemetry
 
 Telemetry refers to the data and metadata collected by the probing mechanism about traversed transport paths. Telemetry enables nodes to assess path
@@ -351,7 +400,9 @@ Non-probing telemetry refers to telemetry collected from production (non-probe) 
 telemetry with the goal of adding more relevant channel information for 0-hop connections.
 
 Each outgoing message SHOULD be tracked for the same set of telemetry as the PPT (latency, packet drop rate) on a per-message basis. This provides
-real-world performance data that complements probe-based observations and can reveal issues that only appear under actual traffic load.
+real-world performance data that complements probe-based observations and can reveal issues that only appear under actual traffic load. For multi-hop
+paths, the SURB round-trip delivery signal (§4.2.5) is the corresponding non-probing telemetry source, attributing successful production round trips
+to the edges that carried them.
 
 #### 4.3.3 Probing telemetry
 
@@ -405,11 +456,11 @@ title "Loopback Path-Telemetry Payload (64 B)"
 +128: "Timestamp (16 B)"
 ```
 
-| Field               | Size     | Byte order             | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------- | -------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Probe ID**        | 8 bytes  | N/A (byte string)      | An opaque identifier assigned by the probing node at emission time. Used to correlate the returned telemetry with the original probe record.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **Path Identifier** | 40 bytes | Per-slot little-endian | Five consecutive 8-byte slots, each encoding one canonical 64-bit node identifier for the probed path in traversal order. Slot 0 SHALL encode the originating node, each subsequent non-zero slot SHALL encode the next relay on the path, and the final non-zero slot SHALL encode the loopback/terminating node. Paths shorter than five nodes SHALL be encoded by setting every unused trailing slot to `0x0000000000000000`. A zero-valued slot is padding, not a node identifier; therefore `0` is reserved and MUST NOT be used as a valid node identifier in this field. Receivers SHALL interpret the path length as the number of consecutive non-zero slots starting at slot 0, and any non-zero slot that appears after a zero-valued slot SHALL be treated as an invalid encoding. |
-| **Timestamp**       | 16 bytes | Big-endian             | Nanoseconds since the UNIX epoch at the time the probe was emitted, serialised as a 128-bit unsigned integer in big-endian byte order. Compared against the wall clock upon loopback return to derive end-to-end path latency.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Field               | Size     | Byte order             | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------- | -------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Probe ID**        | 8 bytes  | N/A (byte string)      | An opaque identifier assigned by the probing node at emission time. Used to correlate the returned telemetry with the original probe record.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Path Identifier** | 40 bytes | Per-slot little-endian | Five consecutive 8-byte slots, each encoding one 64-bit node identifier for the probed path in traversal order. Each identifier is derived from the node's off-chain public key by taking its leading 8 bytes as a big-endian 64-bit integer, with the value `0` remapped to `1` so that a real node can never collide with the padding value. Slot 0 SHALL encode the originating node, each subsequent non-zero slot SHALL encode the next relay on the path, and the final non-zero slot SHALL encode the loopback/terminating node. Paths shorter than five nodes SHALL be encoded by setting every unused trailing slot to `0x0000000000000000`. A zero-valued slot is padding, not a node identifier; therefore the value `0` is reserved and cannot occur as a valid identifier. Receivers SHALL interpret the path length as the number of consecutive non-zero slots starting at slot 0, and any non-zero slot that appears after a zero-valued slot SHALL be treated as an invalid encoding. The derived 64-bit identifier is computed big-endian from the public key but serialised into its wire slot in little-endian byte order. |
+| **Timestamp**       | 16 bytes | Big-endian             | Milliseconds since the UNIX epoch at the time the probe was emitted, serialised as a 128-bit unsigned integer in big-endian byte order. Compared against the wall clock upon loopback return to derive end-to-end path latency.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 **Note on byte order and fixed-width encoding**: The path identifier uses little-endian per-slot encoding, while the timestamp uses big-endian
 encoding. This mixed convention is a known limitation; see §10. The 40-byte path identifier is a fixed-width representation of a variable-length path
