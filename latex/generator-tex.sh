@@ -66,7 +66,7 @@ while IFS= read -r line; do
     done
     PNG_FILE="$OUTDIR/mermaid_${MERMAID_IDX}.png"
     echo "Rendering mermaid block $MERMAID_IDX -> $(basename "$PNG_FILE")"
-    if mmdc -i "$MERM_FILE" -o "$PNG_FILE" --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4  --puppeteerConfigFile ./generated/puppeteer-config.json; then
+    if mmdc -i "$MERM_FILE" -o "$PNG_FILE" --outputFormat png --size 4800 --backgroundColor white --scale 4  --puppeteerConfigFile ./generated/puppeteer-config.json; then
       RENDERED=$((RENDERED+1))
       # Grayscale conversion (disabled for now)
       # if [ "$GRAYSCALE_OK" -eq 1 ]; then
