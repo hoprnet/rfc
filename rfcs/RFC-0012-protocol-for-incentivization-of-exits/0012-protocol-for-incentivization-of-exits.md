@@ -34,7 +34,7 @@ conditional.
 ## 1.2 Notation
 
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are
-to be interpreted as described in [02] when, and only when, they appear in all capitals, as shown here.
+to be interpreted as described in [01] when, and only when, they appear in all capitals, as shown here.
 
 All terminology used in this document, including general mix network concepts and HOPR-specific definitions, is provided in
 [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md). That document serves as the authoritative reference for the terminology and
@@ -166,13 +166,13 @@ The protocol follows to perform the first `SSA_Agreement_1` between `A` and `B`:
    allocate before the whole `EntryCommitment_i` message has been sent, so that `B` is always able to derive `SSA_i` at the moment funds appear at it.
 7. `B` MUST NOT continue communicating with `A` if `EntryCommitment_i` in not received within a certain time limit and terminates here.
 8. Once `B` receives the full `EntryCommitment_i` message, the Exit node MUST (in this order): a) verify the number of received polynomials and the
-   degree agreed in `params` are acceptable, otherwise it MUST terminate communications with `A` - note that in constant-term mode the degree is not
+   degree agreed in `params` are acceptable, otherwise it SHOULD terminate communications with `A` - note that in constant-term mode the degree is not
    observable from the message and is taken from `params` alone b) verify that every received coefficient commitment belongs to the large order
-   (sub)group of `C`, otherwise it MUST terminate communications with `A` c) compute `EntryCommitment_i = M_i_0_0 + M_i_0_1 + ... + M_i_0_(m-1)` and
-   verify `PoKVerify(PoK_i, EntryCommitment_i, P || i)`; if verification fails, or if no `PoK_i` was received, `B` MUST terminate communications with
-   `A` **without** deriving or publishing any deposit address for `SSA_i` (see Section 2.3.3.1) d) create
-   `SSA_i = EntryCommitment_i + ExitCommitment_i` e) store `A`'s pseudonym `P` and the polynomial coefficient commitment matrix `M_i` f) await
-   allocation to be deposited to `SSA_i`
+   (sub)group of `C`, otherwise it SHOULD terminate communications with `A` c) compute `EntryCommitment_i = M_i_0_0 + M_i_0_1 + ... + M_i_0_(m-1)` and
+   verify `PoKVerify(PoK_i, EntryCommitment_i, P || i)`; if verification fails, or if no `PoK_i` was received, `B` MUST NOT derive or publish any
+   deposit address for `SSA_i` (see Section 2.3.3.1) and SHOULD terminate communications with `A`. If `B` does not terminate on a failed check, it
+   MUST discard the offending message, so that step 7 applies d) create `SSA_i = EntryCommitment_i + ExitCommitment_i` e) store `A`'s pseudonym `P`
+   and the polynomial coefficient commitment matrix `M_i` f) await allocation to be deposited to `SSA_i`
 
 The `B` MAY choose not to continue communicating with `A` unless the deposit in `8f` is finished or to communicate only for a limited time until the
 deposit is detected. `B` SHOULD bound that time and terminate communication with `A` if the allocation to `SSA_i` is not observed within it.
@@ -553,9 +553,14 @@ Since the Exit does not choose the parameters, an Entry MAY be refused service b
 running modified code that echoes different values than were advertised is rejected by the Entry at step 3b of Section 2.3.1, and would in any case
 only break its own recovery.
 
-# References
+# 3 References
 
-TBA
+[01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
+
+[02] Faz-Hernandez, A., et al. (2023). [Hashing to Elliptic Curves](https://www.rfc-editor.org/rfc/rfc9380.html). _IETF RFC 9380_.
+
+[03] O'Connor, J., Aumasson, J.-P., Neves, S., & Wilcox-O'Hearn, Z. (2021).
+[BLAKE3: One function, fast everywhere](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf). _BLAKE3 specification_.
 
 # Appendix 1
 
@@ -565,12 +570,12 @@ The HOPR PIX is the following instantiation of PIX:
   The curve identifier in `params` (Section 2.3.2) is `0` for BabyJubJub and `1` for secp256k1.
 - `H` is Blake3_256
 - `E/D` is Chacha20
-- `KDF` is instantiated using Blake3 in KDF mode [06], where the optional salt `s` is appended to the key material `k`: `KDF(c,k,s)` =
+- `KDF` is instantiated using Blake3 in KDF mode [03], where the optional salt `s` is appended to the key material `k`: `KDF(c,k,s)` =
   `blake3_kdf(c, k || s)`. If `s` is omitted: `KDF(c,k) = blake3_kdf(c,k)`.
-- `HS` is instantiated via `hash_to_scalar` using `expand_message_xmd` with Blake3_256 as defined in [04]. The message `m` and the binding data `d`
+- `HS` is instantiated via `hash_to_scalar` using `expand_message_xmd` with Blake3_256 as defined in [02]. The message `m` and the binding data `d`
   are concatenated as the hash input, and the domain-separation tag is the concatenation of a fixed suite identifier and `t`. The suite identifier is
   the ASCII string `BabyJubJub_XMD:BLAKE3_SSWU_RO_`, or `Secp256k1_XMD:BLAKE3_SSWU_RO_` for the secp256k1 instantiation. It is a fixed constant of the
-  protocol and MUST NOT be derived at runtime. Unlike `hash_to_field` in [04], the expansion length is `L = 32` bytes, and the expanded bytes are
+  protocol and MUST NOT be derived at runtime. Unlike `hash_to_field` in [02], the expansion length is `L = 32` bytes, and the expanded bytes are
   reduced modulo the group order as a little-endian integer for BabyJubJub and a big-endian integer for secp256k1.
 - Field elements (`x`, `y`, `z`, `b_i`) are encoded in 32 bytes, little-endian for BabyJubJub and big-endian for secp256k1. Group elements are encoded
   in compressed form.
