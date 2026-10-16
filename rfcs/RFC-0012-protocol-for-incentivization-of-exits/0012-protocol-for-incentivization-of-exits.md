@@ -636,9 +636,10 @@ The following behaviours are implementation choices of the HOPR instantiation, i
   `t+1`-th share of the first polynomial it corrupts, having by then been served `t+1` packets: 64 of the 655360 that make up one agreement, or ≈
   0.0098% of the quota. A single corrupt share makes `SSA_i` unrecoverable rather than being absorbed by the surplus, so no fault isolation is
   retained.
-- **Corrupt shares are treated as adversarial.** A share travels in the additional recipient data of a SURB, which reaches the Exit inside an
-  authenticated HOPR packet (RFC-0004), and is decrypted with the `ack_secret` that the acknowledgement challenge it is filed under uniquely
-  determines (RFC-0005). There is therefore no non-adversarial path to a share that fails to interpolate. This is what makes giving up the fault
+- **Corrupt shares are treated as adversarial.** The forward payload carrying a SURB has no MAC, but each hop transforms it with a wide-block PRP
+  (RFC-0004), so any modification in transit randomises the whole SURB, including its acknowledgement challenge. A share is decrypted only with an
+  `ack_secret` whose challenge equals the one in its SURB (RFC-0005), so a garbled SURB yields a lost share, absorbed by the surplus, and never a
+  decryptable corrupt one. A share that decrypts but fails to interpolate therefore originates from the Entry. This is what makes giving up the fault
   isolation of full-matrix mode acceptable in this instantiation: an Entry that corrupts shares forfeits an allocation it has already made.
 - **Return path length.** A Session with `UsePIX` MUST use a return path with at least one intermediate hop. On a 0-hop return path no first
   downstream relayer exists, so no `ack_secret` is disclosed and no share can be decrypted (see Section 2.1).
