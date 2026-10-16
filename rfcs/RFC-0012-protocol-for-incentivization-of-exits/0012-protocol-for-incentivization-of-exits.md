@@ -5,8 +5,8 @@
 - **Status:** Draft
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
 - **Created:** 2025-03-28
-- **Updated:** 2026-07-30
-- **Version:** v0.5.0 (Draft)
+- **Updated:** 2026-10-16
+- **Version:** v0.6.0 (Draft)
 - **Supersedes:** none
 - **Related Links:** [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md),
@@ -183,8 +183,8 @@ Once the `SSA_Agreement_i` process is finished by incentives being allocated to 
 - `A` now MUST generate SURBs with additional recipient data (see RFC-0004) containing `EncryptedShare_i_u` and MUST produce at least `m*(t+1)` of
   them, that is `t+1` shares for each `u = 0..m`. Each MUST BE attached to a single SURB (along with `u`) sent to `B`.
 
-- `B` receives the SURBs for pseudonym `P` from `A`. Once it is about to send a reply packet to `A`, it MUST pick a random SURB with pseudonym `P`,
-  that contains `EncryptedShare_i_u`.
+- `B` receives the SURBs for pseudonym `P` from `A`. Once it is about to send a reply packet to `A`, it MUST use a SURB with pseudonym `P` that
+  contains `EncryptedShare_i_u` if it holds one, and SHOULD use such SURBs in the order received (oldest first).
 
 - If `B` never receives all `EncryptedShare_i_u` from `A` within a certain time limit, it MUST terminate communication with `A`.
 
@@ -227,14 +227,22 @@ The index `i` is an unsigned 32-bit integer and MUST be non-zero; the value 0 is
 Exit is authoritative in assigning `i`, and successive `ExitCommitmentRequest` messages MUST use strictly increasing values. Gaps are permitted, so
 the Exit MAY advance by more than one at a time.
 
-The number of polynomials `m` and the polynomial degree `t` are **proposed by the Entry** ahead of the first `ExitCommitmentRequest_1`, as part of the
-logical binding between the two nodes (see Appendix 2), and the Exit either accepts them or refuses to serve the Entry at all (see Section 2.3.7). The
-Exit MUST echo the accepted values unchanged in every `ExitCommitmentRequest_i`, and the Entry MUST terminate communication if they differ from what
-it proposed. Both `m` and `t+1` MUST BE unsigned 16-bit numbers, with `m >= 1` and `t >= 1`; an implementation MAY impose tighter upper bounds (see
-Appendix 1).
+The number of polynomials `m`, the polynomial degree `t` and the number of surplus shares per polynomial `surplus` (Section 2.3.4) are **proposed by
+the Entry** ahead of the first `ExitCommitmentRequest_1`, as part of the logical binding between the two nodes (see Appendix 2), and the Exit either
+accepts them or refuses to serve the Entry at all (see Section 2.3.7). The Exit MUST echo the accepted values unchanged in every
+`ExitCommitmentRequest_i`, and the Entry MUST terminate communication if they differ from what it proposed. An implementation MAY impose tighter
+bounds than the field widths below (see Appendix 1).
 
-It creates a 32-bit unsigned integer `params = (m << 16) | (t+1)`. In other words, `m` should be encoded as upper 16-bit half and `t+1` as lower
-16-bit half of the `params` integer.
+The values are packed into a 32-bit unsigned integer `params`:
+
+| Bits   | Value                                                        |
+| ------ | ------------------------------------------------------------ |
+| 31..30 | Identifier of the instantiation's curve `C` (see Appendix 1) |
+| 29..16 | `m`, with `m >= 1`                                           |
+| 15..8  | `t+1`, with `t >= 1`                                         |
+| 7..0   | `surplus`                                                    |
+
+A receiver MUST reject `params` with an out-of-range value or a curve identifier other than its own.
 
 The message SHOULD BE constructed as follows:
 
@@ -389,9 +397,10 @@ an unsigned 16-bit number.
 Individual shares of the same polynomial are **not** numbered on the wire: a share is identified by its `x` value, which is derived from the SURB the
 share travels with and is therefore distinct for every share (see below). The Entry `A` MUST generate at least `t+1` shares for each `u`, `i` and
 pseudonym `P`, and send them to the Exit `B`. Additional shares beyond `t+1` MAY be generated and are called _surplus shares_; they absorb packet
-loss, which would otherwise leave a polynomial permanently short. In full-matrix mode they additionally absorb shares that fail verification, since
-such a share is rejected before it occupies a slot. In constant-term mode they do not: a corrupt share is only detected once it has already been
-interpolated together with `t` others.
+loss, which would otherwise leave a polynomial permanently short. Their number per polynomial, `surplus`, is advertised in `params` (Section 2.3.2)
+and is part of the quota (Section 2.3.7). In full-matrix mode they additionally absorb shares that fail verification, since such a share is rejected
+before it occupies a slot. In constant-term mode they do not: a corrupt share is only detected once it has already been interpolated together with `t`
+others.
 
 To generate `EncryptedShare_i_u` for some `i > 0`, `0 <= u < m` and pseudonym `P`, the Entry `A` first computes `Share_i_u` as follows:
 
@@ -429,13 +438,13 @@ EncryptedShare_i_u {
 ```
 
 The `EncryptedShare_i_u` is attached as additional recipient data (after `PoRValues` in section 3.4.3 of RFC-0004) to the corresponding SURB, with
-individual members encoded in the given order. Only the ciphertext `E_y` is encrypted; `i` and `u` travel in the clear, as the Exit needs them to
-select the verifier before it holds `ack_secret`.
+individual members encoded in the given order. Every SURB carries such a slot; a SURB without a share carries it zeroed, so its `i` is 0. Only the
+ciphertext `E_y` is encrypted; `i` and `u` travel in the clear, as the Exit needs them to select the verifier before it holds `ack_secret`.
 
 ### 2.3.5 `EncryptedShare_i` decryption and verification
 
-A SURB that contains additional data of size `|EncryptedShare_i_u|`, the data are interpreted as `EncryptedShare_i_u`. If the `i` member is 0, the
-SURB MUST be used as if it did not contain any `EncryptedShare`. If `i` >= 1, the Exit node assumes it could be valid `EncryptedShare_i_u`.
+The share slot of every SURB is interpreted as `EncryptedShare_i_u`. If the `i` member is 0, the SURB MUST be used as if it did not contain any
+`EncryptedShare`. If `i` >= 1, the Exit node assumes it could be valid `EncryptedShare_i_u`.
 
 The `x` value depends only on the SURB's `SenderKey` and the indices carried in the clear, so `B` MAY compute it as soon as the SURB is received. The
 plaintext `y`, however, additionally requires `ack_secret`.
@@ -509,17 +518,18 @@ The `t` and `m` values from Section 2.3.2 directly constitute a _quota_ of data 
 that the Exit MUST be able to obtain `t+1` distinct verified shares for each of the `m` polynomials from the `B` before it can compute `SSA_Priv_i`.
 This is done by using at least `m*(t+1)` SURBs that contain `EncryptedShare_i_u` to send data to the Entry.
 
-As such, the quota (in bytes) can be computed as `Q = m * (t+1) * PacketMax` (see Section 2.2 of RFC-0004). This quota is directly translatable to
-Exit's cost by multiplying `m * (t+1)` with the HOPR packet price. Since each `SSA_i` is associated with a certain deposit made by the Entry, the Exit
-shall decide whether the deposit is enough to cover for the cost of the quota.
+The Entry emits its `surplus` shares whether or not any are lost, so the Exit serves `m * (t+1+surplus)` packets per `SSA_i`. The quota (in bytes) is
+therefore `Q = m * (t+1+surplus) * U`, where `U` is the number of payload bytes priced per packet (see Appendix 1). This quota is directly
+translatable to Exit's cost by multiplying `m * (t+1+surplus)` with the HOPR packet price. Since each `SSA_i` is associated with a certain deposit
+made by the Entry, the Exit shall decide whether the deposit is enough to cover for the cost of the quota.
 
-This plays an important role in the acceptability of the PIX parameters. The Entry advertises its `m` and `t+1` values to the Exit as part of the
-logical binding between them, before the PIX protocol starts (see Appendix 2). The Exit computes the implied quota `Q` and MUST refuse the binding
-altogether if `Q` falls outside the range it is willing to serve, or if `m` or `t+1` exceed the dimensions it is able to reconstruct with. Otherwise
-it accepts the advertised values unchanged and echoes them in every `ExitCommitmentRequest_i`.
+This plays an important role in the acceptability of the PIX parameters. The Entry advertises its `m`, `t+1` and `surplus` values to the Exit as part
+of the logical binding between them, before the PIX protocol starts (see Appendix 2). The Exit computes the implied quota `Q` and MUST refuse the
+binding altogether if `Q` falls outside the range it is willing to serve, or if `m` or `t+1` exceed the dimensions it is able to reconstruct with.
+Otherwise it accepts the advertised values unchanged and echoes them in every `ExitCommitmentRequest_i`.
 
-Only the product `m * (t+1)` is economically meaningful, but the split between the two governs the Exit's costs and is therefore not free. Which way
-it pulls depends on the commitment mode of Section 2.3.3.
+Only the quota is economically meaningful, but the split between `m` and `t+1` governs the Exit's costs and is therefore not free. Which way it pulls
+depends on the commitment mode of Section 2.3.3.
 
 In **full-matrix mode**:
 
@@ -552,6 +562,7 @@ TBA
 The HOPR PIX is the following instantiation of PIX:
 
 - `C` is BabyJubJub. An alternative instantiation over secp256k1 is also defined; the two are not interoperable and the choice is fixed at build time.
+  The curve identifier in `params` (Section 2.3.2) is `0` for BabyJubJub and `1` for secp256k1.
 - `H` is Blake3_256
 - `E/D` is Chacha20
 - `KDF` is instantiated using Blake3 in KDF mode [06], where the optional salt `s` is appended to the key material `k`: `KDF(c,k,s)` =
@@ -559,7 +570,10 @@ The HOPR PIX is the following instantiation of PIX:
 - `HS` is instantiated via `hash_to_scalar` using `expand_message_xmd` with Blake3_256 as defined in [04]. The message `m` and the binding data `d`
   are concatenated as the hash input, and the domain-separation tag is the concatenation of a fixed suite identifier and `t`. The suite identifier is
   the ASCII string `BabyJubJub_XMD:BLAKE3_SSWU_RO_`, or `Secp256k1_XMD:BLAKE3_SSWU_RO_` for the secp256k1 instantiation. It is a fixed constant of the
-  protocol and MUST NOT be derived at runtime.
+  protocol and MUST NOT be derived at runtime. Unlike `hash_to_field` in [04], the expansion length is `L = 32` bytes, and the expanded bytes are
+  reduced modulo the group order as a little-endian integer for BabyJubJub and a big-endian integer for secp256k1.
+- Field elements (`x`, `y`, `z`, `b_i`) are encoded in 32 bytes, little-endian for BabyJubJub and big-endian for secp256k1. Group elements are encoded
+  in compressed form.
 - The deposit address of `SSA_i` is derived from the group element by the privacy pool's own address convention: for secp256k1 it is the Ethereum
   address of the corresponding public key; for BabyJubJub it is the encoded public key itself.
 - The commitment mode (Section 2.3.3) is **constant-term mode**: no Feldman commitments are transferred, and validity is enforced per polynomial once
@@ -574,15 +588,18 @@ Encoded sizes for the BabyJubJub instantiation (secp256k1 in parentheses where i
 | `ProofOfKnowledge` (`R` then `z`)             | 64 bytes (65) |
 | `EncryptedShare_i_u` (`i`, `u`, then `E_y`)   | 38 bytes      |
 
+The SURB's additional recipient data is `PoRValues` (54 bytes) `||` `EncryptedShare_i_u` (38 bytes) `||` SURB generation (1 byte), 93 bytes in total.
+
 Implementation limits and defaults:
 
-| Parameter                                    | Default | Permitted range |
-| -------------------------------------------- | ------- | --------------- |
-| `m` (polynomials per SSA)                    | 8192    | 1 .. 16192      |
-| `t+1` (shares per polynomial)                | 64      | 2 .. 4096       |
-| surplus shares per polynomial (beyond `t+1`) | 32      | 0 .. 4096       |
+| Parameter                                 | Default          | Permitted range                                 |
+| ----------------------------------------- | ---------------- | ----------------------------------------------- |
+| `m` (polynomials per SSA)                 | 8192             | 1 .. 16192                                      |
+| `t+1` (shares per polynomial)             | 64               | 2 .. 255                                        |
+| `surplus` (surplus shares per polynomial) | 16 (`⌈(t+1)/4⌉`) | 0 .. 255; at most `t+1` when configured locally |
 
-With the defaults and a maximum HOPR packet payload of 1038 bytes, one SSA agreement covers a quota of `8192 * 64 * 1038` bytes ≈ 519 MiB.
+The quota is priced at `U = 1452` bytes per packet, the HOPR Session MTU (see RFC-0008), independently of the HOPR packet payload size. With the
+defaults, one SSA agreement covers `8192 * (64 + 16) * 1452` bytes ≈ 907.5 MiB.
 
 The number of coefficient commitments that must be transferred in the `EntryCommitment_i` messages depends on the commitment mode:
 
@@ -599,10 +616,8 @@ with the corresponding Session ID (that itself consists of the pseudonym), that 
 bound to a particular pre-established HOPR Session. A single `SsaRequest` MAY carry commitments to several SSAs; an Entry SHOULD accept at most two in
 one message, which is what pipelining (Section 2.3.1) requires.
 
-The `m` and `t+1` value advertisement (as described in Section 2.3.7) is encoded by the Entry within the `additional_data` field of the Start protocol
-message. In version 3 of the Start protocol, the values are encoded as a 32-bit number `(m << 16) | (t+1)` and stored in the most-significant half of
-the `additional_data` 64-bit field in the `StartSession` message. To further indicate that this advertisement is being sent, the Entry also sets the
-`UsePIX` capability bit to 1 (the third most significant bit of the `capabilities` byte of the `StartSession` message, `0b0010_0000`).
+The Entry advertises `params` (Section 2.3.2) in bits 127..96 of the `Additional Data` field of the `StartSession` message and sets the `UsePIX`
+capability bit (`0b0010_0000`), as specified in RFC-0009 Sections 4.3 and 4.8.1. The Exit echoes the same `params` in every `SsaRequest`.
 
 The following behaviours are implementation choices of the HOPR instantiation, in the terms of Section 2.3:
 
@@ -613,8 +628,9 @@ The following behaviours are implementation choices of the HOPR instantiation, i
   without decoding its commitments, and at any point in the exchange - so an Entry that emits the full matrix remains interoperable and only wastes
   its own bandwidth.
 - **Detection latency and its bound.** Because validity is settled per polynomial rather than per share, a misbehaving Entry is detected on the
-  `t+1`-th share of the first polynomial it corrupts, having by then been served `t+1` packets: 64 of the 524288 that make up one agreement, or 0.012%
-  of the quota. A single corrupt share makes `SSA_i` unrecoverable rather than being absorbed by the surplus, so no fault isolation is retained.
+  `t+1`-th share of the first polynomial it corrupts, having by then been served `t+1` packets: 64 of the 655360 that make up one agreement, or ≈
+  0.0098% of the quota. A single corrupt share makes `SSA_i` unrecoverable rather than being absorbed by the surplus, so no fault isolation is
+  retained.
 - **Corrupt shares are treated as adversarial.** A share travels in the additional recipient data of a SURB, which reaches the Exit inside an
   authenticated HOPR packet (RFC-0004), and is decrypted with the `ack_secret` that the acknowledgement challenge it is filed under uniquely
   determines (RFC-0005). There is therefore no non-adversarial path to a share that fails to interpolate. This is what makes giving up the fault
@@ -626,5 +642,5 @@ The following behaviours are implementation choices of the HOPR instantiation, i
   once is also what bounds the served packets to the `t+1` above.
 - **Deposit deadline.** After deriving `SSA_i`, the Exit arms a timer and closes the Session if the allocation is not observed before it expires.
 - **Early recovery threshold.** The Exit initiates `SSA_Agreement_(i+1)` once 85% of the `m` polynomials of `SSA_i` have been recovered.
-- **Commitment lifetimes.** An incomplete `EntryCommitment_i` is discarded after 2 minutes, an SSA that has not been fully recovered after 10 minutes,
-  and a polynomial's reconstruction state - its constant-term commitment and its collected shares - after 30 minutes unused.
+- **Commitment lifetimes.** An incomplete `EntryCommitment_i` is discarded after 2 minutes, and an SSA's reconstruction state - its constant-term
+  commitments and collected shares - after 30 minutes without an acknowledged share for any of its polynomials.
