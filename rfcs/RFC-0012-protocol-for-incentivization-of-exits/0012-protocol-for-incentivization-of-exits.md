@@ -5,7 +5,7 @@
 - **Status:** Draft
 - **Author(s):** Lukas Pohanka (@NumberFour8), Qianchen Yu (@QYuQianchen)
 - **Created:** 2025-03-28
-- **Updated:** 2026-10-16
+- **Updated:** 2026-10-17
 - **Version:** v0.6.0 (Draft)
 - **Supersedes:** none
 - **Related Links:** [RFC-0003](../RFC-0003-hopr-overview/0003-hopr-overview.md),
@@ -134,7 +134,8 @@ that the usage of `Deposit_Handle` must not be revealed or in any way made linka
 
 ## 2.3 Protocol flow
 
-The protocol assumes that the price of incentives is globally known to both parties (e.g., via a price oracle).
+Both parties MUST agree on the price of the quota (Section 2.3.7) before `A` allocates, e.g. via a price oracle or by `B` stating the amount it
+requires (see Section 3).
 
 The protocol starts by the Entry node `A` making a deposit via `Deposit` call to `W`, depositing a certain amount of incentives. It keeps its
 `Deposit_Handle`.
@@ -332,7 +333,8 @@ The messages MUST be emitted in two phases, the second of which is empty in cons
    derive `SSA_i` as early as possible — that is the one row it needs in full before anything else can proceed. `PoK_i` MUST be present on every
    message of this phase, and MUST be absent from every message of the second phase; its presence is therefore implied by `r = 0` and requires no
    separate flag. Carrying it on every constant-term message rather than only one means no single lost message can strand an otherwise recoverable
-   agreement; the Exit keeps the first valid proof it sees and ignores the rest.
+   agreement. The proof cannot be checked before every constant term has arrived, so `A` MUST attach the same `PoK_i` to every message, and the Exit
+   keeps the first one it receives and ignores the rest.
 2. **Remaining coefficients, blocked by polynomial** (full-matrix mode only). The rows `r = 1..t+1` are then emitted a _block of polynomials_ at a
    time: for a block of polynomial indices, every remaining coefficient of that block is sent before moving to the next block. This completes whole
    columns of `M_i` progressively, so a polynomial becomes fully committed — and therefore its shares verifiable — long before the last message
@@ -461,7 +463,7 @@ In the next step, `B` MUST verify that:
 1. `i` belongs to a previously received `ExitCommitment_i` message from `A` (i.e. `i` is a valid index) whose `EntryCommitment_i` has been accepted
    per Section 2.3.1 step 8.
 2. `0 <= u < m`, where `m` is the number of polynomials in the `SSA_Agreement_i`
-3. Neither `x` nor `y` is zero.
+3. `x` is not zero. A zero `y` is a valid share and MUST NOT be rejected.
 4. No share with the same `x` has already been accepted for this `i` and `u`. A repeat MUST be discarded without further processing, as it carries no
    new information.
 5. **Full-matrix mode only:** that `Share_i_u` corresponds to polynomial `T_i_u[x]`, by checking that `RHS - LHS = 0` (where 0 denotes the neutral
@@ -553,7 +555,20 @@ Since the Exit does not choose the parameters, an Entry MAY be refused service b
 running modified code that echoes different values than were advertised is rejected by the Entry at step 3b of Section 2.3.1, and would in any case
 only break its own recovery.
 
-# 3 References
+# 3 Security Considerations
+
+- **Scope of the proof.** PIX proves that `B` handed reply packets to the first return-path relayer, not that `A` received them. End-to-end delivery
+  would require an additional acknowledgement signed by `A`.
+- **Group elements.** Every received group element MUST be validated before use (Section 2.3.1, steps 3a and 8b); a small-order or invalid point can
+  make verification unsound.
+- **Griefing by the Entry.** `A` can make `B` serve traffic it never pays for, by not allocating or by sending corrupt or too few shares. `B` bounds
+  this with the allocation deadline (Section 2.3.1) and by terminating on validation failures (Section 2.3.5), and SHOULD also bound the traffic it
+  serves before the allocation is observed.
+- **Price disagreement.** An allocation below the amount `B` requires is never treated as funded. `B` terminates, and since `A` does not know `b_i`,
+  neither party can withdraw it. `A` MUST NOT allocate less than the agreed amount (Section 2.3).
+- **Anonymity.** `B` learns only `P`, `params`, the commitments and the shares. Unlinking payer and payee rests entirely on `W` (Section 2.2).
+
+# 4 References
 
 [01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
 
@@ -576,7 +591,9 @@ The HOPR PIX is the following instantiation of PIX:
   are concatenated as the hash input, and the domain-separation tag is the concatenation of a fixed suite identifier and `t`. The suite identifier is
   the ASCII string `BabyJubJub_XMD:BLAKE3_SSWU_RO_`, or `Secp256k1_XMD:BLAKE3_SSWU_RO_` for the secp256k1 instantiation. It is a fixed constant of the
   protocol and MUST NOT be derived at runtime. Unlike `hash_to_field` in [02], the expansion length is `L = 32` bytes, and the expanded bytes are
-  reduced modulo the group order as a little-endian integer for BabyJubJub and a big-endian integer for secp256k1.
+  reduced modulo the group order as a little-endian integer for BabyJubJub and a big-endian integer for secp256k1. For BabyJubJub this leaves the
+  output ≈ 0.5% from uniform in statistical distance, which is accepted, as `HS` outputs need only be unpredictable and distinct. `SSWU` in the suite
+  identifier is a label only; `HS` applies no curve map.
 - Field elements (`x`, `y`, `z`, `b_i`) are encoded in 32 bytes, little-endian for BabyJubJub and big-endian for secp256k1. Group elements are encoded
   in compressed form.
 - The deposit address of `SSA_i` is derived from the group element by the privacy pool's own address convention: for secp256k1 it is the Ethereum

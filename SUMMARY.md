@@ -242,7 +242,8 @@ Mechanism (per agreement `i`: a non-zero u32, strictly increasing, assigned by t
 
 1. `B` picks scalar `b_i` and sends `ExitCommitmentRequest_i` (`SsaRequest`) with `params`, `i` and `ExitCommitment_i = b_i·BP`.
 2. `A` builds `m` random degree-`t` polynomials `T_i_u` and sends `EntryCommitment_i` (`SsaCommit` messages) with commitments `M_i_r_u = T_i_u_r·BP`:
-   row `r = 0` (constant terms) first, every message repeating `PoK_i`, then rows `r ≥ 1` a block of polynomials at a time (full-matrix mode only).
+   row `r = 0` (constant terms) first, every message repeating the same `PoK_i`, then rows `r ≥ 1` a block of polynomials at a time (full-matrix mode
+   only).
 3. `PoK_i` is a Schnorr proof of knowledge of `s = Σ_u T_i_u_0`, the discrete logarithm of `EntryCommitment_i = Σ_u M_i_0_u`: `R = r·BP`,
    `c = HS(P||i||EntryCommitment_i||R, "", "HASH_SSA_COMMITMENT_PROOF")`, `z = r + c·s` (fresh `r` per proof); `B` checks
    `z·BP = R + c·EntryCommitment_i`. It stops an Entry that saw `ExitCommitment_i` from choosing commitments so that it alone knows the SSA key.
@@ -254,7 +255,7 @@ Mechanism (per agreement `i`: a non-zero u32, strictly increasing, assigned by t
    `(iv, k) = KDF("HASH_SSA_POLY_SHARE", ack_secret, P||i||u)`, where `ack_secret` is the first return-path relayer's acknowledgement secret; `i` and
    `u` travel in the clear. `B` MUST use share-carrying SURBs when it holds them, oldest first.
 6. When `B` _uses_ a SURB and the first return-path relayer acknowledges, `B` learns `ack_secret` and decrypts `y`. Per-share checks: `i` accepted,
-   `u < m`, `x, y ≠ 0`, no repeated `x`; full-matrix mode adds the Feldman check `y·BP = Σ_r x^r·M_i_r_u`.
+   `u < m`, `x ≠ 0`, no repeated `x`; full-matrix mode adds the Feldman check `y·BP = Σ_r x^r·M_i_r_u`.
 7. With `t+1` distinct shares of a polynomial, `B` interpolates `T_i_u_0` and checks `T_i_u_0·BP = M_i_0_u`; with all `m` recovered,
    `SSA_Priv_i = b_i + Σ_u T_i_u_0`, and `B` withdraws from `W`.
 
