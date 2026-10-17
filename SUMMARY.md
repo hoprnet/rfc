@@ -322,6 +322,11 @@ packets, ≈ 0.0098 % of the quota); corrupt shares count as adversarial, since 
 decrypts; return path ≥ 1 hop; agreement `i+1` starts at 85 % of polynomials recovered; incomplete commitments are dropped after 2 min and
 reconstruction state after 30 min without an acknowledged share.
 
+Privacy pool (Appendix 3): `W` MAY be the Curvy protocol, a shielded-notes aggregator whose zero-knowledge proofs are efficient over BabyJubJub but
+not over secp256k1. Deposits become opaque shielded notes; `A` allocates to notes owned by `SSA_i`, each SSA key valid for a single note; `B` proves
+possession with `SSA_Priv_i` and collects one or several notes per transaction, keeping the funds shielded or withdrawing them to an EOA. The Exit's
+key, sent in the `SsaRequest` deposit data, is ephemeral and need not be stored.
+
 Properties: payment is conditional on **actual reply-path handover** (packet-layer proof, not end-to-end delivery); the pool hides who paid whom; the
 Entry cannot retract an allocation, nor be made to accept a quota it did not propose. Forward and return paths SHOULD each have ≥1 relay; a 0-hop
 return path discloses no `ack_secret`, so no share can be decrypted.
