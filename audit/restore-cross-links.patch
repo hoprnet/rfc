@@ -1,0 +1,97 @@
+--- a/rfcs/RFC-0015-distributed-directory/0015-distributed-directory.md
++++ b/rfcs/RFC-0015-distributed-directory/0015-distributed-directory.md
+@@ -13,7 +13,7 @@
+   [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
+   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md),
+   [RFC-0014](../RFC-0014-path-finding/0014-path-finding.md),
+-  RFC-0016
++  [RFC-0016](../RFC-0016-onion-services/0016-onion-services.md)
+ 
+ ## 1. Abstract
+ 
+@@ -21,7 +21,7 @@
+ privacy-preserving key-value store over HOPR nodes, used to publish and retrieve
+ signed records without a central server and without revealing who publishes or
+ who queries. Its primary consumer is the onion-services scheme
+-(RFC-0016), which stores
++([RFC-0016](../RFC-0016-onion-services/0016-onion-services.md)), which stores
+ **service descriptors** at blinded slots so that a service can be found by a
+ party that already knows its address, yet the directory cannot be enumerated.
+ 
+@@ -32,12 +32,12 @@
+ instantiation as a Kademlia-style distributed hash table whose responsible-set
+ assignment is bound to on-chain node identity so it cannot be ground toward a
+ victim slot. This document lifts the directory requirements that
+-RFC-0016 states normatively
++[RFC-0016](../RFC-0016-onion-services/0016-onion-services.md) states normatively
+ but delegates, and specifies them in one place.
+ 
+ ## 2. Motivation
+ 
+-RFC-0016 needs a way for a
++[RFC-0016](../RFC-0016-onion-services/0016-onion-services.md) needs a way for a
+ client to fetch a service's signed descriptor given only the service's
+ self-certifying address, with three properties an on-chain registry cannot
+ provide cheaply: (a) frequent, gas-free updates as descriptors rotate each
+@@ -106,12 +106,12 @@
+ is the legitimate authority for `slot` (Section 4.3). It does **not** interpret
+ `payload`. The sole record profile is the **blinded profile** (service
+ descriptors,
+-RFC-0016 §4.3): `slot` is
++[RFC-0016](../RFC-0016-onion-services/0016-onion-services.md) §4.3): `slot` is
+ derived from a *blinded* identity key so the directory cannot link a record to a
+ long-term identity or enumerate services. (Onion-service bridges are deliberately
+ **not** in the directory — they are discovered by direct capability negotiation
+ and vouched for in service descriptors,
+-RFC-0016 §4.4, so no
++[RFC-0016](../RFC-0016-onion-services/0016-onion-services.md) §4.4, so no
+ unblinded/enumerable index exists.) A future consumer needing an unblinded,
+ "want-to-be-found" record could add an open profile keyed by an unblinded key;
+ none is defined here, and the rest of this RFC assumes blinded descriptors.
+@@ -312,7 +312,7 @@
+ [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+ for responsible-set assignment. It is the concrete realisation of the directory
+ interface that
+-RFC-0016 §4.3.3 requires.
++[RFC-0016](../RFC-0016-onion-services/0016-onion-services.md) §4.3.3 requires.
+ The per-period random beacon is an external dependency where the network does not
+ already provide one.
+ 
+@@ -347,7 +347,7 @@
+   a network duty, and its abuse implications.
+ - Whether any future consumer needs an unblinded open profile (none does today;
+   onion-service bridges are discovered off-directory,
+-  RFC-0016 §4.4).
++  [RFC-0016](../RFC-0016-onion-services/0016-onion-services.md) §4.4).
+ 
+ ## 11. Future Work
+ 
+--- a/rfcs/RFC-0016-onion-services/0016-onion-services.md
++++ b/rfcs/RFC-0016-onion-services/0016-onion-services.md
+@@ -19,7 +19,7 @@
+   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md),
+   [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md),
+   [RFC-0014](../RFC-0014-path-finding/0014-path-finding.md),
+-  RFC-0015
++  [RFC-0015](../RFC-0015-distributed-directory/0015-distributed-directory.md)
+ 
+ ## 1. Abstract
+ 
+@@ -387,7 +387,7 @@
+ Ed25519. The **exact** construction — scalar clamping and reduction modulo the
+ group order `L`, point (not scalar) multiplication, and canonical `pk_blind`
+ encoding — is normatively pinned in
+-RFC-0015 §4.3;
++[RFC-0015](../RFC-0015-distributed-directory/0015-distributed-directory.md) §4.3;
+ implementations MUST follow it exactly (a scalar-addition or unreduced/unclamped
+ scalar yields either linkable slots or unverifiable signatures).
+ 
+@@ -1808,7 +1808,7 @@
+   rendezvous-set size, and the default multipath degree; and their governance.
+ - A formal unlinkability proof of the Ed25519 key-blinding construction (the
+   construction is pinned in
+-  RFC-0015 §4.3;
++  [RFC-0015](../RFC-0015-distributed-directory/0015-distributed-directory.md) §4.3;
+   only the formal proof is open).
+ - Concrete `max_bridge_share`, EMA windows, and cold-start prior weights for the
+   reputation scoring of Section 4.4.5 (the mechanism is specified; the constants

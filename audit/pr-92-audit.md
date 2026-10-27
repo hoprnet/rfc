@@ -172,3 +172,31 @@ all three branch tips. Intermediate PRs are drafts and marked review-only.
 The branch prefix is `onion-split`, not `onion-services`: a remote branch
 `kauki/docs/rfc/onion-services` already exists (the #92 head), and git refuses
 child refs under an existing ref.
+
+## Link constraint (2026-10-27)
+
+`ui/docusaurus.config.ts` sets `onBrokenLinks: "throw"` and builds docs from
+`../rfcs`. Each split branch contains one document that links to the other, so
+the Vercel preview fails with `Docusaurus found broken links`. Reproduced
+locally with the repo's yarn lockfile on `kauki/docs/rfc/distributed-directory`.
+Landing order deadlocks: neither document can go green until the other is on
+`main`.
+
+Resolution: in the split PRs, sibling cross-references are plain text (the RFC
+number without a hyperlink). The spec text is otherwise unchanged. After both
+documents land, apply `audit/restore-cross-links.patch` from the repository
+root:
+
+```sh
+git apply audit/restore-cross-links.patch
+```
+
+That restores the 13 hyperlinks and returns both documents to the #92 content,
+apart from the RFC number swap and the `Updated` date.
+
+Also per `AGENTS.md`: both documents now carry `Updated: 2026-10-27`.
+
+Verified on the rebuilt branches: `scripts/structure-check.sh` passes, and a
+relative-link existence check reports zero missing targets for RFC-0015 and
+RFC-0016. The local Docusaurus build was not rerun after cleanup (the first run
+filled `/home`); Vercel is the end-to-end check.
