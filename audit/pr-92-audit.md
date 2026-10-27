@@ -137,3 +137,30 @@ tracking issue rather than leaving two open copies of the same text.
 5. Summary/README: separate PR, or drop until both RFCs merge?
 6. Target diff size per PR?
 7. Who reviews each chunk?
+
+## Decisions (2026-10-27)
+
+1. Goal: review bandwidth.
+2. Split RFC-0015 into phased stacked PRs, nine chunks.
+3. RFC-0015 may not land incomplete: intermediate PRs are review-only; the top
+   PR is retargeted to `main` and merged once.
+4. Swap numbering: directory becomes RFC-0015, onion services becomes RFC-0016.
+5. Both documents stay open in parallel.
+6. `SUMMARY.md` and `README.md` move to a separate small PR rebased on `main`.
+7. PR #92 stays open.
+
+## Execution map
+
+| PR | Branch | Base | Content |
+| --- | --- | --- | --- |
+| A | `kauki/docs/rfc/distributed-directory` | `main` | RFC-0015 directory, 381 lines |
+| B1 | `.../onion-services/01-foundations` | `main` | title, §1 to §4.1 |
+| B2 | `.../02-identity-descriptor` | B1 | §4.2, §4.3 |
+| B3 | `.../03-bridges` | B2 | §4.4 |
+| B4 | `.../04-introduction-rendezvous` | B3 | §4.5 |
+| B5 | `.../05-handshake-sessions` | B4 | §4.6 |
+| B6 | `.../06-incentives-dos` | B5 | §4.7, §4.8 |
+| B7 | `.../07-bridge-management-guards` | B6 | §4.9, §4.10 |
+| B8 | `.../08-considerations-security` | B7 | §5 to §9 |
+| B9 | `.../09-open-questions-appendices` | B8 | §10 to §14 |
+| C | `kauki/docs/rfc/summary-add-0015-0016` | `main` | summary rows, intro, README link |
