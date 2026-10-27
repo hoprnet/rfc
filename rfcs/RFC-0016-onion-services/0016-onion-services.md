@@ -1250,11 +1250,115 @@ follows:
 
 ### 4.7 Incentivisation
 
-_TBD._
+Onion-service traffic is paid on three counts, all reusing existing HOPR
+machinery. The central principle, corrected from a naive prepaid model, is that
+**a bridge is paid only against verifiable service** — mirroring PIX, whose
+essential property is that settlement unlocks only after a proven packet
+handover.
+
+1. **Transport legs (Proof of Relay).** Each side pays the relays on its own leg
+   via standard tickets
+   ([RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md)): the client
+   funds the client→RB path and the SURBs for return traffic on it; the service
+   funds the service→RB path and its return SURBs. This is ordinary HOPR packet
+   economics and needs no extension.
+
+2. **Rendezvous bridge — reservation plus service-conditional stream.** The
+   bridge earns in two parts. A small **non-refundable reservation fee**
+   (Section 4.5.2) prices the reservation slot and deters reserve-and-abandon
+   griefing. The **bulk** is a service-conditional stream settled by the leg-A
+   PIX agreement of Section 4.5.5: the rendezvous bridge is the PIX *exit* and
+   the client the PIX *entry*. When the bridge spends a client leg-A SURB to
+   deliver a frame to the client, the first return-path relayer's acknowledgement
+   discloses the `ack_secret` that unlocks the PIX share attached to that SURB;
+   after the per-row threshold the bridge withdraws. Because the bridge can spend
+   a SURB only by actually creating and handing off a reply packet, it is paid
+   only for joins it performs; if it stops delivering, the stream stops. This is a
+   genuine PIX agreement, not a bare transfer.
+
+   **Billing basis is leg-A capacity held, not payload.** Section 4.9 mandates
+   constant-rate shaping, so the bridge delivers frames to the client at the
+   negotiated rate whether or not the service has payload (padding fills the
+   gaps). Every leg-A SURB — data-bearing or padding — carries a share, so the
+   unlocked value tracks **the shaped rate × the time the join is held open**,
+   which is the correct basis for an availability/splice role and, crucially,
+   does not underpay an upload-heavy (asymmetric) session where little
+   service→client payload flows. To prevent a bridge inflating padding to
+   overcharge, `chunk_price` and the delivery rate are bounded by the agreed
+   `schedule_ver` (enforced by the client at commit, Section 4.5.5), and the
+   client funds the agreement for the negotiated shaped rate × expected duration
+   up front; renewal opens a new agreement index `i`. To bound the client's
+   exposure on early bridge exit — the bridge keeps only shares it unlocked by
+   actually delivering frames, but the client's *unspent* allocation to `SSA_i`
+   must not be stranded — the prepay look-ahead per agreement MUST be small and
+   each pool allocation MUST carry an expiry after which the client reclaims the
+   unspent remainder; a long session is funded as a sequence of short agreements,
+   not one large prepayment.
+
+3. **Introduction bridge — per-introduction micro-payment.** The service pays
+   each IB a micro-payment **per `INTRODUCE2` it receives**, since receipt at the
+   service is itself proof the IB forwarded. An IB that drops introductions
+   simply earns nothing, aligning incentives without needing an undetectable
+   "did it forward?" oracle. A small availability retainer MAY supplement this
+   but MUST NOT dominate it, so the marginal incentive is to forward. All IB
+   payments settle PIX-style, hiding the paying service. To stop an IB colluding
+   with Sybil "clients" from farming these micro-payments off a targeted service,
+   the per-`INTRODUCE2` payment MUST be gated behind the same `intro_payment`/PoW
+   admission as introductions (Section 4.8): a service with a free tier
+   (`intro_payment_min = 0`) that also pays IB micro-payments would fund such a
+   farm, so it MUST require the introduction PoW under load before the IB payment
+   accrues.
+
+By default the **client** funds the rendezvous stream and the **service** funds
+intro micro-payments. Two alternatives are permitted but not required
+(Section 9): a **service-subsidised** model (the service funds the rendezvous
+stream so clients connect free) and a **client-pays-all** model. Because PIX is
+a draft dependency, a deployment MUST NOT enable onion-service settlement before
+the PIX construction it relies on is finalised.
 
 ### 4.8 Denial-of-service resistance and access control
 
-_TBD._
+A mutually anonymous inbound channel is intrinsically abusable. Spam pricing and
+capacity provisioning are treated as **separate** problems: pricing raises the
+per-request cost, provisioning ensures a funded flood cannot exhaust a finite
+resource. Both, plus access control, are independently deployable; the service
+states its choice in `dos_policy` (floored by `min_dos_level`, Section 4.3.1, so
+an old descriptor cannot advertise a weaker policy).
+
+#### 4.8.1 Payment-gated and rate-limited introduction (public services)
+
+The service MAY require every `INTRODUCE1` to carry a verifiable payment
+(`intro_payment`, a PIX-style allocation bound to the target IB `node_id` and
+`replay_nonce` so it cannot be replayed across bridges). The payment SHOULD be
+sized to cover the service's expected cost of opening the rendezvous leg, not
+merely the introduction, so the cheap action does not induce an expensive one.
+The RECOMMENDED verifier is the **service** (`verifier = service`), because a
+bridge-side verifier can correlate payment artifacts with a target service
+(Section 7); when a bridge must verify, the artifact MUST be one-time and
+unlinkable. Independently of payment, each IB MUST rate-limit per client session
+pseudonym, and the service MUST be able to rotate and scale its IB set under
+attack. A proof-of-work fallback for free-tier access MUST be advertised (via
+`pow_difficulty`) and MUST be enforced when the service signals load; its
+concrete puzzle is deferred (Section 11) but its presence is not optional for a
+free-tier service.
+
+```
+DosPolicy {
+  intro_payment_min : u128,   // 0 = no payment required
+  verifier          : u8,     // 0 = service (RECOMMENDED), 1 = bridge, 2 = both
+  auth_required     : bool,   // Section 4.8.2
+  pow_difficulty    : u8      // 0 = disabled; enforced under load
+}
+```
+
+#### 4.8.2 Descriptor-level access control (private services)
+
+For a private service, authority to connect is gated at discovery: the
+descriptor's `intro_points` are encrypted to a set of authorised client public
+keys, so only those clients obtain usable introduction data (Tor's "client
+authorisation" analogue [06]). When `auth_required` is set, the client MUST
+include an `auth_data` proof in `IntroPayload` that the service verifies before
+serving. Access control and payment gating are orthogonal and MAY be combined.
 
 ### 4.9 Bridge session management (join, shaping and SURB handling)
 
