@@ -1,0 +1,139 @@
+# Audit: PR #92 (RFC-0015 Onion Services over HOPR)
+
+Audited 2026-10-27. Head `015b546`, 26 commits ahead and 18 behind `origin/main`,
++2625/-0 across 4 files.
+
+## Findings
+
+### 1. Four unrelated artifacts in one PR (blocks review)
+
+| Path | Lines |
+| --- | --- |
+| `rfcs/RFC-0015-onion-services/0015-onion-services.md` | 1911 |
+| `rfcs/RFC-0016-distributed-directory/0016-distributed-directory.md` | 381 |
+| `SUMMARY.md` | 331 (whole file) |
+| `README.md` | 2 |
+
+RFC-0015, RFC-0016 and the protocol summary are independent changes. A reviewer of
+the directory design has to read 1911 lines of onion-service text first, and a
+reviewer of the summary has to diff a 331-line file that already exists on main.
+
+### 2. `SUMMARY.md` conflicts with and regresses main
+
+Main already carries `SUMMARY.md` (added in #94, updated in #99 and #104). The PR
+adds a parallel copy:
+
+- main: statuses as of 2026-09-14, RFC-0010 v1.2.0, RFC-0014 v1.1.0
+- PR: statuses as of 2026-07-06, RFC-0010 v1.1.0, RFC-0014 v1.0.0
+
+Diff against main is 210 insertions / 165 deletions. Merging as-is rolls back
+status and version corrections made after the PR branch forked.
+
+### 3. `README.md` duplicate
+
+Main already links `SUMMARY.md` ("RFC-0001 through RFC-0014"). The PR adds a
+second, differently worded link line. At most one line is needed, and only to
+change `0014` to `0016`.
+
+### 4. PR body is stale
+
+Body says "Status: Raw, v0.6.0" and lists `assets/design-decisions.md` and
+`assets/audit-log.md`. Neither file exists in the branch; the RFCs are v0.9.0 and
+v0.1.3. The body also predates the pivot to bondless bridges.
+
+### 5. CI proves little
+
+`scripts/structure-check.sh` validates the title line and 9 front-matter fields
+only. It does not check links, front-matter/version consistency, markdownlint, or
+`SUMMARY.md` accuracy. All checks are green, which says nothing about review
+readiness.
+
+### 6. No human review
+
+Review history is CodeRabbit, Copilot and self-comments. 26 commits are version
+increments (v0.1 to v0.9), so the PR is being used as a design log. Design logs
+are hard to review; reviewable diffs are not.
+
+### 7. RFC-0015 and RFC-0016 are circularly dependent
+
+RFC-0015 §4.3 depends on the directory for blinded descriptors and anti-abuse.
+RFC-0016's motivation depends on onion services as its first consumer. They cannot
+merge in either order without one referring to an unmerged document, so the
+sequence needs an explicit decision.
+
+### 8. Size is concentrated in a few sections
+
+RFC-0015: §7 Security 171 lines, §4.6.1 Multipath 153, §4.4.1 Announcement 109,
+§4.1 Overview 74, §4.3.1 Descriptor 68, §4.7 Incentivisation 68, §4.4.2
+Accountability 67, §4.4.5 Reputation 64, §5 Design Considerations 62, §4.3.3
+Directory interface 60.
+
+### 9. Status and maturity disagree
+
+Both documents are `Status: Raw`, but RFC-0015 v0.9.0 contains normative MUST /
+SHOULD requirements and cites unmerged RFC-0012 (PIX), an RFC-0004 minor bump, and
+an unwritten directory contract. "Raw" is honest about the process state, but the
+text reads as a candidate specification, which invites line-level review the
+document cannot yet satisfy.
+
+### 10. Open questions are design decisions, not spec text
+
+RFC-0015 §10 has 7 open items, RFC-0016 §10 has 5. They are governance and
+deployment constants plus one formal proof. Mixed into the normative body, they
+make "is this document ready?" unanswerable.
+
+## Split options
+
+### A. Artifact split (3 PRs)
+
+1. RFC-0016 directory (381 lines).
+2. RFC-0015 onion services (1911 lines).
+3. `SUMMARY.md` + `README.md` rebased on main (about 20 lines).
+
+Cuts the PR to reviewable artifacts, but leaves 1911 lines in one diff.
+
+### B. Artifact split plus phased RFC-0015 (stacked PRs)
+
+1. RFC-0016.
+2. RFC-0015 skeleton: abstract, motivation, terminology, §4.1 overview, and
+   section stubs marked TBD.
+3. Then section PRs, roughly 150 to 350 lines each:
+   - identity and descriptor (§4.2, §4.3)
+   - bridges (§4.4)
+   - introduction and rendezvous (§4.5)
+   - handshake, multipath, sessions (§4.6)
+   - incentives and DoS (§4.7, §4.8)
+   - bridge session management and guards (§4.9, §4.10)
+   - considerations, drawbacks, alternatives (§5 to §9)
+   - open questions, future work, appendices (§10 to §14)
+
+Each PR is reviewable on its own, but main carries an incomplete RFC between
+steps and every PR must keep cross-references valid.
+
+### C. Review-oriented split (keep documents whole)
+
+Land RFC-0016 and RFC-0015 as two whole documents, and move the design log and
+open questions into a third document. Fewer PRs, but the 1911-line review problem
+stays.
+
+### D. Draft-first
+
+Land both RFCs as short `Raw` skeletons now, then fill sections in follow-up PRs.
+Fastest merge, largest window where main holds a stub.
+
+## Recommendation
+
+A, then B only if RFC-0015 needs line-level review. Sequence RFC-0016 first
+because RFC-0015 depends on it normatively. Take `SUMMARY.md` and `README.md` out
+of both and file one small rebased update. Close or repurpose #92 as an umbrella
+tracking issue rather than leaving two open copies of the same text.
+
+## Decisions needed
+
+1. Goal: review bandwidth, merge cadence, or both?
+2. May RFC-0015 land on main as `Raw` and incomplete?
+3. Does RFC-0016 merge before RFC-0015, or do both stay open until ready?
+4. Keep #92 as umbrella, or close it after the split?
+5. Summary/README: separate PR, or drop until both RFCs merge?
+6. Target diff size per PR?
+7. Who reviews each chunk?
