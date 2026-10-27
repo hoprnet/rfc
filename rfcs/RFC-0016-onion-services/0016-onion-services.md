@@ -226,11 +226,237 @@ e2e-encrypted channel.
 
 ### 4.2 Service identity, naming and delegation
 
-_TBD._
+#### 4.2.1 Identity key and self-certifying address
+
+A service is identified by an Ed25519 [07] key pair `id_S = (sk_S, pk_S)`. The
+service's canonical **self-certifying address** is:
+
+```
+address = base32( version || pk_S || checksum ) || ".hopr"
+version  : u8         (current value 0x01)
+pk_S     : [u8; 32]   Ed25519 public key (canonical encoding)
+checksum : [u8; 2]    truncated H(".hopr-checksum" || version || pk_S)
+```
+
+`base32` uses the RFC 4648 [12] lowercase alphabet without padding. The trust
+anchor is the full 32-byte `pk_S`; the checksum protects only against
+transcription errors and confers no security (a 16-bit checksum is trivially
+matched by a brute-forced lookalike key, so users MUST compare full addresses,
+not rely on visual similarity). The address is self-certifying: any descriptor
+or delegation presented for it MUST verify under `pk_S` (directly or through a
+delegation chain rooted at `pk_S`), so a malicious host cannot serve a different
+key under the same name. A client MUST reject any `version` below its configured
+minimum, so a future hardened format cannot be silently downgraded.
+
+#### 4.2.2 Human-readable aliases (ENS, optional)
+
+Human-readable names are OPTIONAL and layered on top of the self-certifying
+address, which remains authoritative. A service MAY register an ENS [08] name
+(or subdomain) whose `hopr` text record contains its `.hopr` address. A client
+resolving an alias MUST fetch the descriptor for the `.hopr` address the record
+points to and MUST verify it against that address. ENS resolution is a discovery
+convenience only; it confers no authority and MUST NOT override the
+self-certifying check. No bespoke registry contract is introduced by this RFC.
+
+#### 4.2.3 Multi-host serving via delegation
+
+A service MAY be served by more than one host without sharing `sk_S`. The
+identity key signs a **delegation certificate** authorising a per-host
+signing/operating key for a bounded window:
+
+```
+DelegationCert {
+  version         : u8,           // 0x01
+  service_pubkey  : [u8; 32],     // pk_S this cert is bound to (MUST match address)
+  serial          : u64,          // unique per (service, delegate); monotonic
+  delegate_pubkey : [u8; 32],     // Ed25519 per-host key
+  not_before      : u64,          // UNIX seconds
+  not_after       : u64,          // UNIX seconds; MUST NOT exceed not_before + MAX_DELEGATION
+  capabilities    : u16,          // bit 0 = publish descriptor, bit 1 = run intro point,
+                                  // bit 2 = terminate e2e session; other bits reserved
+  signature       : [u8; 64]      // Ed25519 by sk_S over all preceding fields
+}
+```
+
+A host holding a valid `DelegationCert` MAY perform exactly the actions whose
+capability bit is set, during `[not_before, not_after)`. Verifiers MUST reject a
+delegated action whose corresponding bit is unset and MUST treat any unknown
+capability bit as unauthorised (deny by default). `service_pubkey` MUST equal
+the `pk_S` of the dialled address, preventing cross-identity cert reuse.
+
+Capability bit 2 (terminate e2e session) additionally requires the delegate to
+hold the per-period handshake static private key. Because `S_s` is derived from
+`sk_S` (Section 4.3.1), a delegate cannot recompute it; therefore a service
+authorising bit 2 MUST provision the delegate with the **current period's** `S_s`
+private half over a secure channel, re-provisioning each period. Provisioning
+only the per-period key (never `sk_S`) bounds the exposure of a compromised
+delegate to that period and to the actions its bits permit.
+Descriptors served by a delegate MUST embed the certificate so clients verify
+the chain to `pk_S`. Revocation before `not_after` is by descriptor rotation (a
+fresh, higher-`revision` descriptor omitting the revoked delegate) combined with
+short windows: `not_after − not_before` MUST NOT exceed `MAX_DELEGATION`
+(default 7 days). Because there is no online revocation list, `sk_S` compromise
+recovery relies on short windows; long-lived certificates are NOT RECOMMENDED.
 
 ### 4.3 Service descriptor and directory interface
 
-_TBD._
+#### 4.3.1 Descriptor content
+
+A service descriptor is a signed document. Its signed fields are:
+
+```
+Descriptor {
+  version          : u8,               // 0x01
+  address          : self-certifying address (Section 4.2.1)
+  revision         : u64,              // monotonic; higher supersedes lower
+  published_at     : u64,              // UNIX seconds, absolute publication time
+  lifetime         : u32,              // validity in seconds from published_at
+  handshake_static : [u8; 32],         // per-period service X25519 static key S_s (below)
+  intro_points     : IntroSection,     // see below (public: plain list; private: encrypted+padded)
+  rendezvous_set   : [[u8; 32]; r],    // packet_pubkeys the service vouches for as rendezvous
+                                      //   bridges (Section 4.4); rotated per period
+  session_caps     : u16,              // bitfield: session modes + supported traffic classes (interactive/stream/bulk)
+  min_dos_level    : u8,               // monotonic floor a client MUST enforce
+  dos_policy       : DosPolicy,        // Section 4.8
+  delegation       : DelegationCert?,  // present iff signed by a delegate
+  signature        : [u8; 64]          // Ed25519 over all preceding fields
+}
+
+IntroPoint {
+  node_id       : [u8; 32],   // IB HOPR off-chain public key (routing target)
+  intro_enc_key : [u8; 32],   // X25519 public key; PRIVATE HALF HELD ONLY BY THE SERVICE
+  expiry        : u64         // UNIX seconds
+}
+```
+
+`signature` is by `sk_S`, or by `delegation.delegate_pubkey` (capability bit 0
+set) when `delegation` is present. `revision` and `published_at` together resist
+rollback: a client MUST prefer the highest valid `revision`, MUST reject a
+descriptor whose `published_at + lifetime` has elapsed, and MUST reject a
+descriptor whose `published_at` is not consistent with the current directory
+period (Section 4.3.2).
+
+The `IntroSection` has two forms selected by a one-byte discriminant:
+
+- **Public service**: a plain `[IntroPoint; c]` where `c` is the real count.
+  Since a public service's introduction bridges are usable by anyone, their
+  identities are not secret and no padding is applied; the client reads the list
+  directly.
+- **Private service**: the real `[IntroPoint; c]` list is AEAD-encrypted to the
+  authorised-client key set (Section 4.8.2) and then padded to a fixed
+  `INTRO_SLOTS` (default 8) ciphertext-sized slots, so an outsider who cannot
+  decrypt learns neither the intro points nor their count. An authorised client
+  decrypts to obtain the real list. Padding is meaningful only here, because only
+  here are the entries hidden.
+
+`rendezvous_set` lists the `packet_pubkey`s of the rendezvous bridges the service
+vouches for (Section 4.4). A private service MAY carry it inside the same
+encrypted `IntroSection` as the intro points so only authorised clients see it.
+The set is rotated across periods to limit how much of the service's traffic any
+one bridge sees, and a client MAY augment it with bridges of its own
+(Section 4.4.3).
+
+`intro_enc_key` is the X25519 public key used to encrypt the introduction blob
+(Section 4.5.3). **Its private half is held only by the service (or a delegate
+with capability bit 1); the introduction bridge stores only the public value and
+cannot decrypt the blob.** `ESTABLISH_INTRO` (Section 4.5.1) proves the service
+possesses this private half.
+
+`handshake_static` (`S_s`) is rotated **every period** together with the
+publication key (Section 4.3.2), derived deterministically as
+`S_s = X25519_clamp(H("hopr-onion-hsk" || sk_S || period))`. Rotation prevents a
+party who reads two periods' descriptor bodies from linking them by a static
+handshake key.
+
+#### 4.3.2 Blinded publication keying
+
+To prevent the directory from enumerating services or linking a descriptor to
+its long-term identity, the descriptor is published under a **blinded key**
+derived from `pk_S` and the current time period, following the Tor v3 key
+blinding approach [06]:
+
+```
+period   = floor(now / PERIOD_LENGTH)   // PERIOD_LENGTH default 86400 s
+h        = clamp( H("hopr-blind" || pk_S || period) )              // per-period scalar; do not separately reduce mod L
+pk_blind = h · pk_S                      // Ed25519 POINT scalar-multiplication (not addition)
+slot     = H(pk_blind || period)         // directory address
+```
+
+The descriptor stored at `slot` is signed by the correspondingly blinded private
+key `a_blind = (h · a_S) mod L`, and verifies under `pk_blind` with standard
+Ed25519. The **exact** construction — scalar clamping and reduction modulo the
+group order `L`, point (not scalar) multiplication, and canonical `pk_blind`
+encoding — is normatively pinned in
+RFC-0015 §4.3;
+implementations MUST follow it exactly (a scalar-addition or unreduced/unclamped
+scalar yields either linkable slots or unverifiable signatures).
+
+Enumeration guarantee, stated precisely: because `h` derives from
+`pk_S`, only a party that already knows the `.hopr` address can compute `slot`.
+This makes the directory **crawl-resistant** — it cannot be swept for service
+identities. It does **not** hide a service from an adversary who already guesses
+or knows the address and can therefore compute the slot and confirm activity;
+that residual confirmation channel is discussed in Section 7.
+
+#### 4.3.3 Directory interface
+
+This RFC defines the interface any directory layer MUST provide; the concrete
+distributed hash table (replication, retention, storage incentives, and the
+blinding construction of Section 4.3.2) is specified in a companion RFC (proposed
+**RFC-0015, HOPR Distributed Directory**; drafted alongside this RFC). The directory holds
+**only service descriptors** (Section 4.3.1), stored at *blinded* slots so
+services cannot be enumerated. Bridges are **not** in the directory — they are
+discovered by direct capability negotiation and vouched for in service
+descriptors (Section 4.4), so there is no unblinded bridge index to crawl. The
+interface is:
+
+- `STORE(slot, record)` and `LOAD(slot) -> record?` — a single request format
+  serves both. Publication and fetch MUST be **indistinguishable on the wire**:
+  a publisher writes using the same request shape as a reader, authorising the
+  write with a signature inside the blinded-signed record body rather than a
+  distinct opcode, so a directory node cannot tell a service's re-publish from a
+  client's fetch.
+- Both operations MUST be performed over **anonymous HOPR sessions** (a forward
+  path with SURBs for the reply, per
+  [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)), so
+  directory nodes learn neither party's location.
+
+The directory layer MUST provide `k`-fold replication across the nodes
+responsible for a `slot`, with the responsible set rotating per `period`. Taking
+the highest `revision`/`sequence` across at least two replicas defeats a **single**
+lying replica, but not an adversary that controls the whole responsible set. Two
+properties are therefore REQUIRED of RFC-0015 and this RFC's guarantees are
+conditional on them:
+
+- **Ungrindable responsible-set assignment.** Because a slot is a public function
+  of a known key, an adversary could otherwise grind Sybil node IDs to land
+  adjacent to a target slot and eclipse it. RFC-0015 MUST make responsible-set
+  membership non-grindable toward a chosen slot (e.g. VRF-based assignment or IDs
+  bound to an announced on-chain identity) and MUST state a minimum `k`, an explicit
+  honest-fraction assumption, and a client fetch quorum of at least the assumed
+  dishonest bound plus one — not the bare "two" above, which is a floor.
+- **Replica-side monotonicity.** `sequence`/`revision` monotonicity is *not*
+  enforced by the record format; a validly-signed old record can be re-stored to
+  a forgetful replica. Replicas MUST retain the latest per-key value, MUST reject
+  a STORE whose `sequence`/`revision` is not greater than what they hold, and MUST
+  run anti-entropy so a fresh write (including a tombstone) propagates to the
+  responsible set before stale replicas can serve a superseded record.
+
+STORE/LOAD wire indistinguishability (above) is **shape-only**: a replica that
+inspects a request body can tell a validly-signed higher-`sequence` write (a
+heartbeat) from a read, so it does not hide *that* a given slot is being
+refreshed — only the account, and only for blinded (descriptor) slots. Do not
+rely on it to hide bridge heartbeats.
+
+To bound the per-slot demand time-series any single replica observes, clients
+SHOULD spread queries across the replica set. The directory interface MUST expose
+an anti-abuse hook (fetch payment or proof-of-work) that RFC-0015 MUST specify;
+without it, an adversary who knows an address can flood its slot. Because only
+blinded descriptor slots exist (bridges are not in the directory), flooding is
+targeted-only — an adversary must already know a service's address to compute its
+slot. Services MUST jitter publication time within the period and MUST NOT derive
+`published_at` from a high-resolution wall clock, so re-publication does not
+become a liveness or clock fingerprint.
 
 ### 4.4 Bridge relayers: announcement, eligibility and selection
 
