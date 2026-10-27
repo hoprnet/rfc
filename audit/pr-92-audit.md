@@ -200,3 +200,23 @@ Verified on the rebuilt branches: `scripts/structure-check.sh` passes, and a
 relative-link existence check reports zero missing targets for RFC-0015 and
 RFC-0016. The local Docusaurus build was not rerun after cleanup (the first run
 filled `/home`); Vercel is the end-to-end check.
+
+## RFC-0015 design decisions
+
+### D1. Slot lifecycle: per-period store with grace (2026-10-27)
+
+- `RecordEnvelope` gains `period: u64`; `slot = H(auth_pubkey || period)`; the
+  signature covers the whole envelope.
+- A replica accepts `period == current`, or `period == current - 1` while
+  `now < period_start(current) + BOUNDARY_GRACE`; otherwise reject.
+- `published_at` must fall inside `[period_start, period_end)` and
+  `ttl <= period_end - published_at + BOUNDARY_GRACE`. `TTL_MAX` remains an
+  upper bound only.
+- "Refresh" is a STORE at the new period's slot. Anti-entropy is per-period and
+  does not migrate records across the boundary.
+- Tombstones are period-scoped. Cross-period revocation is "stop publishing":
+  the next period's slot is simply absent.
+- For the blinded profile, the envelope's `published_at` and `ttl` must match the
+  descriptor's `published_at` and `lifetime`, or the client uses the minimum.
+- Consequence: RFC-0015 §4.3, §4.4, §4.5, §4.6 need edits; RFC-0016 §4.3.1 and
+  §4.3.3 need a matching statement about re-publication at each boundary.
