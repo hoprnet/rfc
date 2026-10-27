@@ -460,7 +460,311 @@ become a liveness or clock fingerprint.
 
 ### 4.4 Bridge relayers: announcement, eligibility and selection
 
-_TBD._
+#### 4.4.1 Announcement
+
+Onion services themselves are **never** announced on-chain — that would reveal
+their existence and location. Announcement applies only to the relay and bridge
+infrastructure. A bridge announcement is an extension of the **base node
+announcement**, the on-chain record every routable HOPR node publishes.
+[RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+assumes this record exists (it binds a node's off-chain key, chain account and
+transport address) and uses it as a discovery input, but no RFC has specified its
+contents. This RFC specifies both the base record and the bridge extension
+normatively; the base record is general HOPR infrastructure and SHOULD be
+migrated to a dedicated announcement RFC when one is written, with this section
+becoming a reference.
+
+##### Base node announcement
+
+```
+NodeAnnouncement {
+  version       : u8,            // 0x01
+  chain_account : [u8; 20],      // secp256k1-derived address; owns Safe, channels, tickets, receives fees
+  packet_pubkey : [u8; 32],      // Ed25519 off-chain key; routing identity (path-finding target,
+                                //   and the node_id referenced by descriptors)
+  multiaddrs    : [Multiaddr; a],// one or more libp2p transport addresses (IP/DNS, port, transport)
+  sequence      : u64,           // monotonic per chain_account; higher supersedes; anti-replay
+  key_binding   : KeyBinding     // proves packet_pubkey and chain_account are co-owned
+}
+
+KeyBinding {
+  packet_sig : [u8; 64],   // Ed25519 by the packet key over H("hopr-bind-chain"  || chain_account || sequence)
+  chain_sig  : [u8; 65]    // secp256k1 by the chain key  over H("hopr-bind-packet" || packet_pubkey || sequence)
+}
+```
+
+The `key_binding` is the security-critical part: the two cross-signatures prove
+the same operator controls both keys, so no node can announce a `packet_pubkey`
+it does not own (which would let it impersonate a routing identity) or attach one
+to another party's `chain_account` (which would misdirect settlement). Verifiers
+MUST check both signatures and MUST reject an announcement whose `sequence` does
+not exceed the last accepted `sequence` for that `chain_account`. The
+`packet_pubkey` is exactly the `OffchainPublicKey` used by path-finding
+([RFC-0014](../RFC-0014-path-finding/0014-path-finding.md)) and is what a
+descriptor's `IntroPoint.node_id` and a reservation token's `rb_node_id`
+reference.
+
+A bridge is always a HOPR node in the protocol sense — it must process Sphinx
+packets, hold a `packet_pubkey`, be transport-reachable, and run the session and
+SURB machinery, because bridging *is* terminating two HOPR sessions (Section
+4.9). It need **not** be a fully provisioned economic node, however: as a session
+*endpoint* (not a mid-path relay) it opens no payment channels of its own — the
+client and the service each fund both directions of their own leg (forward via
+their channels, return via the SURBs they created). A bridge MAY therefore be a
+**lightweight, channel-less endpoint**; the only chain state it relies on is the
+pre-existing `NodeAnnouncement` key-binding that every node already has. **There
+is no bridge-specific on-chain state and no bond** (see Section 4.4.2 for why
+accountability is off-chain instead).
+
+##### Discovering and offering bridges — no directory, no on-chain record
+
+There is **no global bridge directory** and no on-chain bridge record. A service
+finds willing rendezvous bridges by **direct capability negotiation** over
+anonymous HOPR sessions: it sends a `CAP_QUERY` (OSCP `0x0d`, Section 4.5;
+carrying an optional role/traffic-class filter) to a candidate node and receives a
+signed `CAP_RESPONSE` (OSCP `0x0e`) stating the node's offered roles, traffic
+classes, and fee schedule:
+
+```
+CAP_RESPONSE {
+  packet_pubkey  : [u8; 32],  // the responding node's key
+  roles          : u8,        // bit 0 = intro-capable, bit 1 = rendezvous-capable
+  traffic_classes: u8,        // bitfield of offered classes: interactive/stream/bulk (shaping per Section 4.9)
+  fee_schedule   : FeeSchedule,
+  schedule_ver   : u32,       // signed, monotonic; restated and honoured at reservation (Section 4.5.2)
+  signature      : [u8; 64]   // Ed25519 by packet_pubkey over all preceding fields
+}
+
+FeeSchedule {
+  reservation_fee : u128,  // small, non-refundable anti-DoS admission (Section 4.7)
+  service_rate    : u128,  // per leg-A-capacity unit, unlocked via PIX (Sections 4.5.5, 4.7)
+  currency        : u8     // settlement asset selector
+}
+```
+
+The service vets responders by observation over time (Section 4.4.2) and lists
+the ones it trusts as a **rendezvous candidate set in its descriptor** (Section
+4.3.1), rotating the set across periods. A bridge's *current* availability and
+fee are confirmed by **direct contact at reservation time**
+(`RENDEZVOUS_ESTABLISH`, Section 4.5.2) — "is it online" is simply "does it
+answer" — so no separately-published, separately-staleable liveness record
+exists. Routing to a bridge uses its `packet_pubkey` through ordinary
+path-finding
+([RFC-0014](../RFC-0014-path-finding/0014-path-finding.md)); its transport
+address comes from the base `NodeAnnouncement` the channel graph already tracks.
+
+A `CAP_RESPONSE` proves only that a node *claims* a capability and fee; it is a
+discovery aid, not a trust signal. Trust comes from reputation (Section 4.4.2).
+Because discovery is by direct, addressed negotiation rather than a published
+index, there is **no enumerable global list of bridges** to crawl, target, or
+correlate — the only place a set of bridges appears is inside a specific
+service's descriptor, visible only to a party that already knows that service's
+address (Section 7).
+
+To prevent `CAP_QUERY` from being an asymmetric-crypto denial-of-service (an
+Ed25519 signature per query over anonymous sessions), a node MUST serve a
+**pre-signed, cacheable** `CAP_RESPONSE` — the response has a monotonic
+`schedule_ver` and does not depend on the query, so a node signs it once per
+schedule change and replays it, and MUST rate-limit query handling. `capacity` is
+**not advertised**; it is a node-local limit a bridge enforces by returning
+`JOIN_UNAVAILABLE` when saturated (Section 4.5.4), so it cannot go stale.
+
+#### 4.4.2 Accountability: off-chain reputation, not a bond
+
+Earlier drafts required an on-chain slashable bond. It is removed. Two
+observations make a bond the wrong tool:
+
+1. **The one threat a bond was meant to price — the rendezvous correlation
+   vantage — is not observable, so it was never slashable** on-chain or off. A
+   bridge that splices perfectly but logs and correlates the two legs is
+   byte-for-byte indistinguishable from an honest one; no proof can catch it.
+   Correlation resistance has always rested on mandatory per-leg traffic shaping
+   (Section 4.9) and on diverse, fresh selection (Section 4.4.3), never on a
+   bond, whose recoverable-rental economics the design already conceded do not
+   deter a one-shot correlation gain.
+2. **The failures that *are* observable — non-performance, dropping, refusing to
+   splice, fee games — are best judged locally by the counterparties**, exactly
+   as [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+   already scores relay edges (latency, drop rate, acknowledgement rate) and
+   passively starves bad ones. This is *off-chain reputation*, and acting on it
+   is the "slash": a service or client that observes a bridge misbehave simply
+   **drops it from the set it will select** (Section 4.4.3).
+
+Accountability is therefore **local and reputational**. Services curate the
+bridges they offer from their own observation; clients maintain their own
+per-bridge scores from probing and from past joins; both stop selecting a bridge
+that misbehaves. The economic incentive to behave is the **PIX service-fee
+stream** (Section 4.7): a bridge earns only for joins it actually performs, and a
+bridge that is dropped from everyone's sets earns nothing — misbehaviour is
+punished by loss of future income, not by burning a deposit. A brand-new bridge
+with no reputation bootstraps exactly as an unprobed relay edge does in
+[RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md):
+it is tried opportunistically under a neutral prior and earns or loses standing
+by how it performs.
+
+Removing the bond eliminates the on-chain bond/slashing contract, its withdrawal
+cooldown, and the on-chain hard-revocation path entirely: the bridge layer
+now touches the chain **only** through the node identity that already exists.
+
+**What this costs, stated plainly.** Removing the bond removes the *only*
+per-identity cost of *being* a bridge. There is therefore **no Sybil-resistance
+mechanism for bridge identity**: any HOPR node is bridge-capable at essentially
+zero marginal cost, and an adversary can run an unbounded Sybil fleet. Local
+reputation does **not** close this, for two reasons: (a) it scores *availability*
+(delivery, latency), which is orthogonal to — if anything positively correlated
+with — a good covert-correlation vantage, so a **long-con** bridge behaves
+perfectly to earn trust and correlates the whole time, invisibly; and (b)
+reputation is non-transferable, so the neutral-prior probation recurs
+independently for every service and client, and the fleet gets a fresh free trial
+against every new target. The design accepts this and does **not** rely on Sybil
+cost or reputation to stop correlation. Correlation is instead bounded by
+mechanisms that do not depend on bridge honesty: **leg-A multi-hop** prevents
+deanonymisation regardless of who controls a bridge (Section 7); **shaping +
+multipath with client-contributed bridges** (Sections 4.9, 4.6.1) bound what a
+bridge vantage yields; and **rotation** caps the sample any one bridge collects.
+
+To raise the cost of the long-con above literally zero without reintroducing a
+bond, a service SHOULD bias cold-start vetting toward bridges with **pre-existing,
+hard-to-fake network standing** — channel stake, node age, and relay reputation
+from
+[RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+probing — all of which a service reads from the channel graph it already
+maintains and none of which a fresh Sybil fleet can cheaply manufacture. This is
+a *selection heuristic over existing signals*, not new on-chain state. A service
+SHOULD also cap the fraction of its traffic any single bridge carries per period,
+independent of that bridge's score, so that even a fully-trusted bridge collects
+a bounded sample. The scoring, the cold-start ranking, and this concentration cap
+are specified concretely in Section 4.4.5.
+
+#### 4.4.3 Selection
+
+- **Introduction bridges** are chosen by the **service** and listed (padded to
+  `INTRO_SLOTS` for a private service) in the descriptor. The service SHOULD
+  prefer high-reputation, churn-resistant nodes, keep at least 3 live intro
+  points, and rotate the set across periods (the chosen-IB set is a cross-period
+  linkage signal, Section 7). Dropping a misbehaving IB is a descriptor
+  re-publish omitting it.
+- **Rendezvous bridges** are, by default, selected per connection by the
+  **client from the service's descriptor-listed rendezvous candidate set**
+  (Section 4.3.1) — the set the service has curated and vouches for. The client
+  **MAY additionally** draw on rendezvous bridges it discovered by its own
+  capability negotiation (Section 4.4.1), as an availability fallback and to
+  dilute a hostile service's cross-client traffic analysis; this is OPTIONAL.
+  The client picks **freshly and randomly** per connection, uses a **fresh cookie**
+  each time, and SHOULD avoid reuse that would let a bridge link two connections.
+  Letting the service provide the set is safe against *deanonymisation* because
+  leg A is multi-hop: even a service-controlled rendezvous bridge sees only the
+  adjacent relay, never the client (Section 7); the residual — a hostile service
+  gaining a shaping-bounded timing vantage over its own clients — is what the
+  optional client-provided bridges mitigate. The bridge's current fee and
+  availability are learned by contacting it at reservation (Section 4.5.2), not
+  from any published record.
+
+Both roles MUST re-verify at use time: a rendezvous bridge that does not answer,
+or fails or under-performs at connection time, MUST be dropped for this
+connection and another selected. Reputation, however, MUST be updated **only from
+failures the observer can attribute to the bridge itself** — a `RENDEZVOUS_ESTABLISH`
+timeout, a reservation refusal, or a `CAP_QUERY` non-response, all of which the
+client observes directly against the bridge. A path that fails because the
+**service** never sent `RENDEZVOUS1` (detected only as a missing `RENDEZVOUS2`,
+Section 4.5.4) is **unattributable** — the client cannot tell a down bridge from a
+service that declined to join it — and MUST NOT lower the bridge's score.
+Otherwise a hostile service could selectively fail the client's own bridges to
+make the client demote and discard exactly the independently-trusted bridges the
+diversity invariant depends on (Section 4.6.1).
+
+#### 4.4.4 Revocation and staleness
+
+Because there is no bond and no bridge directory, revocation is entirely local
+and has three forms:
+
+1. **A bridge leaves** by simply **not answering** capability queries or
+   reservations. It vanishes from use immediately — there is no record to expire
+   or retract. Staleness cannot accumulate because nothing about a bridge is
+   cached beyond a connection; liveness is re-established by contact each time.
+2. **A service stops vouching** for a bridge by re-publishing its descriptor
+   (higher `revision`) with that bridge removed from the rendezvous candidate set
+   (and, for an introduction bridge, from `intro_points`). Clients pick up the
+   change on the next descriptor fetch, bounded by descriptor `lifetime`.
+3. **A counterparty de-selects (the "slash").** A service or client that judges a
+   bridge to be misbehaving simply **stops selecting it** (Section 4.4.2). This
+   needs no cooperation from the bridge, no directory, and no chain, and is the
+   primary accountability lever; a distrusted bridge is never chosen again
+   regardless of what it advertises.
+
+For a **compromised** bridge key/address, removal is by the service's descriptor
+re-publish (form 2) plus clients failing closed on an unreachable bridge; there
+is no directory record an adversary could keep alive, so there is no eclipse
+surface for bridge revocation.
+
+Mid-session, an established join is unaffected by its bridge being de-selected —
+revocation only removes it from *future* selection; existing joins run until torn
+down normally (Section 4.9), and the bridge is paid only for what it actually
+delivers (Section 4.7).
+
+#### 4.4.5 Reputation scoring and cold-start vetting
+
+Because there is no bond and no global reputation, each service and client
+maintains its **own local per-bridge score** and bootstraps trust from signals it
+can already see. This section specifies that scoring and the cold-start procedure;
+it is the concrete answer to how a party assembles a trustworthy bridge set from
+zero (Section 4.4.2).
+
+**Local score.** For each bridge it has interacted with, a party maintains a score
+combining the same observable quantities
+[RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+already uses for relay edges — join-completion rate, round-trip latency, and
+availability (does it answer `CAP_QUERY`/`RENDEZVOUS_ESTABLISH`) — as an
+exponential moving average over recent joins so that recent behaviour dominates
+and a bridge that degrades is down-weighted quickly. This score measures
+**availability and honest splicing only**; it is explicitly *not* evidence of
+non-correlation (Section 4.4.2), and MUST NOT be treated as such.
+
+**Cold-start (no prior interaction).** A service (or client) with no history
+selects initial candidates by ranking on **scarce, hard-to-fake signals it reads
+from the channel graph it already maintains**, none of which a fresh Sybil fleet
+can cheaply manufacture:
+
+1. **Discover** rendezvous-capable nodes via `CAP_QUERY` to promising channel-graph
+   peers, keeping those whose signed `CAP_RESPONSE` offers the needed role, traffic
+   class, and an acceptable fee.
+2. **Rank** the responders by a prior over (a) **channel stake / collateral**
+   already locked on-chain by the node, (b) **node age** since first announcement,
+   and (c) **relay reputation** from the party's own
+   [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+   probing. A brand-new Sybil ranks low on all three.
+3. **Trial** the top candidates on real joins under a neutral score, and update the
+   local score from the outcome.
+4. **Promote** consistently-good bridges into the vouched `rendezvous_set` (a
+   service) or the trusted client set; **demote and drop** underperformers.
+
+**Concentration cap.** Independent of score, a service SHOULD cap the fraction of
+its connections routed through any single bridge per period
+(`max_bridge_share`), and rotate its `rendezvous_set` across periods (Section
+4.3.1), so that even a maximally-trusted bridge — which could still be a
+long-con correlator — collects only a bounded, rotating sample of the service's
+traffic. Note this caps **per-service** self-exposure only: because there is no
+bridge directory, a service cannot see how many *other* services a bridge serves,
+so `max_bridge_share` does **not** bound a bridge's cross-service aggregate sample
+(Section 7) — only rotation and shaping/multipath limit that.
+
+**Accepted limits — the prior is weak against a resourced adversary.** The
+"scarce" signals raise the Sybil cost against *casual* adversaries only, not
+against a resourced or incumbent one, and the "hard-to-fake" framing must be read
+with that caveat: channel stake is **refundable** collateral (recoverable on
+channel close — the same recoverable-rental economics that justified removing the
+bond), node age is **free to pre-accrue** (a patient adversary ages a fleet at
+zero marginal cost), and RFC-0010 relay reputation is earned by honest
+*relaying*, which is **orthogonal to** (if anything positively correlated with) a
+good correlation vantage. So the prior amounts to "is this a real, established
+relay operator" — which a well-funded or nation-state adversary, or one already
+running a legitimate relay business, simply is, and can then long-con. The score
+is also **local and non-transferable**: every party re-runs cold-start
+independently, so the neutral-prior phase recurs per relationship (Section 4.4.2).
+This is why the correlation defences (leg-A multi-hop, shaping, multipath,
+rotation, the concentration cap) do **not** rely on reputation; reputation only
+prices *observable non-performance*. A transferable reputation signal is deferred
+(Section 11).
 
 ### 4.5 Introduction and rendezvous protocol
 
