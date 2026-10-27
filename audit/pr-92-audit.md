@@ -149,18 +149,26 @@ tracking issue rather than leaving two open copies of the same text.
 6. `SUMMARY.md` and `README.md` move to a separate small PR rebased on `main`.
 7. PR #92 stays open.
 
-## Execution map
+## Execution map (executed 2026-10-27)
 
-| PR | Branch | Base | Content |
-| --- | --- | --- | --- |
-| A | `kauki/docs/rfc/distributed-directory` | `main` | RFC-0015 directory, 381 lines |
-| B1 | `.../onion-services/01-foundations` | `main` | title, §1 to §4.1 |
-| B2 | `.../02-identity-descriptor` | B1 | §4.2, §4.3 |
-| B3 | `.../03-bridges` | B2 | §4.4 |
-| B4 | `.../04-introduction-rendezvous` | B3 | §4.5 |
-| B5 | `.../05-handshake-sessions` | B4 | §4.6 |
-| B6 | `.../06-incentives-dos` | B5 | §4.7, §4.8 |
-| B7 | `.../07-bridge-management-guards` | B6 | §4.9, §4.10 |
-| B8 | `.../08-considerations-security` | B7 | §5 to §9 |
-| B9 | `.../09-open-questions-appendices` | B8 | §10 to §14 |
-| C | `kauki/docs/rfc/summary-add-0015-0016` | `main` | summary rows, intro, README link |
+| PR | Branch | Base | Content | Diff |
+| --- | --- | --- | --- | --- |
+| #118 | `kauki/docs/rfc/distributed-directory` | `main` | RFC-0015 directory | +381 |
+| #120 | `.../onion-split/01-foundations` | `main` | title, §1 to §4.1 | +302 |
+| #121 | `.../onion-split/02-identity-and-descriptor` | #120 | §4.2, §4.3 | +228/-2 |
+| #122 | `.../onion-split/03-bridges` | #121 | §4.4 | +305/-1 |
+| #123 | `.../onion-split/04-introduction-and-rendezvous` | #122 | §4.5 | +251/-1 |
+| #124 | `.../onion-split/05-handshake-and-sessions` | #123 | §4.6 | +225/-1 |
+| #125 | `.../onion-split/06-incentives-and-dos` | #124 | §4.7, §4.8 | +106/-2 |
+| #126 | `.../onion-split/07-bridge-management-and-guards` | #125 | §4.9, §4.10 | +106/-2 |
+| #127 | `.../onion-split/08-considerations-and-security` | #126 | §5 to §9 | +315/-5 |
+| #128 | `.../onion-split/09-open-questions-and-appendices` | #127 | §10 to §14 | +93/-6 |
+| #119 | `kauki/docs/rfc/summary-add-0015-0016` | `main` | summary rows, intro, README link | +5/-3 |
+
+Verified: `#128` retargeted to `main` yields exactly the 1911-line RFC-0016 file.
+`#118` yields the 381-line RFC-0015 file. `scripts/structure-check.sh` passes on
+all three branch tips. Intermediate PRs are drafts and marked review-only.
+
+The branch prefix is `onion-split`, not `onion-services`: a remote branch
+`kauki/docs/rfc/onion-services` already exists (the #92 head), and git refuses
+child refs under an existing ref.
