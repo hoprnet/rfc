@@ -5,6 +5,13 @@ on:
   pull_request:
     branches: ["**"]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event.pull_request.number || github.ref }}-rfc-ci
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -29,3 +36,16 @@ jobs:
 
 #    - name: Check Spelling
 #      run: nix develop --command just spell-check-ci
+
+  # Keeps the `Merge gate` check name present so the ruleset can require it
+  # (hoprnet/hopr-devops#372). Build RFC PDF lives in another file and is not covered.
+  merge-gate:
+    name: Merge gate
+    if: always()
+    needs: [validate]
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        with:
+          jobs: ${{ toJSON(needs) }}
