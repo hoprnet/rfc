@@ -18,15 +18,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
 
+      # Cache the downloaded .deb files, not the installed tree: apt still
+      # resolves and unpacks them, but skips the multi-hundred-MB download.
+      - name: Cache apt archives
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: ~/apt-archives
+          key: apt-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/workflows/build-rfc-pdf.yml') }}
+          restore-keys: |
+            apt-${{ runner.os }}-${{ runner.arch }}-
+
       - name: Install system dependencies
         run: |
+          mkdir -p ~/apt-archives/partial
+          chmod -R a+rwX ~/apt-archives
+          # Route every apt-get call below through the cached directory
+          sudo tee /etc/apt/apt.conf.d/99-rfc-cache >/dev/null <<EOF
+          Dir::Cache::archives "$HOME/apt-archives";
+          Binary::apt::APT::Keep-Downloaded-Packages "true";
+          APT::Keep-Downloaded-Packages "true";
+          EOF
+          sudo rm -f /etc/apt/apt.conf.d/docker-clean
           sudo apt-get update
           # Base TeX + pandoc
           sudo apt-get install -y \
