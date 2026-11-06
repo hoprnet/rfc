@@ -4,6 +4,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event.pull_request.number || github.ref }}-build-rfc-pdf
+  cancel-in-progress: true
+
 jobs:
   build-rfc-pdf:
     runs-on: ubuntu-latest
