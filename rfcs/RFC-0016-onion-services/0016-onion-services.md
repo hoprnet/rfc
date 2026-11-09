@@ -1804,21 +1804,108 @@ key and a non-reused 96-bit nonce (Appendix 1).
 
 ## 10. Unresolved Questions
 
-_TBD._
+- Concrete values for `intro_payment_min`, fee rates, `INTRO_SLOTS`, the
+  rendezvous-set size, and the default multipath degree; and their governance.
+- A formal unlinkability proof of the Ed25519 key-blinding construction (the
+  construction is pinned in
+  RFC-0015 §4.3;
+  only the formal proof is open).
+- Concrete `max_bridge_share`, EMA windows, and cold-start prior weights for the
+  reputation scoring of Section 4.4.5 (the mechanism is specified; the constants
+  are deployment/governance choices).
+- Congestion-fairness of the striping weight across paths of unequal quality
+  (the mechanism is specified in Section 4.6.1; the scheduler policy is open).
+- Concrete `GUARD_COUNT`/`GUARD_LIFETIME` values and the guard-rotation trigger
+  policy (the guard mechanism is specified in Section 4.10; the constants are open).
+- Quantifying the anonymity-set benefit of treating onion-leg padding as network
+  cover traffic (the qualitative answer — net positive, no new distinguisher — is
+  in Section 7; the quantitative gain and any tuning of shaped rates against
+  network cover levels are open).
+- Concentration mitigation: rendezvous-set rotation cadence versus the client's
+  reliance on the service-offered set.
 
 ## 11. Future Work
 
-_TBD._
+- **Companion directory RFC (proposed RFC-0015).** Full DHT mechanics for blinded
+  descriptors: replication, retention, storage incentives, responsible-set
+  rotation, the blinding construction, and the fetch anti-abuse hook.
+- **Multipath scheduler.** An optimised striping scheduler over paths of unequal
+  latency/quality (the correctness mechanics are in Section 4.6.1; this is the
+  performance policy).
+- **Transferable reputation.** An optional shared/attestable reputation signal
+  that removes the per-relationship cold-start of Section 4.4.5 (the local scoring
+  and scarce-signal prior are specified; a network-wide signal that shortens the
+  long-con window is future work).
+- **Guard-rotation hardening.** Formal analysis of guard-rotation timing and
+  the unlinkability/compromise trade of Section 4.10 (the mechanism is specified;
+  its parameterisation and formal guarantees are open).
+- **Paid-gateway hosting.** A full specification of the non-node service model.
+- **Metered and subsidised economics.** Per-byte bridge settlement and the
+  service-subsidised / client-pays-all variants.
+- **Proof-of-work introduction fallback.** A concrete client-puzzle scheme for
+  free-tier DoS resistance under load.
+- **End-to-end delivery proofs.** Optionally strengthening the incentive from
+  proof-of-handover toward proof of accepted application delivery.
 
 ## 12. References
 
-_TBD._
+[01] Bradner, S. (1997). [Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119). _IETF RFC 2119_.
+
+[02] Chaum, D. (1981). [Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms](https://www.freehaven.net/anonbib/cache/chaum-mix.pdf). _Communications of the ACM, 24_(2), 84-90.
+
+[03] Danezis, G., & Goldberg, I. (2009). [Sphinx: A Compact and Provably Secure Mix Format](https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf). _2009 30th IEEE Symposium on Security and Privacy_, 262-277.
+
+[04] Piotrowska, A. M., Hayes, J., Elahi, T., Meiser, S., & Danezis, G. (2017). [The Loopix Anonymity System](https://arxiv.org/pdf/1703.00536.pdf). _26th USENIX Security Symposium_, 1199-1216.
+
+[05] Standards for Efficient Cryptography Group. (2010). [SEC 2: Recommended Elliptic Curve Domain Parameters](https://www.secg.org/sec2-v2.pdf). _Standards for Efficient Cryptography_.
+
+[06] Dingledine, R., Mathewson, N., & Syverson, P. (2004). [Tor: The Second-Generation Onion Router](https://svn.torproject.org/svn/projects/design-paper/tor-design.pdf). _13th USENIX Security Symposium_.
+
+[07] Bernstein, D. J., Duif, N., Lange, T., Schwabe, P., & Yang, B.-Y. (2012). [High-speed high-security signatures](https://ed25519.cr.yp.to/ed25519-20110926.pdf). _Journal of Cryptographic Engineering, 2_(2), 77-89.
+
+[08] Johnson, N., et al. (2017). [Ethereum Name Service](https://docs.ens.domains/). _ENS Documentation_.
+
+[09] Perrin, T. (2018). [The Noise Protocol Framework](https://noiseprotocol.org/noise.pdf). _Revision 34_.
+
+[10] Bernstein, D. J. (2006). [Curve25519: New Diffie-Hellman Speed Records](https://cr.yp.to/ecdh/curve25519-20060209.pdf). _Public Key Cryptography - PKC 2006_, 207-228.
+
+[11] Langley, A., Hamburg, M., & Turner, S. (2016). [Elliptic Curves for Security](https://www.rfc-editor.org/rfc/rfc7748.html). _IETF RFC 7748_.
+
+[12] Josefsson, S. (2006). [The Base16, Base32, and Base64 Data Encodings](https://www.rfc-editor.org/rfc/rfc4648.html). _IETF RFC 4648_.
 
 ## 13. Appendix 1: Cryptographic Instantiation
 
-_TBD._
+The current HOPR Onion Services instantiation uses:
+
+- Service identity signatures: **Ed25519** [07], canonical encoding, small-order
+  points rejected.
+- End-to-end key agreement: **X25519** [10] [11], in a Noise-IK-style pattern
+  [09]; DH outputs checked against the all-zero value.
+- Hash `H`: **BLAKE3-256**, consistent with
+  [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) and
+  RFC-0012.
+- KDF / HKDF: **BLAKE3** derive-key mode, `KDF(c, k, s) = blake3_kdf(c, s || k)`;
+  directional subkeys via BLAKE3 keyed expansion with distinct context labels.
+- Symmetric encryption for e2e frames and the intro blob:
+  **ChaCha20-Poly1305**. Each AEAD context (intro blob, e2e c2s, e2e s2c) uses an
+  independent key and an independent 96-bit nonce counter starting at zero;
+  a (key, nonce) pair MUST NOT recur.
+- Address encoding: **base32** (RFC 4648 [12], lowercase, unpadded).
+- On-chain settlement (tickets, PIX, announcements): **secp256k1** [05],
+  as in [RFC-0005](../RFC-0005-proof-of-relay/0005-proof-of-relay.md) and
+  RFC-0012.
 
 ## 14. Appendix 2: HOPR Session Binding
 
-_TBD._
-
+Onion Service Control Protocol messages are carried in HOPR application-protocol
+frames
+([RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)) under
+application tag `0x0000000000000002`. Standing introduction sessions, rendezvous
+sessions, and anonymous directory sessions are ordinary HOPR sessions
+([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
+[RFC-0009](../RFC-0009-session-start-protocol/0009-session-start-protocol.md))
+whose targets designate the relevant bridge or directory node. The end-to-end
+data session is a session-data-protocol
+([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) instance
+whose frames are encrypted under the e2e keys of Section 4.6 and joined between
+the two HOPR sessions by the rendezvous bridge (Section 4.9).
