@@ -13,9 +13,7 @@ concurrency:
 
 jobs:
   build-rfc-pdf:
-    # ubuntu-26.04 ships pandoc 3.7 (\pandocbounded), which breaks the
-    # width=\maxwidth rewrite in latex/generator-tex.sh ("Dimension too large").
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -82,7 +80,7 @@ jobs:
       - name: Test mermaid
         run: |
           echo 'graph TD; A-->B;' > test.mmd
-          mmdc -i test.mmd -o test.png --outputFormat png --size 4800 --backgroundColor white --scale 4 --puppeteerConfigFile puppeteer-config.json
+          mmdc -i test.mmd -o test.png --outputFormat png --width 4800 --height 4800 --backgroundColor white --scale 4 --puppeteerConfigFile puppeteer-config.json
           ls -l test.png
 
       - name: Make scripts executable
