@@ -1474,23 +1474,333 @@ compromise probability. The endpoint chooses its point on that spectrum.
 
 ## 5. Design Considerations
 
-_TBD._
+**Why two phases rather than a single bridge.** A single announced bridge that
+also carries data would be a bottleneck, a denial-of-service magnet, and a fixed
+correlation point. Splitting a long-lived, low-traffic introduction role from a
+fresh, per-connection rendezvous role keeps announced infrastructure out of the
+bulk path and makes connections unlinkable across rendezvous points, matching
+Tor v3 [06] while running over HOPR sessions.
+
+**Why self-certifying names with an optional alias layer.** Self-certification
+removes naming trust: the address is the key. ENS is reused only so
+human-memorable names need no new registry contract; because the self-certifying
+address stays authoritative, a hostile alias cannot redirect a client.
+
+**Why payment must be service-conditional.** An earlier design paid the bridge a
+flat fee prepaid at reservation. That is a fee-theft primitive: nothing binds the
+payment to performing the join, and it discards exactly the property that makes
+PIX safe — settlement conditional on a proven handover. Modelling the rendezvous
+bridge as a PIX exit whose stream unlocks per delivered frame restores
+incentive-compatibility (a non-performing bridge earns only the small
+non-refundable reservation) and keeps payments unlinkable. Because mandatory
+shaping means the bridge delivers at a constant rate, every leg-A SURB — data or
+padding — carries a share, so the bill tracks capacity-held-open rather than
+payload; this both matches the availability nature of the role and avoids
+underpaying upload-heavy sessions. The introduction micro-payment applies the
+same principle: pay per proof-of-forwarding (`INTRODUCE2` receipt), not for
+unverifiable availability.
+
+**Why no bond.** An earlier design gated bridging on an on-chain slashable bond.
+It was removed once two facts became clear: the only threat a bond was meant to
+price — the rendezvous correlation vantage — is unobservable and so was never
+slashable by any mechanism; and the observable failures are better judged locally
+by the counterparties, which is off-chain reputation (Section 4.4.2). With
+service-curated, client-augmentable, reputation-gated selection there is no global
+bridge pool to Sybil-flood, so the bond's remaining purpose evaporated. The
+result is a bridge layer with **no bridge-specific on-chain state at all** and no
+slashing contract — a large reduction in both on-chain footprint and external
+dependencies. Accountability is local de-selection; the incentive to behave —
+*with respect to availability and honest splicing* — is the PIX fee stream
+(Section 4.7), which provides **no** disincentive against covert correlation (a
+correlating bridge maximises its fee by delivering diligently). Correlation is
+resisted by shaping and multipath, and deanonymisation is prevented by leg-A
+multi-hop — not by capital at stake. The trade is honest but real: there is no
+Sybil cost on bridge identity (Section 4.4.2).
+
+**Why shaping (and multipath) are the correlation defence.** A rendezvous bridge
+holds both matched flows of the connection it joins; it does not need to be global
+to correlate them, and end-to-end encryption hides content but not shape. Two
+mechanisms bound this: mandatory constant-rate per-leg **shaping** (Section 4.9),
+and optional **multipath rendezvous** (Section 4.6.1), in which the client stripes
+one session across several bridges so that no single bridge sees more than a
+fraction of the flow and reconstruction requires *all* of the client's chosen
+bridges to collude. A client may additionally spread activity across
+**independent sessions** (also Section 4.6.1) so no single session exposes the
+whole relationship. Shaping is a requirement; multipath and multi-session are
+composable options, not niceties.
+
+**Parameter defaults.** `PERIOD_LENGTH` 86400 s, at least 3 live intro points, and
+`MAX_DELEGATION` 7 days mirror proven Tor v3 choices; fee units, `INTRO_SLOTS`,
+the multipath degree, `JOIN_TIMEOUT`, `GUARD_COUNT`/`GUARD_LIFETIME`, and window
+timers are parameters left to the client's threat model and to governance.
 
 ## 6. Compatibility
 
-_TBD._
+This RFC is additive. It introduces the OSCP application tag
+`0x0000000000000002` (from the user-defined range `0x2`–`0xd` of
+[RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)) and new
+OSCP message types; nodes that do not implement onion services do not register
+the tag and are unaffected as relayers. Because that range has no global
+registry, two independent user protocols could both claim `0x2`; interoperating
+deployments MUST coordinate tag assignment out of band until a registry exists.
+
+Dependencies that are **not yet part of the finalised repository** and gate an
+interoperable implementation:
+
+- The **PIX construction**
+  (RFC-0012,
+  currently a draft on an unmerged branch): its full agreement (commitment
+  handshake, coefficient commitments, share generation and verification,
+  stealth-address recovery), its privacy-pool operations
+  (`Deposit`/`Allocate`/`Withdraw`), and its SURB recipient-data extension. That
+  extension is *proposed alongside PIX* and would bump
+  [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) (today
+  v1.0.1, with no such field) to a new minor version. OSCP carries the PIX
+  commitment payloads under its own message types `0x0b`/`0x0c` (Section 4.5.5)
+  rather than the PIX Session-Start discriminants `0x04`/`0x05`; the cryptographic
+  agreement is PIX's, only the transport framing differs.
+- The **directory RFC** (Section 4.3.3), carrying blinded service descriptors,
+  which MUST provide the ungrindable responsible-set assignment,
+  minimum-`k`/honest-fraction assumption, replica-side monotonicity, and fetch
+  anti-abuse hook that Section 4.3.3 depends on.
+- The base `NodeAnnouncement` key-binding already exists on-chain for every node;
+  it SHOULD later migrate to a dedicated announcement RFC.
+
+There is **no bridge bond or slashing contract** dependency: the bridge layer
+introduces no bridge-specific on-chain state (Section 4.4). This removes what was
+previously the heaviest external dependency.
+
+Peers negotiate the OSCP version via the announcement and descriptor; a peer that
+does not recognise an OSCP message type MUST respond `JOIN_UNAVAILABLE` or drop
+per its normal unknown-message handling.
 
 ## 7. Security Considerations
 
-_TBD._
+**Rendezvous bridge as a correlation vantage.** The RB terminates both legs of
+one connection and therefore knows they are linked — a stronger position than a
+Tor rendezvous point. Framing rendezvous as a generic session-join (Section 4.5)
+denies the RB knowledge that it serves an onion service, and each leg is a
+multi-hop HOPR path so the RB sees two pseudonymous endpoints, not identities.
+The load-bearing defences against timing/volume correlation across the join are
+the **mandatory per-leg constant-rate shaping** of Section 4.9 and **optional
+multipath rendezvous** (Section 4.6.1), which reduces any single bridge's view to
+a fraction of the flow; a client may further split its activity across
+**independent sessions** (Section 4.6.1) so that no single session — hence no
+bridge serving one — reveals the whole client-service relationship. End-to-end
+encryption hides only content. Residual risk is
+bounded by the mixnet's own limits (low-volume windows, global passive
+adversaries; [RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and by diverse,
+fresh, reputation-gated selection (Section 4.4).
+
+**Hostile service and rendezvous choice.** Because the service offers the
+rendezvous set (Section 4.4.3), a *hostile* service can steer a client onto a
+bridge it controls with certainty. This does **not** deanonymise the client: leg
+A is multi-hop, so a service-controlled rendezvous bridge sees only the adjacent
+relay, never the client, as long as one leg-A hop is honest. What it grants is a
+shaping-bounded timing vantage over the service's own clients. Critically,
+**multipath does not by itself counter a hostile service**: the service is one
+endpoint and reassembles the whole flow regardless of `M`, and if the client
+draws all `M` bridges from the service's set they are all service-controlled, so
+multipath then only *worsens* the vantage. The effective counter is that the
+client MUST include client-discovered bridges in a multipath set (`⌈M/2⌉`,
+Section 4.6.1) — only bridges the *hostile service does not control* dilute its
+view. A client that cannot contribute its own bridges gains nothing from
+multipath against a hostile service and SHOULD prefer single-path plus its own
+independent rendezvous choice. A hostile service's remaining move — accepting only
+its own bridges and **selectively failing the client-contributed paths** (Section
+4.5.4) — is caught by the client enforcing the diversity invariant on the
+*surviving* paths (Section 4.6.1): if too few client paths establish, the client
+aborts, so selective failure yields the service no connection rather than a
+controlled one.
+
+**The client's bridge set is disclosed to the service (inherently).** The service
+must open a leg to each rendezvous bridge, so it decrypts `IntroPayload` and
+learns the `rb_node_id` of *every* chosen bridge, including the client-contributed
+ones — any `rb_node_id` outside the service's own `rendezvous_set` is, by
+construction, identifiably a client-private bridge. Client-contributed bridges are
+therefore **not hidden from the service**; their value is denying the service a
+*bridge-side* vantage it does not need as the endpoint and forcing fail-closed on
+sabotage (above), not concealment. Two consequences follow and are accepted:
+(1) a service learns, and can permanently blocklist, a client's private bridges —
+and repeated renegotiation-on-abort is a **bridge-set enumeration oracle**, so a
+client MUST bound renegotiation rounds and SHOULD rotate its private bridges
+per service-relationship rather than exposing one global set to every service;
+(2) two clients sharing a private bridge are linkable *to a service that sees
+both* (not to third parties). These are inherent to the client contributing
+bridges and are the cost of the fail-closed guarantee.
+
+**Intersection and clustering across connections.** An adversary running many
+rendezvous bridges collects leg fingerprints across connections; a service's leg B
+is the more stable side. Constant-rate shaping denies clustering by making legs
+uniform, and multipath dilutes each bridge's sample. The tension is explicit:
+per-connection RB freshness spreads samples across more bridges while reducing
+per-bridge linkage; both endpoints additionally constrain their leg entry relays
+to a stable guard set to bound long-run deanonymisation (Section 4.10).
+
+**Standing introduction session fingerprint.** A naive standing session is a
+durable liveness signal to a chosen, paid IB. Section 4.5.1 mitigates this with a
+network-wide jittered keep-alive cadence (so cadence is not a selector),
+`PSEUDONYM_ROTATION` of the standing session, and padding so `INTRODUCE2`
+forwarding is not distinguishable from keep-alive. The IB still learns an intro
+point exists for an `intro_enc_pubkey`; it does not learn the service's node
+identity (multi-hop path) and cannot decrypt introductions.
+
+**Directory leakage.** Blinding makes the directory crawl-resistant but not
+resistant to an adversary who already knows an address and can compute its slot
+to run a **confirmation attack** on activity; this is stated precisely in
+Section 4.3.2. Indistinguishable STORE/LOAD requests (Section 4.3.3), publication
+jitter, replica query spreading, and per-period `S_s`/blinding rotation remove
+the publish-vs-fetch, clock, and cross-period linkage channels. `revision`
+monotonicity is public per slot; the fixed-size padded `intro_points` array hides
+the true IB count.
+
+**No bridge directory to enumerate.** Bridges are discovered by direct capability
+negotiation and vouched for inside service descriptors (Section 4.4.1); there is
+no global, unblinded bridge index to crawl, so the enumeration, address-churn
+linkage, and load-correlation vantages that a published bridge directory would
+grant do not exist. The only place a set of bridges is visible is inside a
+specific service's descriptor, seen only by a party that already knows that
+service's address — a service-scoped disclosure of the same nature as the
+intro-point list, not a global map. A `CAP_RESPONSE` is obtained by addressing a
+specific node, so it reveals nothing to a passive crawler. Removing the directory
+cuts both ways, however: it also removes the only vantage from which a defender
+could notice **bridge concentration** — a cheap Sybil fleet (Section 4.4.2) can
+get vouched into many services' `rendezvous_set`s over time and perform
+cross-service intersection on the more-stable service-side (leg-B) fingerprints,
+and no party has a global view to detect it. The mitigations are the same
+non-reputational ones: services rotate their sets aggressively and cap per-bridge
+traffic share (Section 4.4.2), and shaping/multipath bound each bridge's sample.
+
+**Introduction integrity and amplification.** `INTRODUCE1` content is encrypted to
+the service via `intro_enc_key` (private half service-only), with the target IB
+bound into the AEAD associated data, so IBs and relays learn neither rendezvous
+bridge nor handshake, and a blob is not transferable across IBs. The service
+opens a rendezvous leg only after verifying the RB-signed reservation token and
+`join_commitment` (Section 4.5.3), so a cheap introduction cannot amplify into an
+expensive service-funded leg toward a black-hole RB. Replay is bounded by a
+service-global `replay_nonce` cache and the `±INTRO_WINDOW` timestamp bound.
+
+**Rendezvous cookie and MitM.** The join is bound to `H("hopr-join" || RC || S_s)`
+(`join_commitment`/`join_proof`), so learning `RC` alone does not let an attacker
+squat or hijack the join. `transcript_hash` binds `pk_S`, both ephemerals as
+transmitted, `RC`, and `revision`; a MitM RB substituting `E_s` breaks
+`confirm_tag` and the client aborts (Section 4.6).
+
+**Rollback and downgrade.** `published_at` + `lifetime` + multi-replica
+max-`revision` fetch resist stale-descriptor rollback; `min_dos_level` prevents
+an old descriptor advertising a weaker DoS policy; the address `version` floor
+prevents format downgrade; delegation certs carry `service_pubkey` + `serial`,
+deny unknown capability bits, and are short-lived.
+
+**Payment privacy and griefing.** All settlement is through the PIX privacy pool,
+which MUST hide payer from payee; a pool that leaks this undermines the scheme.
+Service-conditional streaming (Section 4.7) removes fee theft and lazy-bridge
+free-riding: a bridge earns only for delivered frames. A bridge-side intro-
+payment verifier can correlate a payment with a target service, so the service is
+the recommended verifier (Section 4.8.1). Channel-graph funding constrains
+anonymity sets — a client's funded-channel neighbourhood can grow into a
+fingerprint — so clients maintain a stable guard set (Section 4.10), which is in
+tension with per-connection RB freshness and multi-session unlinkability and must
+be balanced per the endpoint's threat model.
+
+**Interaction with mixing and cover traffic.** Onion-service legs are carried as
+ordinary fixed-size Sphinx packets
+([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md))
+through the same mixers
+([RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md)) and paid by the same Proof
+of Relay as all other traffic, and their mandatory constant-rate shaping (Section
+4.9) emits cover padding when idle. At the **per-packet** level a relay cannot
+distinguish an onion leg's packets — real or padding — from any other HOPR
+traffic, so their padding **doubles as legitimate cover traffic** that enlarges
+the mixer's anonymity set: onion legs both contribute to and benefit from the
+network's baseline cover
+([RFC-0007](../RFC-0007-economic-reward-system/0007-economic-reward-system.md)),
+mitigating the mixer's low-volume weakness, and the shaping cost is thus partly a
+public good rather than pure overhead.
+
+There is, however, a **flow-level distinguisher that must be acknowledged**:
+ordinary HOPR traffic is bursty, whereas a shaped onion leg is conspicuously
+*constant-rate*. A first-hop/guard relay or the rendezvous bridge can therefore
+classify a *flow* (not a packet) as "a constant-rate stream" and infer that the
+adjacent node is carrying onion-service traffic — a **membership leak** (this node
+uses/hosts an onion service), landing notably on the more-identifiable service
+side. This is the same reason Section 4.5.1 jitters the standing-session
+keep-alive cadence; the data-leg shaping deliberately makes the opposite trade,
+buying per-packet-timing correlation resistance at the cost of a flow-shape tell.
+The design accepts this: the membership leak does not by itself locate or identify
+the peer (leg-A multi-hop and the non-guard honest hop of Section 4.10 protect
+location), and a deployment MAY shape to a randomised/variable-rate envelope
+instead of a strictly constant rate to blend better, trading some correlation
+resistance for flow-blending. The residual low-volume limit of
+[RFC-0006](../RFC-0006-hopr-mixer/0006-hopr-mixer.md) also applies (a near-idle
+whole network shrinks every anonymity set; not onion-specific). Relays cannot
+special-case onion traffic per packet and SHOULD treat it as first-class mixnet
+traffic.
+
+**Cryptographic hygiene.** Ed25519 keys (`pk_S`, `delegate_pubkey`, blinded keys)
+MUST use canonical encodings and verification that rejects small-order points
+(or ristretto255 to remove cofactor concerns). X25519 MUST follow RFC 7748 [11]:
+the DH result MUST be checked against the all-zero output rather than relying on
+subgroup membership. The blob ephemeral is distinct from the e2e ephemeral and
+their KDF contexts are domain-separated; every AEAD context uses an independent
+key and a non-reused 96-bit nonce (Appendix 1).
 
 ## 8. Drawbacks
 
-_TBD._
+- **Latency.** Two multi-hop legs plus per-hop mixing plus constant-rate shaping
+  make onion-service round trips substantially slower than a direct HOPR session.
+- **Shaping cost.** Mandatory constant-rate/cover padding on both legs consumes
+  bandwidth and relay-ticket budget even when idle.
+- **Complexity.** Service-conditional PIX streaming, the reservation/token flow,
+  and optional multipath striping are more moving parts than a naive relay.
+- **New subsystems.** A distributed directory (descriptors) is a prerequisite;
+  only its interface is specified here.
+- **Bridge as correlation vantage.** The RB knowingly links the two legs of the
+  connection it joins; the scheme bounds — not eliminates — the vantage via
+  shaping, multipath diffusion, and diverse fresh selection.
+- **No Sybil cost on bridge identity.** Removing the bond removed the only
+  per-identity cost of being a bridge; an adversary can run unbounded bridges for
+  free and play a long-con (behave well to earn trust, then correlate, invisibly).
+  The design accepts this: deanonymisation is prevented by leg-A multi-hop
+  regardless, correlation is bounded by shaping + multipath + rotation, and a
+  cold-start vetting prior over existing signals (channel stake, node age,
+  RFC-0010 reputation) raises the cost above zero without a bond (Section 4.4.2).
+- **Weak accountability for covert misbehaviour.** Off-chain reputation catches
+  observable failures but not covert correlation (unobservable by any mechanism);
+  worse, it rewards availability, which is orthogonal to — if anything
+  anti-correlated with — correlation risk. The defence there is shaping +
+  multipath + rotation, not accountability.
+- **Dependency on draft work.** Settlement depends on the still-draft PIX RFC and
+  its RFC-0004 SURB extension, and on the PIX payer-identity cost assumption
+  (Section 4.5.2).
 
 ## 9. Alternatives
 
-_TBD._
+- **Pure SURB/pseudonym contact (no bridge).** A service could publish SURB
+  batches; clients consume one to reach the pseudonym directly. Rejected as the
+  primary design because inbound throughput would be hard-capped by SURB supply,
+  though the introduction leg is essentially this pattern in miniature.
+- **Single bridge role.** Simpler and one round trip shorter, but announced
+  bridges carry all volume, become DoS targets, and cannot be out-scaled.
+- **On-chain descriptors.** Maximum availability and Sybil resistance, but per
+  update gas cost, slow propagation, permanent public bridge lists, and
+  read-time interest leakage; rejected for the mixnet-fetched directory.
+- **Flat prepaid bridge fee.** Simpler, but a fee-theft primitive with no
+  service conditionality; rejected per Section 5 in favour of PIX streaming.
+- **On-chain slashable bond for bridges.** A prior version required one; removed
+  because the correlation threat it aimed at is unobservable (so unslashable
+  anyway) and service-curated, reputation-gated selection leaves no global pool to
+  Sybil-flood — off-chain reputation covers the observable failures at zero
+  on-chain cost (Section 4.4.2).
+- **Global unblinded bridge directory.** A prior version published bridge liveness
+  records; removed because it created an enumeration/load-correlation vantage and
+  is unnecessary once services vouch for bridges and liveness is confirmed by
+  direct contact (Section 4.4.1).
+- **Metered (per-byte) bridge fees.** Fairer across workloads but leak a volume
+  signal and need streaming micro-settlement; the delivered-frame PIX stream is a
+  middle ground. Full metering is future work.
+- **Client-pays-all / service-subsidised economics.** Permitted extensions
+  (Section 4.7), not the default.
 
 ## 10. Unresolved Questions
 
