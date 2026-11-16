@@ -1,7 +1,7 @@
 # HOPR Protocol Summary
 
-A single-file, precise condensation of RFC-0001 through RFC-0014 that lets a reader grasp the whole HOPR stack without opening every document. It is
-descriptive, not normative; the individual RFCs are authoritative. Statuses are as of 2026-09-14.
+A single-file, precise condensation of RFC-0001 through RFC-0016 that lets a reader grasp the whole HOPR stack without opening every document. It is
+descriptive, not normative; the individual RFCs are authoritative. Statuses are as of 2026-10-27.
 
 ## 1. RFC Inventory
 
@@ -21,6 +21,8 @@ descriptive, not normative; the individual RFCs are authoritative. Statuses are 
 | 0012 | Protocol for Incentivization of eXits | Draft (PR)     | v0.4.1  |
 | 0013 | Return Path Incentivization           | Raw (PR stub)  | v0.1.0  |
 | 0014 | Path-finding                          | Finalised      | v1.1.0  |
+| 0015 | HOPR Distributed Directory            | Raw            | v0.1.3  |
+| 0016 | Onion Services over HOPR              | Raw            | v0.9.0  |
 
 Protocol stack (RFC-0003), bottom to top: Transport (TCP/UDP/QUIC/...) → HOPR Packet Protocol (0004) → HOPR Application Protocol (0011) → Session
 Management (0008/0009) → Application.
