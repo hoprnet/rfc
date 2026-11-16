@@ -1362,11 +1362,115 @@ serving. Access control and payment gating are orthogonal and MAY be combined.
 
 ### 4.9 Bridge session management (join, shaping and SURB handling)
 
-_TBD._
+The rendezvous bridge is a **stateful two-session join**, not a stateless
+ciphertext relay. It terminates two HOPR sessions — leg A to the client, leg B
+to the service — bound by the rendezvous cookie, and relays the opaque e2e
+payload between them. Because the payload is end-to-end encrypted (Section 4.6),
+the bridge reads only ciphertext; it nonetheless operates the full transport of
+each leg.
+
+**Traffic shaping is mandatory.** To deny the bridge (and any observer at it) a
+timing/volume correlation oracle across the two legs, each leg MUST be shaped to
+a constant or cover-padded rate independently of the other, so the byte and
+timing profile of leg A does not reveal that of leg B. The two legs MUST run
+independent SURB and padding schedules. Shaping parameters follow the
+`traffic_classes` the bridge offered in its `CAP_RESPONSE` (Section 4.4.1) and the
+session's negotiated class; the baseline is constant-rate padding in the
+spirit of Loopix cover traffic [04]. Without shaping, the "mixing on every leg"
+property is insufficient against an adversary positioned at the join, which is
+why shaping is normative here rather than advisory.
+
+The bridge MUST manage each leg's SURB budget and starvation independently, using
+the flow-control signals of the packet and application protocols
+([RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md) SURB
+signals, surfaced through
+[RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md) flags
+`0x01` SURB distress and `0x03` out-of-SURBs):
+
+- The bridge replies to each counterparty over SURBs that counterparty supplied,
+  maintaining a rolling reserve per leg.
+- On a SURB-distress signal or on schedule, the bridge MUST prompt that
+  counterparty to replenish before the reserve is exhausted. Each replenished
+  leg-A SURB MUST carry a fresh PIX share (Section 4.5.5), so the bridge's
+  redeemable share supply keeps pace with the SURBs it will spend; a leg-A SURB
+  without a valid share MUST NOT be counted toward the bridge's stream.
+- If a leg's SURBs are exhausted and cannot be replenished, the bridge MUST apply
+  backpressure to the opposite leg rather than dropping e2e frames silently. A
+  counterparty that persistently fails to replenish (a starvation-griefing
+  vector) bears the teardown: after `STARVE_GRACE` (default 30 s) the bridge MAY
+  tear the join down, and the service MAY cheaply abandon a starved join.
+- **Shaping degrades gracefully under starvation, not silently.** The constant-rate
+  guarantee (and hence the real-vs-padding indistinguishability of Section 4.6.1)
+  holds only while cover padding can be sent; endpoints SHOULD size the SURB
+  reserve so starvation does not force a visible rate dip, and MUST NOT drop
+  padding ahead of real segments in a way that makes the rate track real traffic.
+  When starvation does degrade the rate, the flow-shape distinguisher of Section 7
+  widens — this is an accepted degradation, bounded by the grace-then-teardown
+  above.
+- The bridge MUST bound per-join state and total concurrent joins to its
+  node-local capacity limit (not advertised; Section 4.4.1), rejecting new
+  reservations with `JOIN_UNAVAILABLE` when saturated.
+
+The normative host model is that the service runs on or behind a HOPR node with
+funded channels. A **paid-gateway** deployment — a non-node service renting a
+HOPR node to inject and receive its traffic, the gateway paid PIX-style — is an
+OPTIONAL pattern (Section 11); it broadens who can host services at the cost of a
+gateway trust and metadata surface.
 
 ### 4.10 Guard relays for endpoint legs
 
-_TBD._
+Every leg in this protocol is a HOPR path the endpoint itself constructs: a
+client builds `client → … → RB`, a service builds `service → … → IB` and
+`service → … → RB`. If an endpoint chose the **first hop** of each leg freshly
+and independently every time, then over many connections it would eventually,
+with near-certainty, route a leg through an adversary-controlled first hop — the
+classic predecessor/statistical attack — and each such event is a chance to begin
+tracing back toward the endpoint. Guard relays bound this: an endpoint pins the
+first hop of its legs to a small, stable **guard set**, so it is either
+consistently safe (its guards are honest) or consistently exposed (a bad initial
+draw), rather than gradually certain to be caught.
+
+- **Both endpoints use guards.** A client's `client → RB` legs and a service's
+  `service → IB` / `service → RB` legs MUST take their first hop from the
+  endpoint's own guard set. The `M` legs of a multipath session (Section 4.6.1)
+  still enter through the guard set — multipath diversifies the *far* (bridge)
+  end while guards stabilise the *near* (entry) end; the two are complementary.
+- **A guard is never the sole intermediate.** Because the guard is the first hop,
+  it learns the endpoint's node identity directly (like a Tor guard). A leg
+  therefore MUST contain **at least one non-guard intermediate relay** between the
+  guard and the far bridge, freshly selected per connection. This preserves the
+  location guarantee under the honest-hop assumption restated as **"at least one
+  honest hop *other than the guard*"**: a single malicious guard combined with a
+  malicious (e.g. service-chosen) rendezvous bridge is then still separated by a
+  fresh honest relay, so it cannot alone deanonymise the endpoint. A guard-directly-
+  to-bridge (zero non-guard intermediate) leg is PROHIBITED for onion-service legs.
+- **Selection.** Guards are chosen from high-reputation, high-stake, aged, stable
+  relays using the same scarce, hard-to-fake signals as bridge cold-start
+  (Section 4.4.5): channel stake, node age, and
+  [RFC-0010](../RFC-0010-automatic-path-discovery/0010-automatic-path-discovery.md)
+  relay reputation. The guard set is small (`GUARD_COUNT`, default 2–3).
+- **Rotation is slow, staggered, and not attacker-steerable.** Guards MUST NOT be
+  rotated per connection. They rotate only on a long period (`GUARD_LIFETIME`,
+  default weeks), on **locally-attributable** sustained guard failure, and one at
+  a time so the entry fingerprint does not change wholesale. Rotation MUST NOT be
+  triggered by third-party-influenceable reputation (e.g. RFC-0010 probe scores an
+  adversary can degrade by attacking the victim's path *through* its current
+  honest guard), and the replacement MUST be drawn from a **pre-committed,
+  diversified candidate pool** fixed in advance — never "whichever candidate is
+  top-ranked at rotation time." Otherwise an adversary could degrade a victim's
+  current guard to force a rotation and time a Sybil to be the guaranteed
+  replacement.
+
+**The tension is explicit and intentional.** A stable guard set is itself a
+fingerprint (it is the concrete form of the "funded-channel neighbourhood"
+linkage of Section 7), and it works *against* the multi-session unlinkability of
+Section 4.6.1 — sessions sharing a guard set are linkable at the entry. This is
+the same trade Tor makes: bounding the *worst-case* probability of endpoint
+compromise matters more, for a location-hiding endpoint, than hiding a guard set
+that was never secret. The default is therefore to **use guards**; a client whose
+priority is unlinkability of distinct activities rather than location-hiding MAY
+widen or diversify its guard set per session-group, accepting the raised long-run
+compromise probability. The endpoint chooses its point on that spectrum.
 
 ## 5. Design Considerations
 
