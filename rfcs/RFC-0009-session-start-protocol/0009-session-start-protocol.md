@@ -5,12 +5,13 @@
 - **Status:** Finalised
 - **Author(s):** Tino Breddin (@tolbrino), Lukas Pohanka (@NumberFour8)
 - **Created:** 2025-08-20
-- **Updated:** 2025-10-27
-- **Version:** v1.0.0 (Finalised)
+- **Updated:** 2026-10-16
+- **Version:** v4.0.0 (Finalised)
 - **Supersedes:** none
 - **Related Links:** [RFC-0002](../RFC-0002-mixnet-keywords/0002-mixnet-keywords.md),
   [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md), [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md),
-  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md)
+  [RFC-0011](../RFC-0011-application-protocol/0011-application-protocol.md),
+  [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md)
 
 ## 1. Abstract
 
@@ -61,7 +62,7 @@ conventions adopted across the HOPR RFC series. Additionally, this document defi
   using CBOR format [02] to allow flexible representation of various endpoint types (e.g., IPv4/IPv6 addresses with ports, service URIs).
 
 - **session capabilities**: A bitmap of session features and options negotiated during session establishment. The capabilities field enables peers to
-  agree on optional protocol features, with unrecognised bits being safely ignored to support backward compatibility.
+  agree on optional protocol features. Reserved bits MUST be zero.
 
 - **session ID**: A unique identifier assigned by the responder to identify an established session. Session IDs are encoded using CBOR format and MUST
   be unique within the responder's session namespace. Within HOPR, session IDs follow a specific format (see Appendix 1).
@@ -76,13 +77,16 @@ conventions adopted across the HOPR RFC series. Additionally, this document defi
 
 ### 4.1 Protocol Overview
 
-The session start protocol operates at version 2 and defines four message types that manage the complete lifecycle of session establishment and
+The session start protocol operates at version 4 and defines six message types that manage the complete lifecycle of session establishment and
 maintenance:
 
 1. **StartSession**: Initiates a new session, carrying the challenge, target endpoint, and capability flags.
-2. **SessionEstablished**: Confirms successful session establishment, returning the original challenge and newly assigned session ID.
-3. **SessionError**: Reports session establishment failure with a specific error code and the original challenge for correlation.
-4. **KeepAlive**: Maintains session liveness by periodically signalling that the session is still active.
+2. **SessionEstablished**: Confirms a successful session establishment, returning the original challenge and newly assigned session ID.
+3. **SsaCommit**: Client's message delivering coefficient commitments to establish Session Stealth Addresses (SSA) as part of the PIX incentivization
+   exchange.
+4. **SsaRequest**: Server's message requesting new SSAs, or retransmission of missing `SsaCommit` parts, as part of the PIX incentivization exchange.
+5. **SessionError**: Reports a failure with a specific error code, identified by the original challenge or by the session ID.
+6. **KeepAlive**: Maintains session liveness by periodically signalling that the session is still active.
 
 The protocol uses HOPR packets as the underlying transport mechanism and supports both successful and failed session establishment scenarios. All
 multi-byte integer fields use network byte order (big-endian) encoding to ensure consistent interpretation across different architectures and
@@ -105,19 +109,21 @@ title "Common Message Format"
 
 | Field       | Size     | Description               | Value                         |
 | ----------- | -------- | ------------------------- | ----------------------------- |
-| **Version** | 1 byte   | Protocol version          | MUST be `0x02` for version 2  |
+| **Version** | 1 byte   | Protocol version          | MUST be `0x04` for version 4  |
 | **Type**    | 1 byte   | Message type discriminant | See Message Types table below |
 | **Length**  | 2 bytes  | Payload length in bytes   | 0-65535                       |
 | **Payload** | Variable | Message-specific data     | CBOR-encoded where applicable |
 
 #### 4.2.1 Message Types
 
-| Type Code | Name               | Description                           |
-| --------- | ------------------ | ------------------------------------- |
-| `0x00`    | StartSession       | Initiates a new session               |
-| `0x01`    | SessionEstablished | Confirms session establishment        |
-| `0x02`    | SessionError       | Reports session establishment failure |
-| `0x03`    | KeepAlive          | Maintains session liveness            |
+| Type Code | Name               | Description                                            |
+| --------- | ------------------ | ------------------------------------------------------ |
+| `0x00`    | StartSession       | Initiates a new session                                |
+| `0x01`    | SessionEstablished | Confirms session establishment                         |
+| `0x02`    | SsaCommit          | Client's commitment to Session Stealth Addresses (SSA) |
+| `0x03`    | SsaRequest         | Server's commitment to Session Stealth Addresses (SSA) |
+| `0x04`    | SessionError       | Reports session establishment failure                  |
+| `0x05`    | KeepAlive          | Maintains session liveness                             |
 
 #### 4.2.2 Byte Order
 
@@ -128,8 +134,9 @@ applies to the following fields:
 
 - **Length** field (2 bytes) in the common message format
 - **Challenge** field (8 bytes) in `StartSession`, `SessionEstablished`, and `SessionError` messages
-- **Additional Data** field (4 bytes) in `StartSession` messages
+- **Additional Data** field (16 bytes) in `StartSession` messages
 - **Additional Data** field (8 bytes) in `KeepAlive` messages
+- All integer fields of `SsaCommit` and `SsaRequest` messages
 - **Session ID suffix** (64-bit) in HOPR session ID format (see Appendix 1)
 - Any future numeric fields added to the protocol
 
@@ -146,30 +153,45 @@ packet
 title "StartSession Message"
 +64: "Challenge"
 +8: "Capabilities"
-+32: "Additional Data"
++128: "Additional Data"
 +56: "Target (CBOR, variable-length)"
 +32: "..."
 ```
 
-| Field               | Size     | Description                                | Notes                                                                 |
-| ------------------- | -------- | ------------------------------------------ | --------------------------------------------------------------------- |
-| **Challenge**       | 8 bytes  | Random challenge for correlating responses | MUST be generated using CSPRNG to prevent prediction                  |
-| **Capabilities**    | 1 byte   | Session capabilities bitmap                | See Capability Flags table; unrecognised bits SHOULD be ignored       |
-| **Additional Data** | 4 bytes  | Capability-dependent options               | Set to `0x00000000` if unused; interpretation depends on capabilities |
-| **Target**          | Variable | CBOR-encoded session target                | Examples: `"127.0.0.1:1234"`, `"wss://relay.example.com:443"`         |
+| Field               | Size     | Description                                | Notes                                                         |
+| ------------------- | -------- | ------------------------------------------ | ------------------------------------------------------------- |
+| **Challenge**       | 8 bytes  | Random challenge for correlating responses | MUST be generated using CSPRNG to prevent prediction          |
+| **Capabilities**    | 1 byte   | Session capabilities bitmap                | See Capability Flags table                                    |
+| **Additional Data** | 16 bytes | Capability-dependent options               | See Additional Data table; all zero if unused                 |
+| **Target**          | Variable | CBOR-encoded session target                | Examples: `"127.0.0.1:1234"`, `"wss://relay.example.com:443"` |
+
+Additional Data layout (bit 127 is the most significant):
+
+| Bits    | Content                                                                |
+| ------- | ---------------------------------------------------------------------- |
+| 127..96 | PIX parameters word (Section 4.8.1) if `UsePIX` is set, otherwise zero |
+| 95..64  | Desired SURB buffer size if `NoRateControl` is unset, otherwise zero   |
+| 63..0   | Reserved; MUST be zero, ignored by receivers                           |
 
 #### 4.3.1 Capability Flags
 
-| Bit | Flag Name | Description             |
-| --- | --------- | ----------------------- |
-| 0   | Reserved  | Reserved for future use |
-| 1   | Reserved  | Reserved for future use |
-| 2   | Reserved  | Reserved for future use |
-| 3   | Reserved  | Reserved for future use |
-| 4   | Reserved  | Reserved for future use |
-| 5   | Reserved  | Reserved for future use |
-| 6   | Reserved  | Reserved for future use |
-| 7   | Reserved  | Reserved for future use |
+Bits are numbered from the least significant bit of the capabilities byte.
+
+| Bit | Flag Name          | Description                                                           |
+| --- | ------------------ | --------------------------------------------------------------------- |
+| 0   | NoDelay            | Disable packet buffering. Set together with bit 3                     |
+| 1   | RetransmissionNack | NACK-based frame retransmission. Set together with bit 3              |
+| 2   | RetransmissionAck  | ACK-based frame retransmission. Set together with bit 3               |
+| 3   | Segmentation       | Frame segmentation and reassembly                                     |
+| 4   | NoRateControl      | Disable SURB-based egress rate control; applies to the exit node only |
+| 5   | UsePIX             | Use the PIX incentivization protocol for this session                 |
+| 6   | Reserved           | MUST be zero                                                          |
+| 7   | Reserved           | MUST be zero                                                          |
+
+Setting both bits 1 and 2 selects combined ACK- and NACK-based retransmission. A receiver MUST reject a `StartSession` with a reserved bit set.
+
+When bit 5 is set, the exit node MUST either accept the PIX parameters carried in Additional Data or reject the session with `UnacceptablePixParams`;
+see [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md) Section 2.3.7.
 
 ### 4.4 SessionEstablished Message
 
@@ -191,29 +213,35 @@ title "SessionEstablished Message"
 
 ### 4.5 SessionError Message
 
-The `SessionError` message reports session establishment failure. The exit node sends this message when it cannot establish a session, providing a
-specific error code to indicate the reason for failure. This enables the entry node to implement intelligent retry logic or select alternative exit
-nodes.
+The `SessionError` message reports a failure with a specific error code. Before establishment, the exit node sends it identified by the challenge when
+it cannot establish a session. After establishment, either peer MAY send it identified by the session ID; the receiver then closes the session and
+does not reply.
 
 ```mermaid
 packet
 title "SessionError Message"
-+64: "Challenge"
++8: "Identifier Type"
++64: "Challenge or Session ID (CBOR, variable-length)"
 +8: "Reason"
 ```
 
-| Field         | Size    | Description                           | Notes                                                                       |
-| ------------- | ------- | ------------------------------------- | --------------------------------------------------------------------------- |
-| **Challenge** | 8 bytes | Challenge from `StartSession` message | MUST exactly match the challenge from the initiating `StartSession` request |
-| **Reason**    | 1 byte  | Error reason code                     | See Error Codes table below                                                 |
+| Field               | Size                | Description                     | Notes                                                                       |
+| ------------------- | ------------------- | ------------------------------- | --------------------------------------------------------------------------- |
+| **Identifier Type** | 1 byte              | Kind of identifier that follows | `0x00` = challenge, `0x01` = session ID                                     |
+| **Identifier**      | 8 bytes or variable | Challenge or session ID         | Challenge from `StartSession` (`0x00`), or CBOR-encoded session ID (`0x01`) |
+| **Reason**          | 1 byte              | Error reason code               | See Error Codes table below; always the last byte of the message            |
 
 #### 4.5.1 Error Codes
 
-| Code   | Name               | Description                                       | Recommended Action                                              |
-| ------ | ------------------ | ------------------------------------------------- | --------------------------------------------------------------- |
-| `0x00` | Unknown Error      | Unspecified error condition                       | Retry with different parameters or select alternative exit node |
-| `0x01` | No Slots Available | Exit node has no available session slots          | Retry after delay or select alternative exit node               |
-| `0x02` | Busy               | Exit node is temporarily busy processing requests | Retry after brief exponential backoff delay                     |
+| Code   | Name                    | Description                                                      | Recommended Action                                              |
+| ------ | ----------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- |
+| `0x00` | Unknown Error           | Unspecified error condition                                      | Retry with different parameters or select alternative exit node |
+| `0x01` | No Slots Available      | Exit node has no available session slots                         | Retry after delay or select alternative exit node               |
+| `0x02` | Busy                    | Exit node is temporarily busy processing requests                | Retry after brief exponential backoff delay                     |
+| `0x03` | Unacceptable PIX Params | PIX is required, or the PIX parameters are not acceptable        | Offer different PIX parameters or select alternative exit node  |
+| `0x04` | Target Not Admitted     | Exit node does not serve the session target on the offered terms | Select alternative exit node                                    |
+
+A receiver MUST interpret an unknown code as `0x00`.
 
 ### 4.6 KeepAlive Message
 
@@ -229,24 +257,134 @@ title "KeepAlive Message"
 +32: "..."
 ```
 
-| Field               | Size     | Description                     | Notes                                                                            |
-| ------------------- | -------- | ------------------------------- | -------------------------------------------------------------------------------- |
-| **Flags**           | 1 byte   | Reserved for future use         | MUST be set to `0x00` by senders; SHOULD be ignored by receivers                 |
-| **Additional Data** | 8 bytes  | Flag-dependent options          | Set to `0x0000000000000000` if unused; interpretation may depend on future flags |
-| **Session ID**      | Variable | CBOR-encoded session identifier | MUST match an established session ID                                             |
+| Field               | Size     | Description                     | Notes                                     |
+| ------------------- | -------- | ------------------------------- | ----------------------------------------- |
+| **Flags**           | 1 byte   | Meaning of Additional Data      | See KeepAlive Flags table; `0x00` if none |
+| **Additional Data** | 8 bytes  | Flag-dependent options          | Selected by Flags; zero if unused         |
+| **Session ID**      | Variable | CBOR-encoded session identifier | MUST match an established session ID      |
 
-### 4.7 Protocol Flow
+#### 4.6.1 KeepAlive Flags
+
+| Value  | Flag Name      | Sent by    | Additional Data                                             |
+| ------ | -------------- | ---------- | ----------------------------------------------------------- |
+| `0x01` | BalancerTarget | Entry node | SURB buffer size the entry node wants the exit node to keep |
+| `0x02` | BalancerState  | Exit node  | Exit node's current estimate of its SURB buffer size        |
+
+The flags are mutually exclusive. Receivers MUST ignore unknown flag bits.
+
+### 4.7 SsaCommit Message
+
+The `SsaCommit` message delivers the client's commitments to polynomial coefficients that, when summed for a given SSA index, form the client's
+commitment to a Session Stealth Address (SSA). It is sent by the entry node after session establishment, in response to an `SsaRequest`.
+
+A single SSA commitment requires multiple `SsaCommit` messages, because the total set of coefficient commitments (across all polynomials) far exceeds
+the space available in one HOPR packet. All messages with coefficient index `0` (the constant term / polynomial offset) are delivered first; summing
+those commitments across all polynomials yields the client's SSA commitment. The remaining coefficients follow, emitted a block of polynomials at a
+time so that individual polynomials become fully committed progressively rather than all at the end. The ordering within each phase is described in
+[RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md) Section 2.3.3; the receiver does not
+depend on it for correctness.
+
+```mermaid
+packet
+title "SsaCommit Message"
++32: "SsaIndex"
++16: "CoefficientIndex"
++16: "NumPolynomials"
++32: "CommitmentProof (only when CoefficientIndex == 0)"
++32: "CoefficientCommitments (polynomial_index || G, variable-length)"
++32: "Session ID (CBOR, variable-length)"
++32: "..."
+```
+
+| Field                      | Size      | Description                                                                                                                       | Notes                                                                                                                                     |
+| -------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **SsaIndex**               | 4 bytes   | Non-zero index of the SSA being committed                                                                                         | 1-based; MUST NOT be zero                                                                                                                 |
+| **CoefficientIndex**       | 2 bytes   | Index of the polynomial coefficient being delivered in this message                                                               | 0-based; all messages sharing the same SsaIndex and CoefficientIndex belong to the same batch                                             |
+| **NumPolynomials**         | 2 bytes   | Number of polynomial → coefficient commitment entries in this message                                                             | MUST be between 1 and 16192                                                                                                               |
+| **CommitmentProof**        | `K` bytes | Proof of knowledge of the discrete logarithm of the client's SSA commitment                                                       | Present if and only if **CoefficientIndex** is `0`; there is no presence flag, and a message whose two fields disagree MUST be rejected   |
+| **CoefficientCommitments** | Variable  | Packed entries, each consisting of `PolynomialIndex` (2 bytes, big-endian) followed by `G` bytes of the commitment representation | Ordered by polynomial index within the message; multiple messages MAY be needed to deliver all polynomials for the same coefficient index |
+| **Session ID**             | Variable  | CBOR-encoded session identifier                                                                                                   | MUST match an established session ID                                                                                                      |
+
+Every message with coefficient index `0` carries the same proof, so that no single lost message can strand an otherwise recoverable SSA; the receiver
+keeps the first valid proof it sees. Because the proof consumes payload, messages of that first pass carry fewer coefficient commitments than the
+rest.
+
+The sizes of `G` (PIX group representation) and `K` (PIX commitment proof) are determined by the curve suite in the PIX parameters word (Section
+4.8.1); see [RFC-0012](../RFC-0012-protocol-for-incentivization-of-exits/0012-protocol-for-incentivization-of-exits.md). The exit node MUST reject the
+SSA if the proof is missing, malformed, or does not verify against the summed constant-term commitments.
+
+In constant-term mode (RFC-0012 Section 2.3.3), which HOPR uses, every `SsaCommit` has `CoefficientIndex` `0`. A retransmitted `SsaCommit` (Section
+4.8) carries the same commitments and proof as the original.
+
+### 4.8 SsaRequest Message
+
+The `SsaRequest` message is sent by the exit node after session establishment. It either requests commitments to one or more new Session Stealth
+Addresses (SSAs), immediately if PIX is negotiated and subsequently for each new batch, or requests retransmission of `SsaCommit` parts that the exit
+node did not receive.
+
+```mermaid
+packet
+title "SsaRequest Message"
++32: "Params"
++32: "DepositData (CBOR, variable-length)"
++16: "NumCommitments"
++32: "Commitments (ssa_index || G, variable-length)"
++16: "NumMissingRuns"
++32: "MissingRuns (ssa_index || first || last, variable-length)"
++32: "Session ID (CBOR, variable-length)"
+```
+
+| Field              | Size     | Description                                                                                           | Notes                                                    |
+| ------------------ | -------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Params**         | 4 bytes  | PIX parameters word (Section 4.8.1)                                                                   | MUST equal the word advertised in `StartSession`         |
+| **DepositData**    | Variable | CBOR map from SSA index (unsigned integer) to deposit data (byte string), opaque to this protocol     | One entry per requested SSA; empty map on retransmission |
+| **NumCommitments** | 2 bytes  | Number of entries in Commitments                                                                      | Zero on retransmission                                   |
+| **Commitments**    | Variable | Packed entries: `SsaIndex` (4 bytes) followed by `G` bytes of the exit node's SSA commitment          | Ordered by SSA index                                     |
+| **NumMissingRuns** | 2 bytes  | Number of entries in MissingRuns                                                                      | Zero on a request for new SSAs                           |
+| **MissingRuns**    | Variable | Packed entries: `SsaIndex` (4 bytes), then first and last `PolynomialIndex` (2 bytes each), inclusive | Constant-term commitments not received                   |
+| **Session ID**     | Variable | CBOR-encoded session identifier                                                                       | MUST match an established session ID                     |
+
+Exactly one of NumCommitments and NumMissingRuns MUST be non-zero. SSA indices MUST be non-zero. The runs of one SSA MUST be ascending and disjoint,
+with `first <= last < 16192`.
+
+On a retransmission request, the entry node re-sends the named commitments in `SsaCommit` messages and MUST NOT make a new deposit. It MAY limit the
+number of retransmissions it answers per SSA.
+
+#### 4.8.1 PIX Parameters Word
+
+| Bits   | Field                                                                                                    |
+| ------ | -------------------------------------------------------------------------------------------------------- |
+| 31..30 | Curve suite: `0` = BabyJubJub (`G` 32 bytes, `K` 64 bytes), `1` = secp256k1 (`G` 33 bytes, `K` 65 bytes) |
+| 29..16 | Polynomials per SSA, 1..16192                                                                            |
+| 15..8  | Shares per polynomial (polynomial degree + 1), 2..255                                                    |
+| 7..0   | Surplus shares per polynomial, 0..255                                                                    |
+
+These values are not chosen by the exit node. They are proposed by the entry node in the `Additional Data` field of `StartSession` and, if accepted,
+echoed back unchanged in every `SsaRequest`. The entry node MUST reject an `SsaRequest` whose `Params` differ from what it proposed. A receiver MUST
+reject a word with an out-of-range value or an unknown curve suite.
+
+### 4.9 Protocol Flow
 
 ```mermaid
 sequenceDiagram
     participant Entry
     participant Exit
 
-    Entry->>Exit: StartSession(Challenge, Target, Capabilities)
+    Entry->>Exit: StartSession(Challenge, Capabilities, AdditionalData, Target)
 
     alt Success
         Exit->>Entry: SessionEstablished(Challenge, SessionID)
+        opt UsePIX
+            Exit->>Entry: SsaRequest(SessionID, Params, DepositData, ServerCommitments)
+            Entry->>Exit: SsaCommit(SessionID, SsaIndex, 0, CommitmentProof, CoefficientCommitments)
+            Note over Entry,Exit: [further constant-term SsaCommit messages, each repeating CommitmentProof]
+            opt SsaCommit parts lost
+                Exit->>Entry: SsaRequest(SessionID, Params, MissingRuns)
+                Entry->>Exit: SsaCommit(SessionID, SsaIndex, 0, CommitmentProof, CoefficientCommitments)
+            end
+        end
         Entry->>Exit: KeepAlive(SessionID)
+        Exit->>Entry: KeepAlive(SessionID)
         Note over Entry,Exit: Session Data Exchange
     else Failure
         Exit->>Entry: SessionError(Challenge, Reason)
@@ -255,31 +393,41 @@ sequenceDiagram
     end
 ```
 
-### 4.8 Protocol Constants
+### 4.10 Protocol Constants
 
-| Constant               | Value       | Description                                                    |
-| ---------------------- | ----------- | -------------------------------------------------------------- |
-| **Protocol Version**   | `0x02`      | Current protocol version                                       |
-| **Default Timeout**    | 30 seconds  | Default session establishment timeout (SHOULD be configurable) |
-| **Challenge Size**     | 8 bytes     | Fixed size for challenge field                                 |
-| **Max Payload Length** | 65535 bytes | Maximum message payload size (limited by Length field)         |
+| Constant                      | Value                                 | Description                                                                     |
+| ----------------------------- | ------------------------------------- | ------------------------------------------------------------------------------- |
+| **Protocol Version**          | `0x04`                                | Current protocol version                                                        |
+| **Default Timeout**           | 5 s × (hops + 2)                      | Session establishment timeout; hops = forward + return path hops (configurable) |
+| **Challenge Size**            | 8 bytes                               | Fixed size for challenge field                                                  |
+| **Additional Data Size**      | 16 bytes                              | Fixed size for the `StartSession` Additional Data field                         |
+| **Max Payload Length**        | 65535 bytes                           | Maximum message payload size (limited by Length field)                          |
+| **PIX Commitment Repr Size**  | 32 bytes (BabyJubJub), 33 (secp256k1) | Byte size `G` of the PIX group element commitment representation                |
+| **PIX Commitment Proof Size** | 64 bytes (BabyJubJub), 65 (secp256k1) | Byte size `K` of the PIX commitment proof of knowledge                          |
+| **Max SSAs per SsaRequest**   | 2 (default)                           | Maximum number of SSA commitments an entry node accepts in one `SsaRequest`     |
 
-### 4.9 Protocol Rules
+### 4.11 Protocol Rules
 
-| Rule                      | Requirement Level | Description                                                                                                                         |
-| ------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Challenge Generation**  | MUST              | Challenge values MUST be randomly generated using a cryptographically secure PRNG                                                   |
-| **Session ID Uniqueness** | MUST              | Session IDs MUST be unique within the exit node's session namespace                                                                 |
-| **Byte Order**            | MUST              | All multi-byte integer fields MUST use network byte order (big-endian)                                                              |
-| **CBOR Encoding**         | MUST              | Session targets and session IDs MUST use CBOR encoding [01]                                                                         |
-| **Payload Limits**        | MUST              | Messages MUST fit within HOPR packet payload limits (see [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md)) |
-| **Keep-Alive Frequency**  | SHOULD            | `KeepAlive` messages SHOULD be sent periodically to maintain long-lived sessions                                                    |
-| **Error Handling**        | MUST              | Implementations MUST handle all defined error conditions gracefully                                                                 |
-| **Timeout Configuration** | SHOULD            | Session establishment timeouts SHOULD be configurable (default: 30s)                                                                |
+| Rule                            | Requirement Level | Description                                                                                                                                                             |
+| ------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Challenge Generation**        | MUST              | Challenge values MUST be randomly generated using a cryptographically secure PRNG                                                                                       |
+| **Session ID Uniqueness**       | MUST              | Session IDs MUST be unique within the exit node's session namespace                                                                                                     |
+| **Byte Order**                  | MUST              | All multi-byte integer fields MUST use network byte order (big-endian)                                                                                                  |
+| **CBOR Encoding**               | MUST              | Session targets and session IDs MUST use CBOR encoding [02]                                                                                                             |
+| **Reserved Capabilities**       | MUST              | Reserved capability bits MUST be zero; receivers MUST reject a `StartSession` otherwise                                                                                 |
+| **Unknown Codes**               | MUST              | Unknown `SessionError` reasons MUST be read as `0x00`; unknown `KeepAlive` flag bits MUST be ignored                                                                    |
+| **SsaRequest Kind**             | MUST              | Exactly one of Commitments and MissingRuns is non-empty; DepositData MUST be empty on a retransmission request                                                          |
+| **Payload Limits**              | MUST              | Messages MUST fit within HOPR packet payload limits (see [RFC-0004](../RFC-0004-hopr-packet-protocol/0004-hopr-packet-protocol.md))                                     |
+| **PIX Coefficient Index Order** | MUST              | `SsaCommit` messages with coefficient index `0` (constant terms) MUST be sent before any message with a higher coefficient index                                        |
+| **PIX Commitment Proof**        | MUST              | `SsaCommit` messages MUST carry the commitment proof if and only if their coefficient index is `0`; the exit node MUST verify it before deriving an SSA deposit address |
+| **PIX Parameter Echo**          | MUST              | `SsaRequest` `Params` MUST equal the PIX parameters the entry node advertised in `StartSession`; the entry node MUST reject the request otherwise                       |
+| **Keep-Alive Frequency**        | SHOULD            | `KeepAlive` messages SHOULD be sent periodically to maintain long-lived sessions                                                                                        |
+| **Error Handling**              | MUST              | Implementations MUST handle all defined error conditions gracefully                                                                                                     |
+| **Timeout Configuration**       | SHOULD            | Session establishment timeouts SHOULD be configurable and scale with path length                                                                                        |
 
-### 4.10 Example Message Exchanges
+### 4.12 Example Message Exchanges
 
-#### 4.10.1 Successful Session Establishment
+#### 4.12.1 Successful Session Establishment
 
 Complete successful session establishment with immediate keep-alive:
 
@@ -293,7 +441,7 @@ sequenceDiagram
     E->>X: KeepAlive(session_id=42)
 ```
 
-#### 4.10.2 Session Establishment Failure
+#### 4.12.2 Session Establishment Failure
 
 Session establishment failing due to resource exhaustion:
 
@@ -306,7 +454,7 @@ sequenceDiagram
     X->>E: SessionError(challenge=0xFEDCBA0987654321, reason=0x01)
 ```
 
-#### 4.10.3 Session Establishment Timeout
+#### 4.12.3 Session Establishment Timeout
 
 Session establishment with no response from exit node, resulting in timeout:
 
@@ -318,11 +466,11 @@ sequenceDiagram
     E-xX: StartSession(challenge=0xABCDEF0123456789, target="10.0.0.50:8080")
 
     rect rgba(255, 0, 0, 0.1)
-        Note over E: Timeout after 30 seconds
+        Note over E: Establishment timeout expires
     end
 ```
 
-#### 4.10.4 Long-Running Session with Periodic Keep-Alives
+#### 4.12.4 Long-Running Session with Periodic Keep-Alives
 
 Maintaining an established session over time:
 
@@ -339,11 +487,31 @@ sequenceDiagram
     end
 ```
 
+#### 4.12.5 Session Establishment with PIX incentivization
+
+Full session establishment including the PIX exchange where the exit node delivers SSA commitments via `SsaRequest` and the entry node responds with
+coefficient commitments via `SsaCommit` messages:
+
+```mermaid
+sequenceDiagram
+    participant E as Entry Node
+    participant X as Exit Node
+
+    E->>X: StartSession(challenge=0xDEADBEEF, caps=UsePIX, target="127.0.0.1:8080")
+    X->>E: SessionEstablished(challenge=0xDEADBEEF, session_id=99)
+    X->>E: SsaRequest(session_id=99, params=[BabyJubJub, polys=8192, shares=64, surplus=16], deposit_data={1: D1}, commitments=[ssa#1=G1])
+    E->>X: SsaCommit(session_id=99, ssa_index=1, coeff_index=0, proof=K1, coeffs=[P0:C0, P1:C1, ...])
+    Note over E: [further SsaCommit messages until all 8192 constant terms are sent]
+    E->>X: KeepAlive(session_id=99)
+    X->>E: KeepAlive(session_id=99)
+    Note over E,X: Data exchange
+```
+
 ## 5. Design Considerations
 
 ### 5.1 CBOR Encoding
 
-The use of CBOR (Concise Binary Object Representation) [01] for session IDs and session targets provides several advantages:
+The use of CBOR (Concise Binary Object Representation) [02] for session IDs and session targets provides several advantages:
 
 - **Flexible data types**: Supports various data types without fixed-size constraints, enabling session IDs and targets to be represented as integers,
   strings, byte arrays, or structured data.
@@ -371,10 +539,9 @@ The 64-bit challenge field serves multiple purposes in the session start protoco
 The single-byte capability field provides a compact mechanism for protocol negotiation:
 
 - **Up to 8 independent flags**: Each bit can represent a distinct capability, allowing peers to negotiate multiple features simultaneously.
-- **Future protocol extensions**: As new session features are developed, capability bits can be assigned without changing the message format or
-  breaking existing implementations.
-- **Backward compatibility**: Implementations can safely ignore unrecognised capability bits, allowing newer implementations to interoperate with
-  older ones that don't support new features.
+- **Future protocol extensions**: As new session features are developed, capability bits can be assigned without changing the message format.
+- **Explicit rejection**: Receivers reject reserved capability bits, so a requested feature is never silently ignored by a peer that does not support
+  it.
 - **Minimal overhead**: A single byte adds negligible overhead while providing sufficient flexibility for anticipated protocol evolution.
 
 ### 5.4 Transport Independence
@@ -393,8 +560,8 @@ The session start protocol is intentionally transport-agnostic, making it suitab
 
 The protocol provides structured error reporting to enable intelligent failure handling:
 
-- **Specific error codes**: Well-defined error codes (Unknown Error, No Slots Available, Busy) enable entry nodes to distinguish between different
-  failure scenarios and adjust their behaviour accordingly.
+- **Specific error codes**: Well-defined error codes (Section 4.5.1) enable entry nodes to distinguish between different failure scenarios and adjust
+  their behaviour accordingly.
 - **Challenge correlation**: Including the original challenge in error messages ensures that entry nodes can correctly attribute errors to specific
   requests.
 - **Graceful resource exhaustion**: The "No Slots Available" error allows exit nodes to signal capacity limits without dropping requests silently,
@@ -406,8 +573,11 @@ The protocol provides structured error reporting to enable intelligent failure h
 
 ### 6.1 Version Compatibility
 
-- Version 2 (`0x02`) is the initial version of the session start protocol specified in this document.
-- Future versions MUST use different version numbers to distinguish themselves from version 2.
+- Version 4 (`0x04`) is the current version. It extends the `StartSession` Additional Data to 16 bytes, adds the identifier type to `SessionError`,
+  and adds deposit data and retransmission requests to `SsaRequest`.
+- Version 3 (`0x03`) added the `SsaCommit` and `SsaRequest` messages for PIX incentivization.
+- Version 2 (`0x02`) is the version prior to PIX.
+- Future versions MUST use different version numbers to distinguish themselves from version 4.
 - Implementations MUST reject messages with unknown or unsupported version numbers.
 - Version negotiation mechanisms are out of scope for this specification; if needed, they should be addressed in future RFCs.
 
