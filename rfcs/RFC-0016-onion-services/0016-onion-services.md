@@ -1022,7 +1022,231 @@ per-row share budget is renewed by a new agreement `i`.
 
 ### 4.6 End-to-end handshake and session
 
-_TBD._
+Each HOPR leg is encrypted only to that leg's endpoints, so without an
+additional layer the rendezvous bridge would see plaintext. An end-to-end
+handshake keyed to the service identity is therefore MANDATORY; the bridge only
+ever relays ciphertext.
+
+This layer is not redundant with HOPR's own encryption. The bridge *terminates*
+both legs (it is each side's Sphinx endpoint), and client and service never share
+a path — that is the whole reason they meet at a bridge — so there is no
+Sphinx-level shared secret between them to reuse. A dedicated end-to-end key
+agreement is the only way to keep the junction blind.
+
+Given that, the handshake must provide three things: **confidentiality** from the
+bridge, **service authentication** (the client must reach the real service, not a
+man-in-the-middle bridge — which requires mixing in the service's static key,
+which the client already holds from the descriptor), and **client anonymity** (no
+client static key). Noise-IK [09] is the minimal pattern that yields exactly
+these — an initiator who knows the responder's static key — plus forward secrecy
+from an ephemeral-ephemeral term. It costs **no extra round trips**: both
+ephemerals ride inside messages already being sent (`E_c` in the introduction,
+`E_s` in the rendezvous). The only lighter option is to drop forward secrecy
+(a plain ephemeral-to-static ECIES), which saves one curve operation and no
+latency while exposing all past sessions to a later static-key compromise; this
+RFC keeps forward secrecy.
+
+The handshake is a Noise-IK-style [09] exchange over X25519 [10]. The service's
+per-period static key `S_s = handshake_static` is published (signed) in the
+descriptor (Section 4.3.1). The client generates an e2e ephemeral `E_c` (carried
+inside `enc_blob` as `client_eph_e2e`, distinct from the blob ephemeral); the
+service generates an ephemeral `E_s` (sent in `RENDEZVOUS1`). Define:
+
+```
+transcript_hash = H( "hopr-onion-e2e/v1" || pk_S || S_s || E_c || E_s
+                     || RC_1 || ... || RC_M || descriptor.revision )
+                     // the ordered set of all M rendezvous cookies; M = 1 for single-path
+es = DH(E_c, S_s)      // authenticates the service (only the S_s holder computes it)
+ee = DH(E_c, E_s)      // ephemeral-ephemeral, forward secrecy
+k  = KDF("hopr-onion-e2e", ee || es, transcript_hash)
+k_c2s, k_s2c, k_confirm = HKDF-Expand(k, {"c2s","s2c","confirm"})
+```
+
+`transcript_hash` binds the identity `pk_S`, the published `S_s`, **both
+ephemerals exactly as transmitted**, the cookie, and the descriptor `revision`.
+The service computes `confirm_tag = MAC(k_confirm, transcript_hash)` over its own
+view; the client recomputes `transcript_hash` with the `E_s` it actually received
+and the `E_c` it sent, so any substitution of `E_s` by a malicious RB (a MitM
+attempt) changes `transcript_hash`, fails the MAC, and MUST cause the client to
+abort. Binding `pk_S` means a valid `confirm_tag` proves the responder holds an
+`S_s` cryptographically tied to the exact address dialled, closing the gap
+between the descriptor signature chain and the key-agreement layer.
+
+Forward secrecy: a passive recorder holding `E_c` and `E_s` public values and a
+later-compromised `S_s` can compute `es` but **not** `ee` (which needs a private
+ephemeral, destroyed after use); provided endpoints destroy `E_c`/`E_s` private
+keys promptly, past sessions remain confidential under static-key compromise.
+The service is authenticated to the client (via `es` and `pk_S` binding); the
+client is intentionally unauthenticated at the transport layer (application-level
+authorisation is Section 4.8).
+
+The e2e session runs the session-data protocol
+([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) with frames
+AEAD-encrypted under `k_c2s`/`k_s2c`. This RFC mandates **reliable session mode**
+for onion services (RFC-0008 leaves the default to the application). All AEAD
+uses (the intro blob, and each e2e direction) MUST use independent keys and
+independent 96-bit nonce counters beginning at zero and never reused, per
+Appendix 1.
+
+The e2e keys are fixed at handshake time and bound to the descriptor `revision`
+and period-specific `S_s` in force then. A live session therefore **continues
+unaffected across a period boundary**, even though `S_s`, the blinding key, and
+the descriptor rotate (Section 4.3); only *new* connections use the new period's
+descriptor. An endpoint MUST NOT tear down an established join merely because the
+descriptor it was opened under has since expired.
+
+#### 4.6.1 Multipath and multi-session rendezvous (optional)
+
+Two orthogonal, composable mechanisms let a client spread its exposure. This
+subsection defines both; a client MAY use either, both, or neither (the default
+is one single-path session).
+
+##### Multipath — one session across many bridges
+
+A client MAY establish the connection over **several rendezvous bridges in
+parallel** rather than one, striping a single logical session across them so that
+no individual bridge sees more than a fraction of the flow. Reconstructing the
+connection from the bridges then requires **all** `M` to collude.
+
+**Multipath defends only against bridge-side correlation, never against the
+endpoint.** The service is one end of the single e2e session and reassembles the
+whole flow regardless of `M`; multipath does nothing against a hostile *service*.
+It follows that the guarantee is **conditional on selection diversity**: if all
+`M` bridges are drawn from the service's `rendezvous_set` and the service is
+hostile, "all `M` collude" is trivially satisfied and multipath provides **no**
+protection — worse, it hands a hostile service `M` correlated vantages and costs
+`M`× the fees, so it is *strictly worse than single-path*. Therefore, when
+multipath is used as a correlation defence against a possibly-hostile service, at
+least one — SHOULD be `⌈M/2⌉` — of the `M` bridges MUST be **client-selected from
+bridges the client discovered itself** (Section 4.4.1), not from the descriptor
+set. Stated precisely: multipath protects against a bridge adversary controlling
+fewer than all `M` paths, **and assumes not all `M` are drawn from a single
+vouching party**.
+
+**What the invariant does and does not protect.** Be precise about the threat.
+Multipath cannot protect against the *service*: the service is an endpoint and
+reassembles the whole flow regardless of `M` (Section 4.6). The `⌈M/2⌉`
+client-contribution rule genuinely protects against **third-party bridge
+adversaries** (no single non-endpoint party sees the whole flow). Against a
+*hostile service*, its effect is not confidentiality but **fail-closed
+availability**: a hostile service that selectively fails the client-contributed
+paths breaks the invariant, the client detects it (by which `RENDEZVOUS2`
+arrived), and aborts — so the service gets no usable connection rather than a
+controlled one, but the client does not gain a working private channel either.
+That is the honest outcome; do not read the invariant as "defeating" a hostile
+service beyond denying it a controlled connection.
+
+**Enforcing it across partial establishment.** This rule applies **only when the
+client is running multipath as a correlation defence** (it contributed bridges,
+per above). In that mode, a service that cannot or will not join some chosen
+bridges (Section 4.5.4) leaves a *surviving* set of `M′ ≤ M` established paths,
+and the client MUST evaluate the invariant on the survivors — proceed only if at
+least `⌈M′/2⌉` are client-contributed, else abort or renegotiate. The ordinary
+**single-path-from-descriptor case (`M = 1`, no client contribution) is not
+subject to this rule** — there the client has chosen to trust the service's
+bridge and relies on leg-A multi-hop and shaping, not on bridge diversity. The
+client's recourse on a broken invariant is to renegotiate with alternative
+client-contributed bridges (fresh reservations), lower `M`, or abandon the
+service; the *service* never gets to unilaterally substitute or veto the client's
+contribution down to a set it controls. An OPTIONAL pre-introduction step lets the
+client ask the service which candidate bridges it can reach *before* committing
+reservations, trading one round trip and earlier candidate-set disclosure for
+avoided reservation-fee waste; it does not change the rule, always enforced on the
+finally-established set.
+
+Mechanically:
+
+- The client selects `M` distinct rendezvous bridges (`M = 1` is the ordinary
+  single-path case), at least `⌈M/2⌉` client-discovered, and reserves at each
+  (Section 4.5.2), obtaining `M` reservation tokens carried in `IntroPayload`
+  (Section 4.5.3).
+- There is **one** end-to-end handshake and **one** e2e key (Section 4.6), whose
+  transcript binds the set of all `M` cookies; the session-data protocol
+  ([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) segments are
+  striped across the `M` joined paths and reassembled at each end.
+- Each path is provisioned at rate `R/M` of the target rate `R` and independently
+  constant-rate shaped (Section 4.9), so a single bridge sees a genuine fraction
+  (not the full rate). To stop the `M` legs being a co-onset fingerprint, path
+  establishment and per-path reservation timing MUST be **staggered/jittered**,
+  not simultaneous — otherwise `M` same-rate legs opened to one service within one
+  round trip are themselves a linkage signal to a multi-bridge adversary.
+- Each path is a separate HOPR leg pair, **paid independently** (Section 4.7):
+  the client funds `M` client-side legs and `M` bridge fee streams. Multipath
+  trades cost for correlation resistance and resilience (a failed bridge degrades
+  rather than drops the connection).
+
+The multipath degree `M` is chosen by the client per its threat model and the
+number of *independently-trusted* bridges available; striping, reassembly, and
+path-failure handling are specified below.
+
+##### Multi-session — many independent sessions
+
+Above the transport masking of a single (possibly multipath) session, a client
+MAY run **several independent end-to-end sessions** to the same service, each
+with its **own handshake, own e2e key, own pseudonym and cookie(s), and its own
+single- or multi-path routing**. This serves application multiplexing (for
+example separating control from bulk, or distinct requests) and adds
+unlinkability **at the bridge and e2e-crypto layers**: independent sessions share
+no e2e key and no pseudonym and traverse different bridges. This unlinkability is
+**not absolute**: all N sessions' leg-A forward paths and return SURBs are funded
+from the *same client's channel neighbourhood*, so an adversary observing several
+bridges can still link them via the shared funded-channel fingerprint (Section
+7) — and the stable guard set recommended in Section 7 *strengthens* that
+linkage. So the sessions are unlinkable at the bridge/crypto layer, linkable at
+the service only if the application correlates them, and partially linkable below
+via channel-graph analysis; the two goals (session diversity vs a stable, small
+guard set) are in tension and a client must choose its point on that spectrum.
+Each session and each of its paths is established as in Section 4.5 and paid
+independently (Section 4.7).
+
+The two knobs are complementary: **multipath** ensures no single bridge sees a
+whole session; **multi-session** ensures no single session — and no observer of
+one — sees the whole client-service relationship. A cautious client can stack
+them: N independent sessions, each striped across M bridges.
+
+##### Striping, reassembly and path failure
+
+Multipath reuses the session-data protocol
+([RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md)) rather than
+adding a new sequence space. That protocol already numbers every segment globally
+within a session (`frame_id`, `seq_num`), and reliable mode already tolerates
+out-of-order arrival and drives retransmission. Multipath therefore works as
+follows:
+
+- **Striping.** The sender assigns each outgoing segment to one of the `M` paths,
+  weighting the assignment by each path's provisioned rate (`R/M`, equal by
+  default). Because the constant-rate shaping (Section 4.9) drives each path
+  regardless of real traffic, the sender fills real segments into the shaped slots
+  of whichever path has capacity, emitting cover padding on any path whose real
+  queue is empty; a bridge cannot tell a real segment from padding.
+- **Reassembly is path-agnostic, with a bounded buffer.** The receiver reassembles
+  frames from `(frame_id, seq_num)` exactly as in
+  [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md), regardless of
+  which path delivered each segment; the M paths are simply M transports feeding
+  one reorder buffer. The reorder buffer MUST be **bounded to a fixed maximum**,
+  not sized to an attacker-controlled skew: a malicious slow path could otherwise
+  delay just under a "max skew" threshold to force unbounded buffering and
+  head-of-line stalls. Instead of waiting on the slowest path, the receiver
+  applies a **per-path segment deadline** — a segment later than the deadline is
+  treated as lost and requested for retransmission on a *healthy* path (a "slow
+  path" is demoted distinctly from a "failed" one). Beyond the buffer cap the
+  receiver drops/NAKs and lets reliable-mode recovery re-fetch on healthy paths.
+- **Acknowledgements** may return on any path; frame ACKs and retransmission
+  requests are session-global and not bound to the path that carried the original.
+- **Path failure or slowness degrades, it does not drop.** If a path stalls (SURB
+  starvation, Section 4.9, an unresponsive bridge, or persistent deadline misses),
+  the sender stops assigning new segments to it and redistributes across the
+  survivors;
+  [RFC-0008](../RFC-0008-session-protocol/0008-session-protocol.md) reliable-mode
+  retransmission recovers the affected segments on a healthy path (a slow-but-not-
+  lost segment is force-retransmitted via the deadline above rather than blocking
+  the session). The session survives as long as at least one path remains. A
+  client MAY re-establish a replacement path (a fresh reservation + `RENDEZVOUS1`,
+  extending the existing e2e session's cookie set) to restore degree `M`.
+- **Per-path accounting.** Each path carries its own SURB pool and its own PIX
+  agreement (Section 4.5.5); a bridge is paid via its own leg's return
+  acknowledgements for the segments (real or padding) it delivered, so accounting
+  is naturally per-path and needs no cross-path settlement.
 
 ### 4.7 Incentivisation
 
